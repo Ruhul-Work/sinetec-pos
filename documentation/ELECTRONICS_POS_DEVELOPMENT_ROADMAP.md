@@ -369,6 +369,8 @@ Receipt      Adjustment      Production   Stock Count
 3. Confirm the initial branch/warehouse list and the default issuing warehouse for each showroom.
 4. Test retained access, branch, warehouse, company, location and master-data screens.
 5. **Complete:** legacy dashboard queries were replaced with the clean-schema zero state.
+6. **Complete:** route-detached legacy controllers, models, services, jobs and Blade screens were removed after creating the recoverable Git baseline.
+7. **Next implementation:** Units & Unit Conversion, followed by the three category and inventory-master modules.
 
 Finance account mapping and the opening-stock valuation/approval date remain later operational gates. Draft journals cannot be posted before mapping approval.
 

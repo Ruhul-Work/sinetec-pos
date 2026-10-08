@@ -41,8 +41,4 @@ class User extends Authenticatable
         return $this->role?->is_super == 1;
     }
 
-    public function coupon()
-    {
-        return $this->belongsToMany(Coupon::class);
-    }
 }

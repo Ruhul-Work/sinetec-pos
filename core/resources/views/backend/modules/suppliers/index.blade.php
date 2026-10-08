@@ -35,13 +35,13 @@
 
                 @perm('supplier.store')
                     <button class="d-flex btn btn-dark btn-sm px-12  radius-8 AjaxModal" data-size="lg"
-                        data-onsuccess="BranchesIndex.onSaved" data-ajax-modal="{{ route('supplier.import_csv') }}">
+                        data-onsuccess="SupplierIndex.onSaved" data-ajax-modal="{{ route('supplier.import_csv') }}">
                         <iconify-icon icon="ic:baseline-plus" class="text-xl"></iconify-icon>Import
                     </button>
                 @endperm
                 @perm('supplier.create')
                     <a href="{{ route('supplier.create') }}" class="d-flex btn btn-primary btn-sm px-12 py-8 radius-8 "
-                        data-size="lg" data-onsuccess="BranchesIndex.onSaved">
+                        data-size="lg" data-onsuccess="SupplierIndex.onSaved">
                         <iconify-icon icon="ic:baseline-plus" class="text-xl"></iconify-icon>Add supplier
                     </a>
                 @endperm
@@ -80,7 +80,7 @@
     <script>
         var DATATABLE_URL = "{{ route('supplier.list.ajax') }}";
 
-        window.BranchesIndex = {
+        window.SupplierIndex = {
             onSaved: function(res) {
                 // DataTable current page reload
                 $('.AjaxDataTable').DataTable().ajax.reload(null, false);

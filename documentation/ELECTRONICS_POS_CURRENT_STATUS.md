@@ -63,11 +63,21 @@ Old permission data points to removed routes. Permissions must be created from t
 ## 4. Known application work before full use
 
 - Dashboard legacy business queries are removed; cards/charts now use a safe zero state until each new module supplies its approved metrics.
+- Phase 0.5 application cleanup is complete: route-detached legacy product, purchase, POS, stock, report, promotion and old transaction controllers/models/services/views were removed after the new Git baseline tag was created.
+- The retained Supplier controller is now master-data only; its old purchase/return/ledger coupling was removed and its browser-parsed CSV/XLSX import was aligned with the clean supplier schema.
+- The shared helper file now contains only retained image upload/path and branch/warehouse/fiscal-year context helpers; legacy storefront product, cart, coupon and shipping helpers were removed.
+- The active application currently exposes 179 retained routes, with no undefined literal route references in backend/auth Blade templates.
 - Build models/controllers/services/views for the new inventory and manufacturing tables.
 - Rebuild stock posting as transaction-safe services.
 - Rebuild automatic finance drafts; a journal cannot be posted before account mapping and approval.
 - Test retained Supplier/Customer CSV imports against the clean schema.
 - Review public registration before production; unrestricted role selection must not be exposed.
+
+### Immediate development start
+
+1. Complete the retained foundation-data smoke test on the clean database.
+2. Build Units & Unit Conversion as the first Phase 1 module.
+3. Continue with the three category masters and then Raw Material, Part and Finished Product masters.
 
 ## 5. Authoritative documents
 
