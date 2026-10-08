@@ -1,0 +1,44 @@
+# Local editor and AI-agent state
+/.agents/
+/.claude/
+/.kilo/
+/.vscode/
+
+# Local environment and credentials
+/core/.env
+/core/.env.*
+!/core/.env.example
+/core/auth.json
+
+# Installed dependencies
+/core/vendor/
+/core/node_modules/
+
+# Generated frontend and Laravel runtime files
+/core/public/build/
+/core/public/hot
+/core/public/storage
+/core/bootstrap/cache/*.php
+/core/storage/*.key
+/core/storage/pail/
+
+# Runtime uploads and web-server logs (retain directory guards)
+/uploads/*
+!/uploads/index.php
+/log/*
+!/log/index.php
+/backup/*
+!/backup/index.php
+
+# Local databases, dumps, logs, and test caches
+*.sqlite
+*.sqlite-*
+*.sql
+*.log
+.phpunit.result.cache
+.phpunit.cache/
+
+# Operating-system files
+.DS_Store
+Thumbs.db
+
