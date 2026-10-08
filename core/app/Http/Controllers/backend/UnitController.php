@@ -5,6 +5,8 @@ namespace App\Http\Controllers\backend;
 use App\Http\Controllers\Controller;
 use App\Models\backend\Unit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class UnitController extends Controller
 {
@@ -128,11 +130,13 @@ class UnitController extends Controller
     public function store(Request $request)
     {
         $val = $request->validate([
-            'name'      => 'required|string|max:255',
+            'name'      => 'required|string|max:100',
             'code'      => 'required|string|max:16|unique:units,code',
             'precision' => 'required|integer|min:0|max:6',
             'is_active' => 'sometimes|boolean',
         ]);
+        $val['name'] = trim($val['name']);
+        $val['code'] = strtoupper(trim($val['code']));
         $val['is_active'] = $request->boolean('is_active');
 
         $unit = Unit::create($val);
@@ -144,11 +148,13 @@ class UnitController extends Controller
     public function update(Request $request, Unit $unit)
     {
         $val = $request->validate([
-            'name'      => 'required|string|max:255',
-            'code'      => 'required|string|max:16|unique:units,code,' . $unit->id,
+            'name'      => 'required|string|max:100',
+            'code'      => ['required', 'string', 'max:16', Rule::unique('units', 'code')->ignore($unit->id)],
             'precision' => 'required|integer|min:0|max:6',
             'is_active' => 'sometimes|boolean',
         ]);
+        $val['name'] = trim($val['name']);
+        $val['code'] = strtoupper(trim($val['code']));
         $val['is_active'] = $request->boolean('is_active');
 
         $unit->update($val);
@@ -157,7 +163,28 @@ class UnitController extends Controller
 
     public function destroy(Unit $unit)
     {
-        $unit->delete(); 
+        $references = [
+            ['unit_conversions', 'from_unit_id'],
+            ['unit_conversions', 'to_unit_id'],
+            ['raw_materials', 'base_unit_id'],
+            ['parts', 'base_unit_id'],
+            ['finished_products', 'base_unit_id'],
+            ['raw_material_units', 'unit_id'],
+            ['part_units', 'unit_id'],
+            ['finished_product_units', 'unit_id'],
+        ];
+
+        foreach ($references as [$table, $column]) {
+            if (DB::table($table)->where($column, $unit->id)->exists()) {
+                return response()->json([
+                    'success' => false,
+                    'msg' => 'This unit is already used by a conversion or inventory item and cannot be deleted.',
+                ], 422);
+            }
+        }
+
+        $unit->delete();
+
         return response()->json(['success' => true, 'msg' => 'Unit deleted']);
     }
 

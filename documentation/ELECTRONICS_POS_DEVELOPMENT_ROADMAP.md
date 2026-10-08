@@ -106,7 +106,8 @@ Receipt      Adjustment      Production   Stock Count
 | --- | --- | --- | --- |
 | New module permissions and menu groups | Reuse RBAC | Phase 0 | All future modules |
 | Branch/warehouse type update | Adapt `branches`, `warehouses` | Phase 0 | Inventory, purchase, production, sales |
-| Domain categories | New raw-material, part and finished-product categories | None | Masters and reports |
+| **Complete:** Units and universal unit conversions | Adapt `units`; add `unit_conversions` CRUD | Phase 0 | All inventory masters and item-specific unit mappings |
+| **Complete:** Domain categories | New raw-material, part and finished-product categories | None | Masters and reports |
 | Raw-material master | New `raw_materials` | Units, category, brand | Purchase, part production, assembly |
 | Part master | New `parts` | Units, category, brand | Purchase, part production, product assembly |
 | Finished-product master | New `finished_products` | Units, category, brand | Product assembly, POS/wholesale |
@@ -370,7 +371,9 @@ Receipt      Adjustment      Production   Stock Count
 4. Test retained access, branch, warehouse, company, location and master-data screens.
 5. **Complete:** legacy dashboard queries were replaced with the clean-schema zero state.
 6. **Complete:** route-detached legacy controllers, models, services, jobs and Blade screens were removed after creating the recoverable Git baseline.
-7. **Next implementation:** Units & Unit Conversion, followed by the three category and inventory-master modules.
+7. **Complete:** Units & Unit Conversion CRUD, reverse-factor display, duplicate-pair validation and reference-safe unit deletion.
+8. **Complete:** three independent category modules with parent hierarchy, searchable Select2 parent selection, delete protection and separate RBAC mappings.
+9. **Next implementation:** Raw Material, Part and Finished Product masters, starting with Raw Material.
 
 Finance account mapping and the opening-stock valuation/approval date remain later operational gates. Draft journals cannot be posted before mapping approval.
 

@@ -3,6 +3,7 @@
 namespace App\Models\backend;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Unit extends Model
@@ -24,5 +25,15 @@ class Unit extends Model
             $x->where('name','like',"%$s%")
               ->orWhere('code','like',"%$s%");
         });
+    }
+
+    public function conversionsFrom(): HasMany
+    {
+        return $this->hasMany(UnitConversion::class, 'from_unit_id');
+    }
+
+    public function conversionsTo(): HasMany
+    {
+        return $this->hasMany(UnitConversion::class, 'to_unit_id');
     }
 }

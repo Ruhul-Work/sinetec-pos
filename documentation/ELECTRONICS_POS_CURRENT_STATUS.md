@@ -66,7 +66,9 @@ Old permission data points to removed routes. Permissions must be created from t
 - Phase 0.5 application cleanup is complete: route-detached legacy product, purchase, POS, stock, report, promotion and old transaction controllers/models/services/views were removed after the new Git baseline tag was created.
 - The retained Supplier controller is now master-data only; its old purchase/return/ledger coupling was removed and its browser-parsed CSV/XLSX import was aligned with the clean supplier schema.
 - The shared helper file now contains only retained image upload/path and branch/warehouse/fiscal-year context helpers; legacy storefront product, cart, coupon and shipping helpers were removed.
-- The active application currently exposes 179 retained routes, with no undefined literal route references in backend/auth Blade templates.
+- The active application currently exposes 186 retained/new routes, with no undefined literal route references in backend/auth Blade templates.
+- The first Phase 1 module is complete: Units and company-wide universal Unit Conversions have CRUD screens, reverse conversion display, duplicate-pair protection, reference-safe unit deletion and automated feature coverage.
+- The three Phase 1 category masters are complete: Raw Material, Part and Finished Product categories have separate CRUD routes/tables/permissions, optional parent hierarchy, cycle protection, Select2 parent lookup and reference-safe deletion.
 - Build models/controllers/services/views for the new inventory and manufacturing tables.
 - Rebuild stock posting as transaction-safe services.
 - Rebuild automatic finance drafts; a journal cannot be posted before account mapping and approval.
@@ -76,8 +78,9 @@ Old permission data points to removed routes. Permissions must be created from t
 ### Immediate development start
 
 1. Complete the retained foundation-data smoke test on the clean database.
-2. Build Units & Unit Conversion as the first Phase 1 module.
-3. Continue with the three category masters and then Raw Material, Part and Finished Product masters.
+2. **Complete:** Build Units & Unit Conversion as the first Phase 1 module.
+3. **Complete:** Build the three independent category masters.
+4. **Next:** Build Raw Material, Part and Finished Product masters, starting with Raw Material.
 
 ## 5. Authoritative documents
 

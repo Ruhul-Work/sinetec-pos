@@ -10,9 +10,13 @@ use App\Http\Controllers\backend\CustomerController;
 use App\Http\Controllers\backend\DistrictController;
 use App\Http\Controllers\backend\DivisionController;
 use App\Http\Controllers\backend\FiscalYearController;
+use App\Http\Controllers\backend\FinishedProductCategoryController;
+use App\Http\Controllers\backend\PartCategoryController;
 use App\Http\Controllers\backend\PaymentTypeController;
+use App\Http\Controllers\backend\RawMaterialCategoryController;
 use App\Http\Controllers\backend\SupplierController;
 use App\Http\Controllers\backend\UnitController;
+use App\Http\Controllers\backend\UnitConversionController;
 use App\Http\Controllers\backend\UpazilaController;
 use App\Http\Controllers\backend\WarehouseController;
 use Illuminate\Support\Facades\Route;
@@ -86,12 +90,40 @@ Route::middleware(['web', 'auth', 'perm', 'branchscope'])->group(function () {
         Route::post('/', [UnitController::class, 'store'])->name('store');
         Route::get('quick', [UnitController::class, 'quick'])->name('quick');
         Route::get('select2', [UnitController::class, 'select2'])->name('select2');
+
+        Route::prefix('conversions')->name('conversions.')->group(function () {
+            Route::get('/', [UnitConversionController::class, 'index'])->name('index');
+            Route::post('list', [UnitConversionController::class, 'listAjax'])->name('list.ajax');
+            Route::get('create-modal', [UnitConversionController::class, 'createModal'])->name('createModal');
+            Route::post('/', [UnitConversionController::class, 'store'])->name('store');
+            Route::get('{unitConversion}/edit-modal', [UnitConversionController::class, 'editModal'])->name('editModal');
+            Route::put('{unitConversion}', [UnitConversionController::class, 'update'])->name('update');
+            Route::delete('{unitConversion}', [UnitConversionController::class, 'destroy'])->name('destroy');
+        });
+
         Route::get('{unit}/edit-modal', [UnitController::class, 'editModal'])->name('editModal');
         Route::put('{unit}', [UnitController::class, 'update'])->name('update');
         Route::delete('{unit}', [UnitController::class, 'destroy'])->name('destroy');
     });
 
     Route::prefix('inventory')->name('inventory.')->group(function () {
+        $categoryRoutes = function (string $uri, string $name, string $controller): void {
+            Route::prefix($uri)->name($name.'.')->controller($controller)->group(function () {
+                Route::get('/', 'index')->name('index');
+                Route::post('list', 'listAjax')->name('list.ajax');
+                Route::get('create-modal', 'createModal')->name('createModal');
+                Route::post('/', 'store')->name('store');
+                Route::get('select2', 'select2')->name('select2');
+                Route::get('{category}/edit-modal', 'editModal')->whereNumber('category')->name('editModal');
+                Route::put('{category}', 'update')->whereNumber('category')->name('update');
+                Route::delete('{category}', 'destroy')->whereNumber('category')->name('destroy');
+            });
+        };
+
+        $categoryRoutes('raw-material-categories', 'raw-material-categories', RawMaterialCategoryController::class);
+        $categoryRoutes('part-categories', 'part-categories', PartCategoryController::class);
+        $categoryRoutes('finished-product-categories', 'finished-product-categories', FinishedProductCategoryController::class);
+
         Route::get('warehouses', [WarehouseController::class, 'index'])->name('warehouses.index');
         Route::post('warehouses/list', [WarehouseController::class, 'listAjax'])->name('warehouses.list.ajax');
         Route::get('warehouses/create-modal', [WarehouseController::class, 'createModal'])->name('warehouses.createModal');

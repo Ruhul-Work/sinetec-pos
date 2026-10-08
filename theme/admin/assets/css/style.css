@@ -15791,8 +15791,8 @@ td.fc-header-center {
   margin-inline-end: 0.5rem;
 }
 
-.sidebar.active:hover .sidebar-menu li.dropdown.dropdown-open .sidebar-submenu,
-.sidebar.active:hover .sidebar-menu li.dropdown.open .sidebar-submenu {
+.sidebar.active:hover .sidebar-menu li.dropdown.dropdown-open > .sidebar-submenu,
+.sidebar.active:hover .sidebar-menu li.dropdown.open > .sidebar-submenu {
   display: block !important;
 }
 
@@ -15825,8 +15825,8 @@ td.fc-header-center {
   display: none;
 }
 
-.sidebar.active .sidebar-menu li.dropdown.dropdown-open .sidebar-submenu,
-.sidebar.active .sidebar-menu li.dropdown.open .sidebar-submenu {
+.sidebar.active .sidebar-menu li.dropdown.dropdown-open > .sidebar-submenu,
+.sidebar.active .sidebar-menu li.dropdown.open > .sidebar-submenu {
   display: none !important;
 }
 
@@ -15936,7 +15936,7 @@ td.fc-header-center {
   transform: translateY(-50%) rotate(90deg);
 }
 
-.sidebar-menu li.dropdown.open .sidebar-submenu {
+.sidebar-menu li.dropdown.open > .sidebar-submenu {
   display: block;
 }
 

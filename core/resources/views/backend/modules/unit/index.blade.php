@@ -32,6 +32,12 @@
         <ul class="table-top-head list-unstyled d-flex align-items-center gap-2 mb-0">
           @include('backend.include.buttons')
         </ul>
+        @perm('units.conversions.index', 'view')
+          <a href="{{ route('units.conversions.index') }}" class="d-flex btn btn-outline-primary btn-sm px-12 py-8 radius-8">
+            <iconify-icon icon="mdi:swap-horizontal" class="text-xl"></iconify-icon> Conversions
+          </a>
+        @endperm
+        @perm('units.store', 'add')
         <button
           class="d-flex btn btn-primary btn-sm px-12 py-8 radius-8 AjaxModal"
           data-ajax-modal="{{ route('units.createModal') }}"
@@ -39,6 +45,7 @@
           data-onsuccess="UnitsIndex.onSaved">
           <iconify-icon icon="ic:baseline-plus" class="text-xl"></iconify-icon> Add Unit
         </button>
+        @endperm
       </div>
     </div>
 

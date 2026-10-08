@@ -30,7 +30,7 @@
                 </ul>
             </li>
 
-            @permgroup(['usermanage', 'rbac', 'security'])
+            @permgroup(['core.users', 'core.permissions', 'core.roles', 'core.firewall'])
                 <li class="sidebar-menu-group-title">Administration</li>
                 <li class="dropdown {{ Route::is('usermanage.*') || Route::is('rbac.*') || Route::is('security.*') ? 'active' : '' }}">
                     <a href="javascript:void(0)">
@@ -54,7 +54,7 @@
                 </li>
             @endpermgroup
 
-            @permgroup(['org.branches', 'inventory.warehouses', 'company_setting'])
+            @permgroup(['core.branches', 'core.warehouses', 'core.company_settings'])
                 <li class="sidebar-menu-group-title">Organization</li>
                 <li class="dropdown {{ Route::is('org.branches.*') || Route::is('inventory.warehouses.*') || Route::is('company_setting.*') ? 'active' : '' }}">
                     <a href="javascript:void(0)">
@@ -75,17 +75,39 @@
                 </li>
             @endpermgroup
 
-            @permgroup(['units', 'brand', 'supplier', 'customer', 'paymentTypes'])
+            @permgroup(['core.units', 'core.brands', 'core.suppliers', 'core.customers', 'core.payment_types', 'inventory.raw_material_categories', 'inventory.part_categories', 'inventory.finished_product_categories'])
                 <li class="sidebar-menu-group-title">Master Data</li>
-                <li class="dropdown {{ Route::is('units.*') || Route::is('brand.brands.*') || Route::is('supplier.*') || Route::is('customer.*') || Route::is('paymentTypes.*') ? 'active' : '' }}">
+                <li class="dropdown {{ Route::is('units.*') || Route::is('brand.brands.*') || Route::is('supplier.*') || Route::is('customer.*') || Route::is('paymentTypes.*') || Route::is('inventory.*-categories.*') ? 'active' : '' }}">
                     <a href="javascript:void(0)">
                         <iconify-icon icon="mdi:database-cog-outline" class="menu-icon"></iconify-icon>
                         <span>Master Setup</span>
                     </a>
                     <ul class="sidebar-submenu">
                         @perm('units.index')
-                            <li><a class="{{ Route::is('units.*') ? 'active' : '' }}" href="{{ route('units.index') }}"><iconify-icon icon="mdi:ruler" class="menu-icon"></iconify-icon><span>Units</span></a></li>
+                            <li><a class="{{ Route::is('units.index') || Route::is('units.createModal') || Route::is('units.editModal') ? 'active' : '' }}" href="{{ route('units.index') }}"><iconify-icon icon="mdi:ruler" class="menu-icon"></iconify-icon><span>Units</span></a></li>
                         @endperm
+                        @perm('units.conversions.index')
+                            <li><a class="{{ Route::is('units.conversions.*') ? 'active' : '' }}" href="{{ route('units.conversions.index') }}"><iconify-icon icon="mdi:swap-horizontal" class="menu-icon"></iconify-icon><span>Unit Conversions</span></a></li>
+                        @endperm
+                        @permgroup(['inventory.raw_material_categories', 'inventory.part_categories', 'inventory.finished_product_categories'])
+                            <li class="dropdown {{ Route::is('inventory.*-categories.*') ? 'active' : '' }}">
+                                <a href="javascript:void(0)">
+                                    <iconify-icon icon="mdi:shape-plus-outline" class="menu-icon"></iconify-icon>
+                                    <span>Categories</span>
+                                </a>
+                                <ul class="sidebar-submenu">
+                                    @perm('inventory.raw-material-categories.index')
+                                        <li><a class="{{ Route::is('inventory.raw-material-categories.*') ? 'active' : '' }}" href="{{ route('inventory.raw-material-categories.index') }}"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i><span>Raw Materials</span></a></li>
+                                    @endperm
+                                    @perm('inventory.part-categories.index')
+                                        <li><a class="{{ Route::is('inventory.part-categories.*') ? 'active' : '' }}" href="{{ route('inventory.part-categories.index') }}"><i class="ri-circle-fill circle-icon text-success-main w-auto"></i><span>Parts</span></a></li>
+                                    @endperm
+                                    @perm('inventory.finished-product-categories.index')
+                                        <li><a class="{{ Route::is('inventory.finished-product-categories.*') ? 'active' : '' }}" href="{{ route('inventory.finished-product-categories.index') }}"><i class="ri-circle-fill circle-icon text-warning-main w-auto"></i><span>Finished Products</span></a></li>
+                                    @endperm
+                                </ul>
+                            </li>
+                        @endpermgroup
                         @perm('brand.brands.index')
                             <li><a class="{{ Route::is('brand.brands.*') ? 'active' : '' }}" href="{{ route('brand.brands.index') }}"><iconify-icon icon="mdi:tag-outline" class="menu-icon"></iconify-icon><span>Brands</span></a></li>
                         @endperm
@@ -102,7 +124,7 @@
                 </li>
             @endpermgroup
 
-            @permgroup(['fiscal-years', 'account-types', 'accounts', 'branch-accounts'])
+            @permgroup(['core.fiscal_years', 'core.account_types', 'core.accounts', 'core.branch_accounts'])
                 <li class="sidebar-menu-group-title">Finance Foundation</li>
                 <li class="dropdown {{ Route::is('fiscal-years.*') || Route::is('account-types.*') || Route::is('accounts.*') || Route::is('branch-accounts.*') ? 'active' : '' }}">
                     <a href="javascript:void(0)">
@@ -126,7 +148,7 @@
                 </li>
             @endpermgroup
 
-            @permgroup(['country', 'division', 'district', 'upazila'])
+            @permgroup(['core.countries', 'core.divisions', 'core.districts', 'core.upazilas'])
                 <li class="sidebar-menu-group-title">Location Management</li>
                 <li class="dropdown {{ Route::is('country.*') || Route::is('division.*') || Route::is('district.*') || Route::is('upazila.*') ? 'active' : '' }}">
                     <a href="javascript:void(0)">

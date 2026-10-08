@@ -8,7 +8,7 @@
   <div class="modal-body">
     <div class="mb-3">
       <label class="form-label">Name</label>
-      <input name="name" class="form-control" required maxlength="255" value="{{ $unit->name ?? '' }}">
+      <input name="name" class="form-control" required maxlength="100" value="{{ $unit->name ?? '' }}">
     </div>
     <div class="mb-3">
       <label class="form-label">Code</label>
