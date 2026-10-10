@@ -1,9 +1,9 @@
 # Electronics Manufacturing, Inventory & Sales System — Project Plan
 
-**Status:** Business scope approved; clean database baseline implemented  
-**Version:** 1.0  
+**Status:** Business scope approved; phased implementation active
+**Version:** 1.1
 **Updated:** 8 October 2026  
-**Purpose:** This is a discussion and approval document. It does not approve database changes or implementation yet.
+**Purpose:** This is the authoritative business-scope and decision-history document. Physical implementation details and current progress are tracked in the linked design, roadmap and status documents.
 
 ## 1. Project objective
 
@@ -263,3 +263,4 @@ These four documents, including this plan, are the authoritative project set. Th
 | 0.8 | 28 September 2026 | Added phase-based development roadmap, module dependency map, acceptance checkpoints and release grouping. |
 | 0.9 | 7 October 2026 | Replaced unified item design with separate raw-material, part and finished-product masters/stock ledgers; packaging classified under raw materials; recorded the current panel-cleanup boundary. |
 | 1.0 | 8 October 2026 | Confirmed the clean 113-table database baseline, consolidated documentation and moved the project into foundation-data setup and module development. |
+| 1.1 | 8 October 2026 | Recorded Phase 1 implementation decisions: separate category modules and Raw Material Master; stock, rates, alternate units and supplier mappings remain separate downstream modules. |

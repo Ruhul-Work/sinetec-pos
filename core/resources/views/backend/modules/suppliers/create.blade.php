@@ -105,14 +105,9 @@
                                         <div class="mb-3 add-product">
                                             <label class="form-label">Image</label>
 
-                                            <div class="form-group">
-
-                                                <div class="row" id="supplier_image"></div>
-                                                
-                                              
-                                               
-
-                                            </div>
+                                            <input type="file" name="image" class="form-control js-image-picker"
+                                                accept="image/jpeg,image/png" data-max-size-kb="2048">
+                                            <div class="invalid-feedback d-block image-error" style="display:none"></div>
                                         </div>
                                     </div>
 
@@ -157,8 +152,6 @@
             font-weight: bold;
         }
     </style>
-    <script src="{{ asset('theme/admin/assets/plugins/fileupload/spartan-multi-image-picker-min.js') }}"
-        type="text/javascript"></script>
     <script>
         $(document).ready(function() {
 
@@ -227,28 +220,6 @@
 
                 });
             });
-
-
-
-
-            $("#supplier_image").spartanMultiImagePicker({
-                fieldName: 'image',
-                maxCount: 1,
-                rowHeight: '200px',
-                groupClassName: 'col',
-                maxFileSize: '',
-                dropFileLabel: "Drop Here",
-                onExtensionErr: function(index, file) {
-                    console.log(index, file, 'extension err');
-                    alert('Please only input png or jpg type file')
-                },
-                onSizeErr: function(index, file) {
-                    console.log(index, file, 'file size too big');
-                    alert('File size too big max:250KB');
-                }
-            });
-
-
 
 
 

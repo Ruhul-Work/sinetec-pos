@@ -1,7 +1,7 @@
 # Electronics POS — Current Status and Next Actions
 
 **Status:** Database baseline ready; foundation-data setup in progress  
-**Updated:** 8 October 2026
+**Updated:** 10 October 2026
 
 ## 1. Current result
 
@@ -66,9 +66,13 @@ Old permission data points to removed routes. Permissions must be created from t
 - Phase 0.5 application cleanup is complete: route-detached legacy product, purchase, POS, stock, report, promotion and old transaction controllers/models/services/views were removed after the new Git baseline tag was created.
 - The retained Supplier controller is now master-data only; its old purchase/return/ledger coupling was removed and its browser-parsed CSV/XLSX import was aligned with the clean supplier schema.
 - The shared helper file now contains only retained image upload/path and branch/warehouse/fiscal-year context helpers; legacy storefront product, cart, coupon and shipping helpers were removed.
-- The active application currently exposes 186 retained/new routes, with no undefined literal route references in backend/auth Blade templates.
+- The active application currently exposes 236 retained/new routes, with no undefined literal route references in backend/auth Blade templates.
 - The first Phase 1 module is complete: Units and company-wide universal Unit Conversions have CRUD screens, reverse conversion display, duplicate-pair protection, reference-safe unit deletion and automated feature coverage.
 - The three Phase 1 category masters are complete: Raw Material, Part and Finished Product categories have separate CRUD routes/tables/permissions, optional parent hierarchy, cycle protection, Select2 parent lookup and reference-safe deletion.
+- Raw Material Master is implemented with material/packaging/consumable classification, category/base-unit/optional-brand lookup, image handling, list filters, independent RBAC and downstream-reference delete protection. Stock quantity, rates, alternate units and suppliers are intentionally not stored in this master.
+- Part Master is implemented with `MAKE`/`BUY`/`BOTH` procurement modes, category/base-unit/optional-brand lookup, image handling, list filters, independent RBAC and downstream-reference delete protection. Made and purchased quantities will later enter the same part stock ledger.
+- Finished Product Master is implemented with category/base-unit/optional-brand lookup, optional default retail/wholesale prices, image handling, filters, independent RBAC and downstream-reference delete protection. The defaults do not replace immutable sale-line and approved monthly-report price snapshots.
+- A reusable Sinetec Image Picker now progressively enhances a standard `<input type="file" class="js-image-picker">` with compact dashed upload, preview, filename/size, replace/remove, drag-and-drop and configurable single/multiple modes on both full pages and AJAX modals. Raw Material, Part, Finished Product, Payment Type, Brand, Supplier and Customer now use it; no active retained screen executes Spartan.
 - Build models/controllers/services/views for the new inventory and manufacturing tables.
 - Rebuild stock posting as transaction-safe services.
 - Rebuild automatic finance drafts; a journal cannot be posted before account mapping and approval.
@@ -80,9 +84,29 @@ Old permission data points to removed routes. Permissions must be created from t
 1. Complete the retained foundation-data smoke test on the clean database.
 2. **Complete:** Build Units & Unit Conversion as the first Phase 1 module.
 3. **Complete:** Build the three independent category masters.
-4. **Next:** Build Raw Material, Part and Finished Product masters, starting with Raw Material.
+4. **Complete:** Build Raw Material Master without mixing stock, price, alternate-unit or supplier state into the master record.
+5. **Complete:** Build Part Master with `MAKE`, `BUY` and `BOTH` procurement modes.
+6. **Complete:** Build Finished Product Master with optional default retail/wholesale prices.
+7. **Next:** Build the three domain unit-mapping flows, then raw-material/part supplier mappings and reorder-level setup.
 
-## 5. Authoritative documents
+## 5. Implementation decision trace
+
+| Date | Area | Implemented decision | Deferred / dependency |
+| --- | --- | --- | --- |
+| 8 Oct 2026 | Units | One company-wide unit master and universal conversion pairs; reverse duplicate pairs are blocked. | Per-item usable units are configured later in domain unit mappings. |
+| 8 Oct 2026 | Categories | Raw Material, Part and Finished Product categories remain in three independent tables/modules; optional same-domain parent hierarchy is supported. | Category records do not carry stock, price or accounting state. |
+| 8 Oct 2026 | Raw Material Master | `raw_materials` stores identity and classification only: code, barcode, name, category, base unit, optional brand, kind, specification, description, image and status. | Stock ledger/balance, monthly rates, alternate units, supplier mapping and reorder levels remain separate roadmap modules. |
+| 8 Oct 2026 | Raw-material deletion | An unused record may be soft-deleted; any purchase, stock, BOM, production, rate, planning, unit or supplier reference blocks deletion and requires deactivation instead. | No historical transaction may lose its master reference. |
+| 8 Oct 2026 | Development data | Do not create or seed sample/demo business data unless the user explicitly requests it. | Required operational data will be entered/imported through approved setup flows. |
+| 10 Oct 2026 | Part Master | `parts` stores identity, classification and sourcing policy only; `MAKE`, `BUY` and `BOTH` all represent one part identity and feed one future stock ledger. | Stock quantity, transaction cost, monthly rate, alternate units, supplier mapping and reorder levels remain separate modules. |
+| 10 Oct 2026 | Part deletion | An unused part may be soft-deleted; purchase, stock, BOM, assembly, rate, planning, unit or supplier references block deletion and require deactivation. | Production and inventory history must retain its part reference. |
+| 10 Oct 2026 | Image picker | New work uses one dependency-free global picker by adding `js-image-picker` to a normal file input; native `multiple` and `data-*` options control mode, limits and existing images. Raw Material, Part, Finished Product, Payment Type, Brand, Supplier and Customer use it on full pages and AJAX modals. | Spartan is no longer executed by any retained screen; its static plugin file remains only as recoverable reference for now. |
+| 10 Oct 2026 | Finished Product Master | `finished_products` stores sellable-product identity, category, base unit, optional brand, optional default retail/wholesale prices, specification, description, image and status. Only this domain will be selectable by POS/wholesale sales. | Stock, calculated manufacturing cost, alternate units, monthly approved rates and sale-line price snapshots remain separate modules. |
+| 10 Oct 2026 | Finished-product deletion | An unused finished product may be soft-deleted; inventory, BOM, sales, rates, planning, units or promotion references block deletion and require deactivation. | Assembly and sales history must retain its product reference. |
+
+When a decision changes, add a new dated row; do not overwrite the old decision without recording what superseded it and why.
+
+## 6. Authoritative documents
 
 Only these documents are active:
 

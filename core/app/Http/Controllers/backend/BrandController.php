@@ -5,6 +5,7 @@ namespace App\Http\Controllers\backend;
 use App\Http\Controllers\Controller;
 use App\Models\backend\Brand;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\File;
 
 class BrandController extends Controller
 {
@@ -102,6 +103,8 @@ class BrandController extends Controller
             'slug'      => ['required', 'string', 'max:50', 'unique:brands,slug'],
             'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'meta_image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'remove_image' => ['sometimes', 'boolean'],
+            'remove_meta_image' => ['sometimes', 'boolean'],
             'meta_title' =>['nullable','string', 'max:150'],
             'meta_description' =>['nullable','string', 'max:150'],
             'meta_keywords' =>['nullable','string', 'max:150'],
@@ -110,7 +113,10 @@ class BrandController extends Controller
            
         ]);
 
-         $imagePath =uploadImage($req->file('image'), 'brand/images');
+         $imagePath = null;
+        if ($req->hasFile('image')) {
+            $imagePath = uploadImage($req->file('image'), 'brand/images');
+        }
          $metaImagePath = null;
         if ($req->hasFile('meta_image')) {
             $metaImagePath =uploadImage($req->file('meta_image'), 'brand/meta_images');
@@ -161,6 +167,8 @@ public function update(Request $req, Brand $brand)
         'meta_keywords' => ['nullable','string','max:150'],
         'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         'meta_image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+        'remove_image' => ['sometimes', 'boolean'],
+        'remove_meta_image' => ['sometimes', 'boolean'],
         'is_active' => ['required','integer'],
     ]);
 
@@ -171,22 +179,23 @@ public function update(Request $req, Brand $brand)
 
    
 
+    $removeImage = $req->boolean('remove_image');
+    $removeMetaImage = $req->boolean('remove_meta_image');
+
     if ($req->hasFile('image')) {
         $imagePath = uploadImage($req->file('image'), 'brand/images');
         $brand->image = $imagePath;
-
-        if ($previousImage && file_exists($previousImage)) {
-            unlink($previousImage);
-        }
+        $removeImage = true;
+    } elseif ($removeImage) {
+        $brand->image = null;
     }
 
     if ($req->hasFile('meta_image')) {
         $metaImagePath = uploadImage($req->file('meta_image'), 'brand/meta_images');
         $brand->meta_image = $metaImagePath;
-
-        if ($previousMetaImage && file_exists($previousMetaImage)) {
-            unlink($previousMetaImage);
-        }
+        $removeMetaImage = true;
+    } elseif ($removeMetaImage) {
+        $brand->meta_image = null;
     }
 
     $brand->name = ucwords($data['name']);
@@ -197,6 +206,13 @@ public function update(Request $req, Brand $brand)
     $brand->is_active = $data['is_active'];
 
     $brand->save();
+
+    if ($removeImage && $previousImage !== $brand->image) {
+        $this->deleteManagedImage($previousImage, 'uploads/brand/images/');
+    }
+    if ($removeMetaImage && $previousMetaImage !== $brand->meta_image) {
+        $this->deleteManagedImage($previousMetaImage, 'uploads/brand/meta_images/');
+    }
 
       return redirect()->route('brand.brands.index')
                      ->with('success', 'Brand updated successfully!');
@@ -212,12 +228,8 @@ public function update(Request $req, Brand $brand)
         $brand->delete();
 
       
-        if (isset($imagePath) && file_exists($imagePath)) {
-            unlink($imagePath);
-        }
-        if (isset($metaImagePath) && file_exists($metaImagePath)) {
-            unlink($metaImagePath);
-        }
+        $this->deleteManagedImage($imagePath, 'uploads/brand/images/');
+        $this->deleteManagedImage($metaImagePath, 'uploads/brand/meta_images/');
 
         return response()->json(['ok' => true, 'msg' => 'Brand deleted']);
     }
@@ -245,5 +257,19 @@ public function update(Request $req, Brand $brand)
                 'text' => $t->name
             ])
         ]);
+    }
+
+    private function deleteManagedImage(?string $path, string $allowedPrefix): void
+    {
+        if (! $path) {
+            return;
+        }
+
+        $relativePath = ltrim(str_replace('\\', '/', $path), '/');
+        if (! str_starts_with($relativePath, $allowedPrefix)) {
+            return;
+        }
+
+        File::delete(base_path('../'.$relativePath));
     }
 }

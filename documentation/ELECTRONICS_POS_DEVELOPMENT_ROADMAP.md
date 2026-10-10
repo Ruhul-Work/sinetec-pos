@@ -2,7 +2,7 @@
 
 **Status:** Active implementation roadmap; database baseline complete  
 **Version:** 1.0  
-**Updated:** 8 October 2026  
+**Updated:** 10 October 2026
 **Based on:** Project Plan v1.0 and Physical Database Design v2.1
 
 > **Decision override:** Any later reference in this document to a unified `inventory_item`, `inventory_movement`, or `inventory_balance` means the corresponding separate Raw Material, Part, and Finished Product masters/ledgers/balances. The unified-table proposal is cancelled.
@@ -108,9 +108,9 @@ Receipt      Adjustment      Production   Stock Count
 | Branch/warehouse type update | Adapt `branches`, `warehouses` | Phase 0 | Inventory, purchase, production, sales |
 | **Complete:** Units and universal unit conversions | Adapt `units`; add `unit_conversions` CRUD | Phase 0 | All inventory masters and item-specific unit mappings |
 | **Complete:** Domain categories | New raw-material, part and finished-product categories | None | Masters and reports |
-| Raw-material master | New `raw_materials` | Units, category, brand | Purchase, part production, assembly |
-| Part master | New `parts` | Units, category, brand | Purchase, part production, product assembly |
-| Finished-product master | New `finished_products` | Units, category, brand | Product assembly, POS/wholesale |
+| **Complete:** Raw-material master | New `raw_materials`; identity/classification only | Units, category, brand | Purchase, part production, assembly |
+| **Complete:** Part master | New `parts` | Units, category, brand | Purchase, part production, product assembly |
+| **Complete:** Finished-product master | New `finished_products` | Units, category, brand | Product assembly, POS/wholesale |
 | Domain unit mappings | New per-domain unit mapping | Units + domain master | Purchase, BOM, production, sale |
 | Material/part supplier setup | New typed supplier mappings | Supplier + raw material/part | Purchase, supply planning |
 | Supplier/customer/brand cleanup | Retain/adapt existing masters | Phase 0 | Purchase/sales |
@@ -373,7 +373,10 @@ Receipt      Adjustment      Production   Stock Count
 6. **Complete:** route-detached legacy controllers, models, services, jobs and Blade screens were removed after creating the recoverable Git baseline.
 7. **Complete:** Units & Unit Conversion CRUD, reverse-factor display, duplicate-pair validation and reference-safe unit deletion.
 8. **Complete:** three independent category modules with parent hierarchy, searchable Select2 parent selection, delete protection and separate RBAC mappings.
-9. **Next implementation:** Raw Material, Part and Finished Product masters, starting with Raw Material.
+9. **Complete:** Raw Material Master with type/category/base-unit/brand classification, image support, filters, reference-safe deletion and separate RBAC mapping.
+10. **Complete:** Part Master with `MAKE`/`BUY`/`BOTH` sourcing policy, image support, filters, reference-safe deletion and separate RBAC mapping.
+11. **Complete:** Finished Product Master with default retail/wholesale prices, image support, filters, reference-safe deletion and separate RBAC mapping.
+12. **Next implementation:** Domain unit mappings, followed by raw-material/part supplier mappings and reorder-level setup before Phase 2 stock posting.
 
 Finance account mapping and the opening-stock valuation/approval date remain later operational gates. Draft journals cannot be posted before mapping approval.
 

@@ -84,11 +84,9 @@
                                         <div class="mb-3 add-product">
                                             <label class="form-label">Image<span class="star-sign">*</span></label>
 
-                                            <div class="form-group">
-                                                <div class="row" id="brand_image">
-
-                                                </div>
-                                            </div>
+                                            <input type="file" name="image" class="form-control js-image-picker"
+                                                accept="image/jpeg,image/png" data-max-size-kb="2048">
+                                            <div class="invalid-feedback d-block image-error" style="display:none"></div>
                                         </div>
                                     </div>
 
@@ -182,8 +180,6 @@
     <form action="" id="createSubcategory" method="post">
         @csrf
 
-        <div class="card ">
-            <div class="card-body  ">
                 <div class="accordion-card-one accordion mb-6" id="accordionExample">
                     <div class="accordion-item">
                         <div class="accordion-header" id="headingOne">
@@ -227,11 +223,9 @@
                                         <div class="mb-3 add-product">
                                             <label class="form-label">Image<span class="star-sign">*</span></label>
 
-                                            <div class="form-group">
-                                                <div class="row" id="brand_image">
-
-                                                </div>
-                                            </div>
+                                            <input type="file" name="image" class="form-control js-image-picker"
+                                                accept="image/jpeg,image/png" data-max-size-kb="2048">
+                                            <div class="invalid-feedback d-block image-error" style="display:none"></div>
                                         </div>
                                     </div>
 
@@ -304,11 +298,9 @@
                                         <div class="row mt-2">
                                             <div class="col-lg-3 col-sm-6 col-12 mt-8">
                                                 <label class="form-label"> Meta Image</label>
-                                                <div class="form-group">
-                                                    <div class="row" id="meta_image">
-
-                                                    </div>
-                                                </div>
+                                                <input type="file" name="meta_image" class="form-control js-image-picker"
+                                                    accept="image/jpeg,image/png" data-max-size-kb="2048">
+                                                <div class="invalid-feedback d-block meta_image-error" style="display:none"></div>
                                             </div>
                                             <div class="col-lg-5 col-sm-6 col-12 ">
                                                 <div class="add-product list ">
@@ -327,8 +319,7 @@
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
+
 
 
         <div class="col-lg-12 mt-3">
@@ -345,8 +336,6 @@
             font-weight: bold;
         }
     </style>
-    <script src="{{ asset('theme/admin/assets/plugins/fileupload/spartan-multi-image-picker-min.js') }}"
-        type="text/javascript"></script>
     <script>
         $(document).ready(function() {
 
@@ -418,42 +407,6 @@
 
 
 
-
-            $("#brand_image").spartanMultiImagePicker({
-                fieldName: 'image',
-                maxCount: 1,
-                rowHeight: '200px',
-                groupClassName: 'col',
-                maxFileSize: '',
-                dropFileLabel: "Drop Here",
-                onExtensionErr: function(index, file) {
-                    console.log(index, file, 'extension err');
-                    alert('Please only input png or jpg type file')
-                },
-                onSizeErr: function(index, file) {
-                    console.log(index, file, 'file size too big');
-                    alert('File size too big max:250KB');
-                }
-            });
-
-            $("#meta_image").spartanMultiImagePicker({
-                fieldName: 'meta_image',
-                maxCount: 1,
-                rowHeight: '200px',
-                groupClassName: 'col',
-                maxFileSize: '',
-                dropFileLabel: "Drop Here",
-                onExtensionErr: function(index, file) {
-                    console.log(index, file, 'extension err');
-                    alert('Please only input png or jpg type file')
-                },
-                onSizeErr: function(index, file) {
-                    console.log(index, file, 'file size too big');
-                    alert('File size too big max:250KB');
-                }
-            });
-
-           
 
         });
     </script>

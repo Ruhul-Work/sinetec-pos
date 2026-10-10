@@ -432,6 +432,9 @@
                     $content.html(html);
                     $modal.modal('show');
 
+                    // Global controls that must work in both full pages and AJAX modals.
+                    if (window.ImagePicker) window.ImagePicker.auto($modal);
+
                     // resolve key: content data-modal-key > trigger data-key
                     const foundKey = $content.find('[data-modal-key]').first().data('modal-key');
                     const activeKey = (foundKey || keyAttr || '').toString().trim();
@@ -469,6 +472,7 @@
             $btn.prop('disabled', true);
             $form.find('.invalid-feedback.d-block').hide().text('');
             $form.find('.is-invalid').removeClass('is-invalid');
+            $form.find('.sinetec-image-picker').removeClass('has-error');
 
             $.ajax({
                     url: url,
@@ -525,10 +529,15 @@
                         const errs = xhr.responseJSON?.errors || {};
                         Object.keys(errs).forEach(function(k) {
                             const msg = errs[k][0];
-                            $form.find(`.${k}-error`).text(msg).show();
-                            const $f = $form.find(`[name="${k}"]`);
+                            const rootKey = String(k).split('.')[0];
+                            $form.find(`.${rootKey}-error`).text(msg).show();
+                            let $f = $form.find(`[name="${k}"]`);
+                            if (!$f.length && k.includes('.')) {
+                                $f = $form.find(`[name="${rootKey}[]"]`);
+                            }
                             if ($f.length) {
                                 $f.addClass('is-invalid');
+                                $f.closest('.sinetec-image-picker').addClass('has-error');
                                 let $fb = $f.siblings('.invalid-feedback');
                                 if (!$fb.length) {
                                     $fb = $('<div class="invalid-feedback"></div>');
@@ -560,6 +569,7 @@
         // Cleanup
         $(MODAL_ID).on('hidden.bs.modal', function() {
             const $m = $(this);
+            if (window.ImagePicker) window.ImagePicker.destroy($m);
             $m.find('.modal-dialog').removeClass('modal-sm modal-lg modal-xl');
             $m.find('.modal-content').empty();
             $m.removeData('modal-key onload-fn onsuccess-fn');

@@ -7,6 +7,7 @@ use App\Models\backend\Supplier;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -124,14 +125,23 @@ class SupplierController extends Controller
     public function update(Request $request, Supplier $supplier)
     {
         $data = $this->validatedData($request, $supplier);
+        $oldImage = $supplier->image;
+        $removeOldImage = $request->boolean('remove_image');
 
         if ($request->hasFile('image')) {
             $data['image'] = uploadImage($request->file('image'), 'supplier/images');
+            $removeOldImage = true;
+        } elseif ($removeOldImage) {
+            $data['image'] = null;
         }
 
         $data['name'] = ucwords($data['name']);
         $data['is_active'] = $request->boolean('is_active');
         $supplier->update($data);
+
+        if ($removeOldImage && $oldImage !== $supplier->image) {
+            $this->deleteManagedImage($oldImage);
+        }
 
         return redirect()->route('supplier.index')
             ->with('success', 'Supplier updated successfully.');
@@ -233,7 +243,7 @@ class SupplierController extends Controller
 
     private function validatedData(Request $request, ?Supplier $supplier = null): array
     {
-        return $request->validate([
+        $data = $request->validate([
             'code' => ['nullable', 'string', 'max:50', Rule::unique('suppliers', 'code')->ignore($supplier?->id)],
             'name' => ['required', 'string', 'max:150'],
             'slug' => ['nullable', 'string', 'max:191'],
@@ -241,9 +251,14 @@ class SupplierController extends Controller
             'phone' => ['nullable', 'string', 'max:32', Rule::unique('suppliers', 'phone')->ignore($supplier?->id)],
             'postal_code' => ['nullable', 'string', 'max:20'],
             'address' => ['nullable', 'string', 'max:255'],
-            'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
+            'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg', 'max:2048'],
+            'remove_image' => ['sometimes', 'boolean'],
             'is_active' => ['nullable', 'boolean'],
         ]);
+
+        unset($data['remove_image']);
+
+        return $data;
     }
 
     private function nullableString(mixed $value): ?string
@@ -251,5 +266,19 @@ class SupplierController extends Controller
         $value = trim((string) ($value ?? ''));
 
         return $value === '' ? null : $value;
+    }
+
+    private function deleteManagedImage(?string $path): void
+    {
+        if (! $path) {
+            return;
+        }
+
+        $relativePath = ltrim(str_replace('\\', '/', $path), '/');
+        if (! str_starts_with($relativePath, 'uploads/supplier/images/')) {
+            return;
+        }
+
+        File::delete(base_path('../'.$relativePath));
     }
 }

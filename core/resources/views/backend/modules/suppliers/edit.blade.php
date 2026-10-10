@@ -98,11 +98,13 @@
                                 <div class="mb-3 add-product">
                                     <label class="form-label">Image</label>
 
-                                    <div class="form-group">
-                                        <div class="row" id="supplier_image">
-
-                                        </div>
-                                    </div>
+                                    <input type="file" name="image" class="form-control js-image-picker"
+                                        accept="image/jpeg,image/png" data-max-size-kb="2048"
+                                        data-existing-url="{{ $supplier->image ? image($supplier->image) : '' }}"
+                                        data-existing-key="{{ $supplier->image ?? '' }}"
+                                        data-existing-name="{{ $supplier->image ? basename($supplier->image) : '' }}"
+                                        data-remove-name="remove_image">
+                                    <div class="invalid-feedback d-block image-error" style="display:none"></div>
                                 </div>
                             </div>
 
@@ -151,8 +153,6 @@
             font-weight: bold;
         }
     </style>
-    <script src="{{ asset('theme/admin/assets/plugins/fileupload/spartan-multi-image-picker-min.js') }}"
-        type="text/javascript"></script>
     <script>
         $(document).ready(function() {
 
@@ -222,45 +222,6 @@
             //     });
             // });
 
-
-            @if (!empty($supplier->image))
-
-
-
-                var previousImageUrl = "{{ image($supplier->image) }}"; // Blade variable
-                if (previousImageUrl) {
-                    $("#supplier_image").append(
-                        '<div class="existing-image-wrapper" style="position:relative; display:inline-block; margin:5px;">' +
-                        '<img src="' + previousImageUrl +
-                        '" style="height:200px; width:auto; border:1px solid #ccc; border-radius:5px;">' +
-                        '<button type="button" class="btn-cancel-old bg-red px-1 py-0 " style="position:absolute; top:5px; right:5px;">✕</button>' +
-                        '</div>'
-                    );
-                }
-
-                // When user clicks cancel on previous image
-                $(document).on('click', '.btn-cancel-old', function() {
-                    $(this).closest('.existing-image-wrapper').remove(); // Remove preview
-                    $('#remove_old_image').val(1); // Mark for backend deletion
-                });
-            @endif
-
-            $("#supplier_image").spartanMultiImagePicker({
-                fieldName: 'image',
-                maxCount: 1,
-                rowHeight: '200px',
-                groupClassName: 'col',
-                maxFileSize: '',
-                dropFileLabel: "Drop Here",
-                onExtensionErr: function(index, file) {
-                    console.log(index, file, 'extension err');
-                    alert('Please only input png or jpg type file')
-                },
-                onSizeErr: function(index, file) {
-                    console.log(index, file, 'file size too big');
-                    alert('File size too big max:250KB');
-                }
-            });
 
 
 

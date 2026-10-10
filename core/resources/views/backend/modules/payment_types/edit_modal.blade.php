@@ -28,9 +28,19 @@
   
             <div class="row">
                 <div class="col-md-6 mb-20">
-                    <label class="form-label text-sm mb-8">Icon Image</label>
-                    <div id="icon"></div>
-                    <div class="invalid-feedback d-block code-error" style="display:none"></div>
+                    <label class="form-label text-sm mb-8" for="paymentTypeImage">Icon Image</label>
+                    <input type="file"
+                           id="paymentTypeImage"
+                           name="image"
+                           class="form-control js-image-picker"
+                           accept="image/jpeg,image/png"
+                           data-existing-url="{{ $paymentType->image ? image($paymentType->image) : '' }}"
+                           data-existing-key="{{ $paymentType->image ?? '' }}"
+                           data-existing-name="{{ $paymentType->image ? basename($paymentType->image) : '' }}"
+                           data-removable="false"
+                           data-help="JPG or PNG; maximum 2 MB."
+                           data-max-size-kb="2048">
+                    <div class="invalid-feedback d-block image-error" style="display:none"></div>
                 </div>
 
 
@@ -89,37 +99,4 @@
         }
     };
 
-
-    @if (!empty($paymentType->image))
-
-
-        // Add it manually
-        $("#icon").append(
-            '<div class="img_" style="position:relative; display:inline-block; margin:5px;">' +
-            '<img src="{{ image($paymentType->image) }}" class="img-responsive" style="height:200px; width:auto;">' +
-            '</div>'
-        );
-    @endif
-
-  
-   
-
-    $("#icon").spartanMultiImagePicker({
-        fieldName: 'image',
-        maxCount: 1,
-        rowHeight: '200px',
-        groupClassName: 'col',
-        maxFileSize: '',
-        dropFileLabel: "Drop Here",
-        onExtensionErr: function(index, file) {
-            console.log(index, file, 'extension err');
-            alert('Please only input png or jpg type file')
-        },
-        onSizeErr: function(index, file) {
-            console.log(index, file, 'file size too big');
-            alert('File size too big max:250KB');
-        }
-    });
-
-    
 </script>

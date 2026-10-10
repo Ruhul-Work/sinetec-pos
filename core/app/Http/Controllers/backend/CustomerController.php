@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\backend\Customer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 
 class CustomerController extends Controller
 {
@@ -112,7 +113,8 @@ class CustomerController extends Controller
             'birth_date'             => ['nullable', 'string', 'max:50'],
             'postal_code'             => ['nullable', 'integer'],
             'address'             => ['required', 'string', 'max:255'],
-            'image'             => 'nullable|image|mimes:jpeg,pcleang,jpg|max:2048',
+            'image'             => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'remove_image'      => ['sometimes', 'boolean'],
             'is_active'        => ['nullable', 'integer'],
 
         ]);
@@ -170,6 +172,7 @@ class CustomerController extends Controller
             'postal_code'             => ['required', 'integer'],
             'address'             => ['required', 'string', 'max:255'],
             'image'             => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'remove_image'      => ['sometimes', 'boolean'],
             'is_active'        => ['required', 'integer'],
 
         ]);
@@ -178,14 +181,14 @@ class CustomerController extends Controller
         $previousImage = $customer->image;
 
 
+        $removeOldImage = $req->boolean('remove_image');
+
         if ($req->hasFile('image')) {
             $imagePath       = uploadImage($req->file('image'), 'customer/images');
             $customer->image = $imagePath;
-
-
-            if ($previousImage && file_exists($previousImage)) {
-                unlink($previousImage);
-            }
+            $removeOldImage = true;
+        } elseif ($removeOldImage) {
+            $customer->image = null;
         }
 
 
@@ -200,6 +203,10 @@ class CustomerController extends Controller
         $customer->is_active        = $data['is_active'];
 
         $customer->save();
+
+        if ($removeOldImage && $previousImage !== $customer->image) {
+            $this->deleteManagedImage($previousImage);
+        }
 
         return redirect()->route('customer.index')
             ->with('success', 'customer updated successfully!');
@@ -278,9 +285,7 @@ class CustomerController extends Controller
 
         $customer->delete();
 
-        if (isset($image) && file_exists($image)) {
-            unlink($image);
-        }
+        $this->deleteManagedImage($image);
 
 
         return response()->json(['ok' => true, 'msg' => 'customer deleted']);
@@ -310,5 +315,19 @@ class CustomerController extends Controller
                 'text' => $t->name
             ])
         ]);
+    }
+
+    private function deleteManagedImage(?string $path): void
+    {
+        if (! $path) {
+            return;
+        }
+
+        $relativePath = ltrim(str_replace('\\', '/', $path), '/');
+        if (! str_starts_with($relativePath, 'uploads/customer/images/')) {
+            return;
+        }
+
+        File::delete(base_path('../'.$relativePath));
     }
 }

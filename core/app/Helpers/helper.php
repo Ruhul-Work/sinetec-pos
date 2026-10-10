@@ -61,7 +61,7 @@ if (! function_exists('uploadImage')) {
         }
 
         $extension = strtolower((string) ($file->guessExtension() ?: $file->getClientOriginalExtension()));
-        $allowedExtensions = ['jpg', 'jpeg', 'png', 'webp'];
+        $allowedExtensions = ['jpg', 'jpeg', 'png'];
 
         if (! in_array($extension, $allowedExtensions, true)) {
             throw new InvalidArgumentException('Unsupported image format.');

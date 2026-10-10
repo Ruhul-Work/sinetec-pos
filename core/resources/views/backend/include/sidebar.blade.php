@@ -75,9 +75,9 @@
                 </li>
             @endpermgroup
 
-            @permgroup(['core.units', 'core.brands', 'core.suppliers', 'core.customers', 'core.payment_types', 'inventory.raw_material_categories', 'inventory.part_categories', 'inventory.finished_product_categories'])
+            @permgroup(['core.units', 'core.brands', 'core.suppliers', 'core.customers', 'core.payment_types', 'inventory.raw_material_categories', 'inventory.part_categories', 'inventory.finished_product_categories', 'inventory.raw_materials', 'inventory.parts', 'inventory.finished_products'])
                 <li class="sidebar-menu-group-title">Master Data</li>
-                <li class="dropdown {{ Route::is('units.*') || Route::is('brand.brands.*') || Route::is('supplier.*') || Route::is('customer.*') || Route::is('paymentTypes.*') || Route::is('inventory.*-categories.*') ? 'active' : '' }}">
+                <li class="dropdown {{ Route::is('units.*') || Route::is('brand.brands.*') || Route::is('supplier.*') || Route::is('customer.*') || Route::is('paymentTypes.*') || Route::is('inventory.*-categories.*') || Route::is('inventory.raw-materials.*') || Route::is('inventory.parts.*') || Route::is('inventory.finished-products.*') ? 'active' : '' }}">
                     <a href="javascript:void(0)">
                         <iconify-icon icon="mdi:database-cog-outline" class="menu-icon"></iconify-icon>
                         <span>Master Setup</span>
@@ -104,6 +104,25 @@
                                     @endperm
                                     @perm('inventory.finished-product-categories.index')
                                         <li><a class="{{ Route::is('inventory.finished-product-categories.*') ? 'active' : '' }}" href="{{ route('inventory.finished-product-categories.index') }}"><i class="ri-circle-fill circle-icon text-warning-main w-auto"></i><span>Finished Products</span></a></li>
+                                    @endperm
+                                </ul>
+                            </li>
+                        @endpermgroup
+                        @permgroup(['inventory.raw_materials', 'inventory.parts', 'inventory.finished_products'])
+                            <li class="dropdown {{ Route::is('inventory.raw-materials.*') || Route::is('inventory.parts.*') || Route::is('inventory.finished-products.*') ? 'active' : '' }}">
+                                <a href="javascript:void(0)">
+                                    <iconify-icon icon="mdi:package-variant" class="menu-icon"></iconify-icon>
+                                    <span>Inventory Items</span>
+                                </a>
+                                <ul class="sidebar-submenu">
+                                    @perm('inventory.raw-materials.index')
+                                        <li><a class="{{ Route::is('inventory.raw-materials.*') ? 'active' : '' }}" href="{{ route('inventory.raw-materials.index') }}"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i><span>Raw Materials</span></a></li>
+                                    @endperm
+                                    @perm('inventory.parts.index')
+                                        <li><a class="{{ Route::is('inventory.parts.*') ? 'active' : '' }}" href="{{ route('inventory.parts.index') }}"><i class="ri-circle-fill circle-icon text-success-main w-auto"></i><span>Parts</span></a></li>
+                                    @endperm
+                                    @perm('inventory.finished-products.index')
+                                        <li><a class="{{ Route::is('inventory.finished-products.*') ? 'active' : '' }}" href="{{ route('inventory.finished-products.index') }}"><i class="ri-circle-fill circle-icon text-warning-main w-auto"></i><span>Finished Products</span></a></li>
                                     @endperm
                                 </ul>
                             </li>
