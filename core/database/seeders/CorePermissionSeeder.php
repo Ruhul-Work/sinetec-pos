@@ -30,6 +30,7 @@ class CorePermissionSeeder extends Seeder
             ['key' => 'inventory.raw_materials', 'name' => 'Raw Materials', 'module' => 'Inventory', 'prefixes' => ['inventory.raw-materials.']],
             ['key' => 'inventory.parts', 'name' => 'Parts', 'module' => 'Inventory', 'prefixes' => ['inventory.parts.']],
             ['key' => 'inventory.finished_products', 'name' => 'Finished Products', 'module' => 'Inventory', 'prefixes' => ['inventory.finished-products.']],
+            ['key' => 'inventory.item_units', 'name' => 'Item Units', 'module' => 'Inventory Setup', 'prefixes' => ['inventory.item-units.']],
             ['key' => 'core.warehouses', 'name' => 'Warehouses', 'module' => 'Inventory', 'prefixes' => ['inventory.warehouses.']],
             ['key' => 'core.suppliers', 'name' => 'Suppliers', 'module' => 'Master Data', 'prefixes' => ['supplier.']],
             ['key' => 'core.customers', 'name' => 'Customers', 'module' => 'Master Data', 'prefixes' => ['customer.']],

@@ -75,9 +75,9 @@
                 </li>
             @endpermgroup
 
-            @permgroup(['core.units', 'core.brands', 'core.suppliers', 'core.customers', 'core.payment_types', 'inventory.raw_material_categories', 'inventory.part_categories', 'inventory.finished_product_categories', 'inventory.raw_materials', 'inventory.parts', 'inventory.finished_products'])
+            @permgroup(['core.units', 'core.brands', 'core.suppliers', 'core.customers', 'core.payment_types', 'inventory.raw_material_categories', 'inventory.part_categories', 'inventory.finished_product_categories', 'inventory.raw_materials', 'inventory.parts', 'inventory.finished_products', 'inventory.item_units'])
                 <li class="sidebar-menu-group-title">Master Data</li>
-                <li class="dropdown {{ Route::is('units.*') || Route::is('brand.brands.*') || Route::is('supplier.*') || Route::is('customer.*') || Route::is('paymentTypes.*') || Route::is('inventory.*-categories.*') || Route::is('inventory.raw-materials.*') || Route::is('inventory.parts.*') || Route::is('inventory.finished-products.*') ? 'active' : '' }}">
+                <li class="dropdown {{ Route::is('units.*') || Route::is('brand.brands.*') || Route::is('supplier.*') || Route::is('customer.*') || Route::is('paymentTypes.*') || Route::is('inventory.*-categories.*') || Route::is('inventory.raw-materials.*') || Route::is('inventory.parts.*') || Route::is('inventory.finished-products.*') || Route::is('inventory.item-units.*') ? 'active' : '' }}">
                     <a href="javascript:void(0)">
                         <iconify-icon icon="mdi:database-cog-outline" class="menu-icon"></iconify-icon>
                         <span>Master Setup</span>
@@ -127,6 +127,9 @@
                                 </ul>
                             </li>
                         @endpermgroup
+                        @perm('inventory.item-units.index')
+                            <li><a class="{{ Route::is('inventory.item-units.*') ? 'active' : '' }}" href="{{ route('inventory.item-units.index', 'raw-materials') }}"><iconify-icon icon="mdi:scale-balance" class="menu-icon"></iconify-icon><span>Item Units</span></a></li>
+                        @endperm
                         @perm('brand.brands.index')
                             <li><a class="{{ Route::is('brand.brands.*') ? 'active' : '' }}" href="{{ route('brand.brands.index') }}"><iconify-icon icon="mdi:tag-outline" class="menu-icon"></iconify-icon><span>Brands</span></a></li>
                         @endperm

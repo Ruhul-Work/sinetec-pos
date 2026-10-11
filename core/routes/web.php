@@ -9,6 +9,7 @@ use App\Http\Controllers\backend\CountryController;
 use App\Http\Controllers\backend\CustomerController;
 use App\Http\Controllers\backend\DistrictController;
 use App\Http\Controllers\backend\DivisionController;
+use App\Http\Controllers\backend\DomainUnitMappingController;
 use App\Http\Controllers\backend\FiscalYearController;
 use App\Http\Controllers\backend\FinishedProductCategoryController;
 use App\Http\Controllers\backend\FinishedProductController;
@@ -159,6 +160,21 @@ Route::middleware(['web', 'auth', 'perm', 'branchscope'])->group(function () {
             Route::put('{finishedProduct}', 'update')->whereNumber('finishedProduct')->name('update');
             Route::delete('{finishedProduct}', 'destroy')->whereNumber('finishedProduct')->name('destroy');
         });
+
+        Route::prefix('item-units/{domain}')
+            ->name('item-units.')
+            ->controller(DomainUnitMappingController::class)
+            ->where(['domain' => 'raw-materials|parts|finished-products'])
+            ->group(function () {
+                Route::get('/', 'index')->name('index');
+                Route::post('list', 'listAjax')->name('list.ajax');
+                Route::get('create-modal', 'createModal')->name('createModal');
+                Route::post('/', 'store')->name('store');
+                Route::get('item/{item}/base-unit', 'itemBaseUnit')->whereNumber('item')->name('item-base-unit');
+                Route::get('{mapping}/edit-modal', 'editModal')->whereNumber('mapping')->name('editModal');
+                Route::put('{mapping}', 'update')->whereNumber('mapping')->name('update');
+                Route::delete('{mapping}', 'destroy')->whereNumber('mapping')->name('destroy');
+            });
 
         Route::get('warehouses', [WarehouseController::class, 'index'])->name('warehouses.index');
         Route::post('warehouses/list', [WarehouseController::class, 'listAjax'])->name('warehouses.list.ajax');

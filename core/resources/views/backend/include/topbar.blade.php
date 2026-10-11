@@ -52,10 +52,11 @@
                     {{-- SUPER: dropdown with switch --}}
                     <div class="dropdown">
                         <button
-                            class="bg-success-focus text-success-600 border border-success-main px-2 px-md-24 py-4 radius-4 fw-medium text-xs text-sm-sm dropdown-toggle text-truncate"
-                            style="max-width: 120px;"
+                            type="button"
+                            class="branch-switcher-control dropdown-toggle"
                             data-bs-toggle="dropdown">
-                            {{ $currentBranchName }}
+                            <iconify-icon icon="mdi:source-branch" aria-hidden="true"></iconify-icon>
+                            <span class="branch-switcher-control__label">{{ $currentBranchName }}</span>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end">
                             <li>
@@ -77,10 +78,9 @@
                     </div>
                 @else
                     {{-- NORMAL: just a label (no dropdown, no switch) --}}
-                    <span
-                        class="bg-success-focus text-success-600 border border-success-main px-2 px-md-24 py-4 radius-4 fw-medium text-xs text-sm-sm text-truncate d-inline-block"
-                        style="max-width: 120px;">
-                        {{ $currentBranchName }}
+                    <span class="branch-switcher-control">
+                        <iconify-icon icon="mdi:source-branch" aria-hidden="true"></iconify-icon>
+                        <span class="branch-switcher-control__label">{{ $currentBranchName }}</span>
                     </span>
                 @endif
 

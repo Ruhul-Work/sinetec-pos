@@ -7,7 +7,17 @@
 @section('content')
   <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
     <div>
-      <h6 class="fw-semibold mb-0">Unit Conversions</h6>
+      <div class="d-flex align-items-center gap-2">
+        <h6 class="fw-semibold mb-0">Unit Conversions</h6>
+        <x-backend.page-note
+          title="How universal conversion works"
+          label="View unit conversion note"
+          align="start">
+          Enter one universal direction only. For example, <code>1 KG = 1000 G</code>.
+          The reverse value is calculated automatically, so do not create <code>G → KG</code> separately.
+          Item-specific purchase, production or sale units are configured from Item Units.
+        </x-backend.page-note>
+      </div>
       <p class="text-muted m-0">Universal conversion rules shared by inventory modules</p>
     </div>
     <ul class="d-flex align-items-center gap-2">
@@ -19,17 +29,6 @@
       <li>-</li>
       <li class="fw-medium">Unit Conversions</li>
     </ul>
-  </div>
-
-  <div class="alert alert-info bg-info-focus text-info-main border-info-main mb-24">
-    <div class="d-flex gap-2 align-items-start">
-      <iconify-icon icon="mdi:information-outline" class="text-xl mt-1"></iconify-icon>
-      <div>
-        <strong>Rule:</strong> enter one universal direction only. For example,
-        <code>1 KG = 1000 G</code>. The reverse value is calculated automatically; do not create <code>G → KG</code> separately.
-        Item-specific purchase, production or sale units will be configured inside each inventory item later.
-      </div>
-    </div>
   </div>
 
   <div class="card basic-data-table">

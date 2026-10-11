@@ -15,3 +15,18 @@
 5. Automated test, route verification এবং project documentation update — 1 hour
 
 **Total:** 8.5 hours
+
+---
+
+## Date: 2026-10-10
+
+**ID:** BFT4
+
+1. Part Master CRUD, procurement mode, validation, image and reference-safe delete development — 1.5 hours
+2. Reusable Sinetec Image Picker development and retained master forms migration — 1 hours
+3. Finished Product Master CRUD, default price fields, validation and permission integration — 1 hours
+4. Raw Material, Part and Finished Product Unit Mapping module with separate-table rules and automated tests — 2 hours
+5. Item Unit tabs, reusable hover note, topbar branch selector, table display and shared custom CSS polish — 1 hour
+6. Permission/sidebar integration, regression test and project status/roadmap documentation update — 1 hour
+
+

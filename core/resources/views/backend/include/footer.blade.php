@@ -40,6 +40,7 @@
     <!-- Main js -->
     <script src="{{ asset('theme/admin/assets/js/app.js') }}" type="text/javascript"></script>
     <script src="{{ asset('theme/admin/assets/js/image-picker.js') }}" type="text/javascript"></script>
+    <script src="{{ asset('theme/admin/assets/js/page-note.js') }}?v=20261010.3" type="text/javascript"></script>
 
     {{-- sweetalert js --}}
     <script src="{{ asset('theme/admin/assets/js/lib/sweetalert/sweetalerts.min.js') }}" type="text/javascript"></script>

@@ -42,7 +42,6 @@
     <link rel="stylesheet" href="{{ asset('theme/admin/assets/css/lib/audioplayer.css') }}">
     <!-- Main CSS -->
     <link rel="stylesheet" href="{{ asset('theme/admin/assets/css/style.css') }}?id={{rand(121,122233)}}">
-    <link rel="stylesheet" href="{{ asset('theme/admin/assets/css/image-picker.css') }}">
 
     {{-- ajax data table css --}}
     {{-- <link rel="stylesheet" href="{{asset('theme/admin/assets/css/lib/ajaxdatatable/dataTables.bootstrap5.min.css')}}"> --}}
@@ -51,5 +50,8 @@
     <link rel="stylesheet" href="{{asset('theme/admin/assets/js/lib/select2/css/select2.min.css')}}" ></link>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"/>
+
+    {{-- Project-specific UI rules live here; keep the theme stylesheet untouched. --}}
+    <link rel="stylesheet" href="{{ asset('theme/admin/assets/css/custom.css') }}?v=20261010.4">
  
 </head>
