@@ -29,4 +29,36 @@
 5. Item Unit tabs, reusable hover note, topbar branch selector, table display and shared custom CSS polish — 1 hour
 6. Permission/sidebar integration, regression test and project status/roadmap documentation update — 1 hour
 
+---
+
+## Date: 2026-10-11
+
+**ID:** BFT4
+
+1. Item Unit Mapping final functional check and route/permission structure review — 30min
+2. Raw Material and Part Supplier Mapping module development with reusable CRUD flow — 1hours
+3. Supplier-specific code, lead time and single preferred-supplier business rule implementation — 45 min
+4. Separate supplier-mapping routes, permissions and sidebar menu integration — 45 min
+5. Permission database sync, full regression test and project roadmap/status documentation update — 30 min
+6.Team meeting -30 min.
+7. DkfashionBD & Dkfashionmy -4 hour
+
+**Total:** 4.5 hours
+
+---
+
+## Date: 2026-10-18
+
+**ID:** BFT4
+
+1. Warehouse-wise Raw Material, Part and Finished Product Reorder Level module development — 2 hours
+2. Optional fixed replenishment, minimum/maximum quantity rules, duplicate protection and branch scope implementation — 1 hour
+3. Separate routes, permissions, sidebar integration and active database permission sync — 45 min
+4. Reorder Level automated tests, full regression test and project roadmap/status documentation update — 45 min
+5. Reorder Level DataTable warehouse filter positioning, responsive width and CSS cache issue fix — 30 min
+6. Reusable modal field-info component with hover/focus auto-hide and retained modal note migration — 1 hour
+7. Stock Posting Core, Opening Stock and next-phase workflow analysis — 30 min
+
+**Total:** 6.5 hours
+
 

@@ -13,11 +13,16 @@ use App\Http\Controllers\backend\DomainUnitMappingController;
 use App\Http\Controllers\backend\FiscalYearController;
 use App\Http\Controllers\backend\FinishedProductCategoryController;
 use App\Http\Controllers\backend\FinishedProductController;
+use App\Http\Controllers\backend\FinishedProductReorderLevelController;
 use App\Http\Controllers\backend\PartCategoryController;
 use App\Http\Controllers\backend\PartController;
+use App\Http\Controllers\backend\PartReorderLevelController;
+use App\Http\Controllers\backend\PartSupplierController;
 use App\Http\Controllers\backend\PaymentTypeController;
 use App\Http\Controllers\backend\RawMaterialCategoryController;
 use App\Http\Controllers\backend\RawMaterialController;
+use App\Http\Controllers\backend\RawMaterialReorderLevelController;
+use App\Http\Controllers\backend\RawMaterialSupplierController;
 use App\Http\Controllers\backend\SupplierController;
 use App\Http\Controllers\backend\UnitController;
 use App\Http\Controllers\backend\UnitConversionController;
@@ -175,6 +180,66 @@ Route::middleware(['web', 'auth', 'perm', 'branchscope'])->group(function () {
                 Route::put('{mapping}', 'update')->whereNumber('mapping')->name('update');
                 Route::delete('{mapping}', 'destroy')->whereNumber('mapping')->name('destroy');
             });
+
+        Route::prefix('raw-material-suppliers')->name('raw-material-suppliers.')->controller(RawMaterialSupplierController::class)->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::post('list', 'listAjax')->name('list.ajax');
+            Route::get('create-modal', 'createModal')->name('createModal');
+            Route::post('/', 'store')->name('store');
+            Route::get('items/select2', 'itemSelect2')->name('items.select2');
+            Route::get('suppliers/select2', 'supplierSelect2')->name('suppliers.select2');
+            Route::get('{mapping}/edit-modal', 'editModal')->whereNumber('mapping')->name('editModal');
+            Route::put('{mapping}', 'update')->whereNumber('mapping')->name('update');
+            Route::delete('{mapping}', 'destroy')->whereNumber('mapping')->name('destroy');
+        });
+
+        Route::prefix('part-suppliers')->name('part-suppliers.')->controller(PartSupplierController::class)->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::post('list', 'listAjax')->name('list.ajax');
+            Route::get('create-modal', 'createModal')->name('createModal');
+            Route::post('/', 'store')->name('store');
+            Route::get('items/select2', 'itemSelect2')->name('items.select2');
+            Route::get('suppliers/select2', 'supplierSelect2')->name('suppliers.select2');
+            Route::get('{mapping}/edit-modal', 'editModal')->whereNumber('mapping')->name('editModal');
+            Route::put('{mapping}', 'update')->whereNumber('mapping')->name('update');
+            Route::delete('{mapping}', 'destroy')->whereNumber('mapping')->name('destroy');
+        });
+
+        Route::prefix('raw-material-reorder-levels')->name('raw-material-reorder-levels.')->controller(RawMaterialReorderLevelController::class)->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::post('list', 'listAjax')->name('list.ajax');
+            Route::get('create-modal', 'createModal')->name('createModal');
+            Route::post('/', 'store')->name('store');
+            Route::get('items/select2', 'itemSelect2')->name('items.select2');
+            Route::get('warehouses/select2', 'warehouseSelect2')->name('warehouses.select2');
+            Route::get('{level}/edit-modal', 'editModal')->whereNumber('level')->name('editModal');
+            Route::put('{level}', 'update')->whereNumber('level')->name('update');
+            Route::delete('{level}', 'destroy')->whereNumber('level')->name('destroy');
+        });
+
+        Route::prefix('part-reorder-levels')->name('part-reorder-levels.')->controller(PartReorderLevelController::class)->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::post('list', 'listAjax')->name('list.ajax');
+            Route::get('create-modal', 'createModal')->name('createModal');
+            Route::post('/', 'store')->name('store');
+            Route::get('items/select2', 'itemSelect2')->name('items.select2');
+            Route::get('warehouses/select2', 'warehouseSelect2')->name('warehouses.select2');
+            Route::get('{level}/edit-modal', 'editModal')->whereNumber('level')->name('editModal');
+            Route::put('{level}', 'update')->whereNumber('level')->name('update');
+            Route::delete('{level}', 'destroy')->whereNumber('level')->name('destroy');
+        });
+
+        Route::prefix('finished-product-reorder-levels')->name('finished-product-reorder-levels.')->controller(FinishedProductReorderLevelController::class)->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::post('list', 'listAjax')->name('list.ajax');
+            Route::get('create-modal', 'createModal')->name('createModal');
+            Route::post('/', 'store')->name('store');
+            Route::get('items/select2', 'itemSelect2')->name('items.select2');
+            Route::get('warehouses/select2', 'warehouseSelect2')->name('warehouses.select2');
+            Route::get('{level}/edit-modal', 'editModal')->whereNumber('level')->name('editModal');
+            Route::put('{level}', 'update')->whereNumber('level')->name('update');
+            Route::delete('{level}', 'destroy')->whereNumber('level')->name('destroy');
+        });
 
         Route::get('warehouses', [WarehouseController::class, 'index'])->name('warehouses.index');
         Route::post('warehouses/list', [WarehouseController::class, 'listAjax'])->name('warehouses.list.ajax');

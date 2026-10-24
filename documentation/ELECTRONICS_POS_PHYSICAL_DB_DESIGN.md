@@ -173,7 +173,7 @@ Unique key is `(domain_item_id, warehouse_id)`. Balances are updated in the same
 
 ### 5.3 Reorder levels
 
-Create separate `raw_material_reorder_levels`, `part_reorder_levels`, and `finished_product_reorder_levels`, unique by item and warehouse.
+Create separate `raw_material_reorder_levels`, `part_reorder_levels`, and `finished_product_reorder_levels`, unique by item and warehouse. `minimum_quantity` is the required low-stock threshold. `reorder_quantity = 0` means there is no fixed replenishment lot and future demand-based planning decides the requirement; a positive value is an optional fixed/default lot. `maximum_quantity` is an optional target ceiling and must not be lower than the minimum. All values use the item's base unit. These settings never post stock or create purchase/production documents automatically.
 
 ### 5.4 Transfer and adjustment documents
 

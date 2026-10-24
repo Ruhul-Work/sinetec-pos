@@ -61,21 +61,27 @@
       </div>
 
       <div class="col-md-3 mb-16">
-        <label class="form-label text-sm mb-8">Default Retail Price</label>
+        <div class="d-flex align-items-center gap-1 mb-8">
+          <label class="form-label text-sm mb-0">Default Retail Price</label>
+          <x-backend.field-note label="Default retail price information">
+            This is a default selling price only. Each sale and approved monthly report preserves its own price snapshot.
+          </x-backend.field-note>
+        </div>
         <input type="number" name="retail_price" class="form-control radius-8" min="0" step="0.0001"
                value="{{ $product?->retail_price ?? '' }}" placeholder="0.00">
         <div class="invalid-feedback d-block retail_price-error" style="display:none"></div>
       </div>
 
       <div class="col-md-3 mb-16">
-        <label class="form-label text-sm mb-8">Default Wholesale Price</label>
+        <div class="d-flex align-items-center gap-1 mb-8">
+          <label class="form-label text-sm mb-0">Default Wholesale Price</label>
+          <x-backend.field-note label="Default wholesale price information" align="end">
+            This is a default selling price only. Each sale and approved monthly report preserves its own price snapshot.
+          </x-backend.field-note>
+        </div>
         <input type="number" name="wholesale_price" class="form-control radius-8" min="0" step="0.0001"
                value="{{ $product?->wholesale_price ?? '' }}" placeholder="0.00">
         <div class="invalid-feedback d-block wholesale_price-error" style="display:none"></div>
-      </div>
-
-      <div class="col-12 mb-12">
-        <small class="text-muted">These are default selling prices only. Each sale and approved monthly report will preserve its own price snapshot.</small>
       </div>
 
       <div class="col-md-6 mb-16">

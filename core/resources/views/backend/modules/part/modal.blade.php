@@ -42,14 +42,18 @@
       </div>
 
       <div class="col-md-6 mb-16">
-        <label class="form-label text-sm mb-8">Procurement Mode <span class="text-danger">*</span></label>
+        <div class="d-flex align-items-center gap-1 mb-8">
+          <label class="form-label text-sm mb-0">Procurement Mode <span class="text-danger">*</span></label>
+          <x-backend.field-note label="Procurement mode information">
+            Make: internally produced, Buy: purchased, Both: either source.
+          </x-backend.field-note>
+        </div>
         <select name="procurement_mode" class="form-select js-s2" required placeholder="Select procurement mode">
           @foreach($procurementModes as $mode)
             <option value="{{ $mode }}" @selected(($part->procurement_mode ?? 'BUY') === $mode)>{{ ucfirst(strtolower($mode)) }}</option>
           @endforeach
         </select>
         <div class="invalid-feedback d-block procurement_mode-error" style="display:none"></div>
-        <small class="text-muted">Make: internally produced, Buy: purchased, Both: either source.</small>
       </div>
 
       <div class="col-md-6 mb-16">

@@ -1,7 +1,7 @@
 # Electronics POS — Current Status and Next Actions
 
-**Status:** Database baseline ready; foundation-data setup in progress  
-**Updated:** 10 October 2026
+**Status:** Phase 1 inventory foundation complete; Phase 2 stock core is next
+**Updated:** 18 October 2026
 
 ## 1. Current result
 
@@ -66,13 +66,15 @@ Old permission data points to removed routes. Permissions must be created from t
 - Phase 0.5 application cleanup is complete: route-detached legacy product, purchase, POS, stock, report, promotion and old transaction controllers/models/services/views were removed after the new Git baseline tag was created.
 - The retained Supplier controller is now master-data only; its old purchase/return/ledger coupling was removed and its browser-parsed CSV/XLSX import was aligned with the clean supplier schema.
 - The shared helper file now contains only retained image upload/path and branch/warehouse/fiscal-year context helpers; legacy storefront product, cart, coupon and shipping helpers were removed.
-- The active application currently exposes 244 retained/new routes, with no undefined literal route references in backend/auth Blade templates.
+- The active application currently exposes 289 retained/new routes, with no undefined literal route references in backend/auth Blade templates.
 - The first Phase 1 module is complete: Units and company-wide universal Unit Conversions have CRUD screens, reverse conversion display, duplicate-pair protection, reference-safe unit deletion and automated feature coverage.
 - The three Phase 1 category masters are complete: Raw Material, Part and Finished Product categories have separate CRUD routes/tables/permissions, optional parent hierarchy, cycle protection, Select2 parent lookup and reference-safe deletion.
 - Raw Material Master is implemented with material/packaging/consumable classification, category/base-unit/optional-brand lookup, image handling, list filters, independent RBAC and downstream-reference delete protection. Stock quantity, rates, alternate units and suppliers are intentionally not stored in this master.
 - Part Master is implemented with `MAKE`/`BUY`/`BOTH` procurement modes, category/base-unit/optional-brand lookup, image handling, list filters, independent RBAC and downstream-reference delete protection. Made and purchased quantities will later enter the same part stock ledger.
 - Finished Product Master is implemented with category/base-unit/optional-brand lookup, optional default retail/wholesale prices, image handling, filters, independent RBAC and downstream-reference delete protection. The defaults do not replace immutable sale-line and approved monthly-report price snapshots.
 - Domain Unit Mapping is implemented through one compact tabbed screen backed by separate `raw_material_units`, `part_units` and `finished_product_units` tables. Base units remain implicit at factor 1; duplicate/base-unit mappings and process-incompatible usage are blocked.
+- Raw Material Supplier and Part Supplier Mapping are implemented as separate route/controller/RBAC modules backed by `raw_material_suppliers` and `part_suppliers`. Each mapping stores the supplier's item code, lead days and one preferred source per item; purchase prices remain transaction-derived.
+- Warehouse-wise Raw Material, Part and Finished Product Reorder Levels are implemented as separate route/controller/RBAC modules. Minimum quantity is required; fixed replenishment and maximum/target quantities are optional. A blank fixed quantity is stored as zero and means future demand-based planning rather than an automatic purchase or production action.
 - A reusable Sinetec Image Picker now progressively enhances a standard `<input type="file" class="js-image-picker">` with compact dashed upload, preview, filename/size, replace/remove, drag-and-drop and configurable single/multiple modes on both full pages and AJAX modals. Raw Material, Part, Finished Product, Payment Type, Brand, Supplier and Customer now use it; no active retained screen executes Spartan.
 - Build models/controllers/services/views for the new inventory and manufacturing tables.
 - Rebuild stock posting as transaction-safe services.
@@ -89,7 +91,9 @@ Old permission data points to removed routes. Permissions must be created from t
 5. **Complete:** Build Part Master with `MAKE`, `BUY` and `BOTH` procurement modes.
 6. **Complete:** Build Finished Product Master with optional default retail/wholesale prices.
 7. **Complete:** Build the three domain unit-mapping flows without combining their physical tables.
-8. **Next:** Build raw-material/part supplier mappings, then warehouse-wise reorder-level setup.
+8. **Complete:** Build raw-material/part supplier mappings with separate permissions.
+9. **Complete:** Build warehouse-wise Raw Material, Part and Finished Product reorder-level setup.
+10. **Next:** Build the three transaction-safe stock posting services, movement ledgers and current-balance flow.
 
 ## 5. Implementation decision trace
 
@@ -107,6 +111,9 @@ Old permission data points to removed routes. Permissions must be created from t
 | 10 Oct 2026 | Finished-product deletion | An unused finished product may be soft-deleted; inventory, BOM, sales, rates, planning, units or promotion references block deletion and require deactivation. | Assembly and sales history must retain its product reference. |
 | 10 Oct 2026 | Domain Unit Mapping | One `Item Units` UI uses Raw Material, Part and Finished Product tabs while persisting to three independent mapping tables. Base units are implicit at factor 1; alternative conversion is stored as `1 alternative unit = N base units`. Raw Material/Part exclude sale usage and Finished Product excludes purchase usage. | Supplier mappings and warehouse reorder levels remain the next Phase 1 setup modules. |
 | 10 Oct 2026 | Page notes | General instructional notes use the reusable compact `page-note` header control and open on demand instead of occupying permanent space above the page content. | Conditional warnings and validation/security alerts remain visibly inline. |
+| 11 Oct 2026 | Supplier mappings | Raw Material Supplier and Part Supplier are separate route/controller/permission modules. They store approved item-supplier links, the supplier's item code, lead days and a single preferred source per item. | Actual prices remain in purchase/history data; warehouse reorder levels are next. |
+| 11 Oct 2026 | Route/RBAC convention | New functionally separate modules use explicit route groups and independent permission keys, even when safe internal implementation code or views are shared. | Existing Item Units remains one approved shared permission unless domain-specific access is later requested. |
+| 18 Oct 2026 | Reorder levels | Raw Material, Part and Finished Product use separate warehouse-wise modules/tables/permissions. Minimum quantity is required; fixed replenishment quantity and maximum/target quantity are optional. A blank replenishment value is stored as zero and means demand-based planning. | The setup only provides thresholds and planning inputs; it never creates purchase, production or stock transactions automatically. |
 
 When a decision changes, add a new dated row; do not overwrite the old decision without recording what superseded it and why.
 

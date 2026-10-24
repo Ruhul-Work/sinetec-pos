@@ -112,9 +112,9 @@ Receipt      Adjustment      Production   Stock Count
 | **Complete:** Part master | New `parts` | Units, category, brand | Purchase, part production, product assembly |
 | **Complete:** Finished-product master | New `finished_products` | Units, category, brand | Product assembly, POS/wholesale |
 | **Complete:** Domain unit mappings | New per-domain unit mapping | Units + domain master | Purchase, BOM, production, sale |
-| Material/part supplier setup | New typed supplier mappings | Supplier + raw material/part | Purchase, supply planning |
+| **Complete:** Material/part supplier setup | New typed supplier mappings with separate routes/RBAC | Supplier + raw material/part | Purchase, supply planning |
 | Supplier/customer/brand cleanup | Retain/adapt existing masters | Phase 0 | Purchase/sales |
-| Reorder-level setup | New `item_reorder_level` | Item + warehouse | Low-stock/planning |
+| **Complete:** Reorder-level setup | Three domain-specific tables with separate routes/RBAC | Item + warehouse | Low-stock/planning |
 
 **Screen flow**
 
@@ -377,7 +377,9 @@ Receipt      Adjustment      Production   Stock Count
 10. **Complete:** Part Master with `MAKE`/`BUY`/`BOTH` sourcing policy, image support, filters, reference-safe deletion and separate RBAC mapping.
 11. **Complete:** Finished Product Master with default retail/wholesale prices, image support, filters, reference-safe deletion and separate RBAC mapping.
 12. **Complete:** Domain unit mappings for Raw Material, Part and Finished Product with item-specific conversion factors and process usage rules.
-13. **Next implementation:** Raw-material/part supplier mappings, followed by reorder-level setup before Phase 2 stock posting.
+13. **Complete:** Raw-material/part supplier mappings with approved supplier code, lead time and single preferred source rules.
+14. **Complete:** Warehouse-wise Raw Material, Part and Finished Product reorder-level setup with independent permissions.
+15. **Next implementation:** Phase 2 transaction-safe stock posting services, movement ledgers and balances.
 
 Finance account mapping and the opening-stock valuation/approval date remain later operational gates. Draft journals cannot be posted before mapping approval.
 

@@ -531,3 +531,98 @@ html[data-theme="dark"] .page-note__body code {
     grid-template-columns: 1fr;
   }
 }
+
+/* Reorder level table: compact warehouse filter beside the add button. */
+.reorder-warehouse-filter {
+  flex: 0 0 360px;
+  width: 360px;
+}
+
+.reorder-warehouse-filter .select2-container {
+  width: 100% !important;
+}
+
+@media (max-width: 575.98px) {
+  .reorder-warehouse-filter {
+    flex: 1 1 100%;
+    width: 100%;
+  }
+}
+
+/* ================================================================
+   Modal field information
+   Small label-side note using the shared hover/focus auto-hide logic.
+   ================================================================ */
+.field-note {
+  vertical-align: middle;
+}
+
+.field-note .field-note__toggle {
+  width: 18px;
+  height: 18px;
+  border-color: #9bb3dc;
+  box-shadow: 0 2px 6px rgba(42, 83, 166, 0.14);
+}
+
+.field-note .field-note__toggle iconify-icon {
+  font-size: 0.75rem;
+}
+
+.field-note .field-note__panel {
+  top: auto;
+  right: auto;
+  bottom: calc(100% + 0.5rem);
+  left: 0;
+  width: min(285px, calc(100vw - 32px));
+  overflow: visible;
+  border-radius: 0.5rem;
+}
+
+.field-note--end .field-note__panel {
+  right: 0;
+  left: auto;
+}
+
+.field-note .field-note__panel::after {
+  position: absolute;
+  top: 100%;
+  left: 6px;
+  width: 0;
+  height: 0;
+  border: 6px solid transparent;
+  border-top-color: #c9d7ea;
+  content: "";
+}
+
+.field-note--end .field-note__panel::after {
+  right: 6px;
+  left: auto;
+}
+
+.field-note__body {
+  display: block;
+  padding: 0.625rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+html[data-theme="dark"] .field-note .field-note__panel::after {
+  border-top-color: #40536d;
+}
+
+@media (max-width: 575.98px) {
+  .field-note .field-note__panel,
+  .field-note--end .field-note__panel {
+    position: fixed;
+    top: auto;
+    right: 1rem;
+    bottom: 1rem;
+    left: 1rem;
+    width: auto;
+  }
+
+  .field-note .field-note__panel::after {
+    display: none;
+  }
+}

@@ -53,7 +53,12 @@
       </div>
 
       <div class="col-12 mb-16">
-        <label class="form-label text-sm mb-8">Conversion to Base Unit <span class="text-danger">*</span></label>
+        <div class="d-flex align-items-center gap-1 mb-8">
+          <label class="form-label text-sm mb-0">Conversion to Base Unit <span class="text-danger">*</span></label>
+          <x-backend.field-note label="Item conversion example">
+            Example: if 1 BOX contains 12 PCS, enter 12.
+          </x-backend.field-note>
+        </div>
         <div class="input-group">
           <span class="input-group-text">1 alternative unit =</span>
           <input type="number" name="conversion_to_base" class="form-control" required
@@ -62,7 +67,6 @@
           <span class="input-group-text">base units</span>
         </div>
         <div class="invalid-feedback d-block conversion_to_base-error" style="display:none"></div>
-        <small class="text-muted">Example: if 1 BOX contains 12 PCS, enter 12.</small>
       </div>
     </div>
 

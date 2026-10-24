@@ -24,7 +24,12 @@
       </div>
 
       <div class="col-12 mb-16">
-        <label class="form-label text-sm mb-8">Parent Category</label>
+        <div class="d-flex align-items-center gap-1 mb-8">
+          <label class="form-label text-sm mb-0">Parent Category</label>
+          <x-backend.field-note label="Parent category information">
+            Leave empty to create a root category.
+          </x-backend.field-note>
+        </div>
         <select name="parent_id"
                 class="form-control js-s2-ajax"
                 data-url="{{ route($routePrefix.'.select2', ['exclude' => $category?->id]) }}"
@@ -32,7 +37,6 @@
                 data-init-text="{{ $category?->parent ? $category->parent->name.' ('.$category->parent->code.')' : '' }}"
                 placeholder="Select parent category (optional)"></select>
         <div class="invalid-feedback d-block parent_id-error" style="display:none"></div>
-        <small class="text-muted">Leave empty to create a root category.</small>
       </div>
 
       <div class="col-12 mb-16">

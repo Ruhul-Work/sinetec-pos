@@ -39,7 +39,12 @@
       </div>
 
       <div class="col-12">
-        <label class="form-label">Conversion Factor <span class="text-danger">*</span></label>
+        <div class="d-flex align-items-center gap-1 mb-8">
+          <label class="form-label mb-0">Conversion Factor <span class="text-danger">*</span></label>
+          <x-backend.field-note label="Conversion factor example">
+            Examples: 1 KG = 1000 G, 1 M = 100 CM, 1 DOZEN = 12 PCS.
+          </x-backend.field-note>
+        </div>
         <div class="input-group">
           <span class="input-group-text">1 From =</span>
           <input name="factor" type="number" min="0.000001" max="99999999999999.999999" step="0.000001"
@@ -47,7 +52,6 @@
           <span class="input-group-text">To</span>
         </div>
         <div class="invalid-feedback d-block factor-error" style="display:none"></div>
-        <div class="form-text">Examples: 1 KG = 1000 G, 1 M = 100 CM, 1 DOZEN = 12 PCS.</div>
       </div>
     </div>
   </div>
