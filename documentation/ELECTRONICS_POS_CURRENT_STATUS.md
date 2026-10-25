@@ -1,7 +1,7 @@
 # Electronics POS — Current Status and Next Actions
 
 **Status:** Phase 1 inventory foundation complete; Phase 2 stock core is next
-**Updated:** 18 October 2026
+**Updated:** 25 October 2026
 
 ## 1. Current result
 
@@ -15,6 +15,7 @@
 - Parts support `MAKE`, `BUY` and `BOTH`.
 - Packaging and consumables are Raw Material classifications.
 - Offers, coupons and loyalty are inactive future foundations only.
+- The application baseline is upgraded to Laravel 13.38 on PHP 8.3; Composer validation, security audit, production cache compilation and all 47 automated tests pass.
 
 ## 2. Database readiness
 
@@ -75,6 +76,7 @@ Old permission data points to removed routes. Permissions must be created from t
 - Domain Unit Mapping is implemented through one compact tabbed screen backed by separate `raw_material_units`, `part_units` and `finished_product_units` tables. Base units remain implicit at factor 1; duplicate/base-unit mappings and process-incompatible usage are blocked.
 - Raw Material Supplier and Part Supplier Mapping are implemented as separate route/controller/RBAC modules backed by `raw_material_suppliers` and `part_suppliers`. Each mapping stores the supplier's item code, lead days and one preferred source per item; purchase prices remain transaction-derived.
 - Warehouse-wise Raw Material, Part and Finished Product Reorder Levels are implemented as separate route/controller/RBAC modules. Minimum quantity is required; fixed replenishment and maximum/target quantities are optional. A blank fixed quantity is stored as zero and means future demand-based planning rather than an automatic purchase or production action.
+- Laravel 13 cache/session hardening is active: sessions use JSON serialization, cached PHP classes are disabled, permission and branch-switch caches store plain arrays/scalars, and the browser smoke-test regression in the shared topbar is resolved.
 - A reusable Sinetec Image Picker now progressively enhances a standard `<input type="file" class="js-image-picker">` with compact dashed upload, preview, filename/size, replace/remove, drag-and-drop and configurable single/multiple modes on both full pages and AJAX modals. Raw Material, Part, Finished Product, Payment Type, Brand, Supplier and Customer now use it; no active retained screen executes Spartan.
 - Build models/controllers/services/views for the new inventory and manufacturing tables.
 - Rebuild stock posting as transaction-safe services.
@@ -114,6 +116,7 @@ Old permission data points to removed routes. Permissions must be created from t
 | 11 Oct 2026 | Supplier mappings | Raw Material Supplier and Part Supplier are separate route/controller/permission modules. They store approved item-supplier links, the supplier's item code, lead days and a single preferred source per item. | Actual prices remain in purchase/history data; warehouse reorder levels are next. |
 | 11 Oct 2026 | Route/RBAC convention | New functionally separate modules use explicit route groups and independent permission keys, even when safe internal implementation code or views are shared. | Existing Item Units remains one approved shared permission unless domain-specific access is later requested. |
 | 18 Oct 2026 | Reorder levels | Raw Material, Part and Finished Product use separate warehouse-wise modules/tables/permissions. Minimum quantity is required; fixed replenishment quantity and maximum/target quantity are optional. A blank replenishment value is stored as zero and means demand-based planning. | The setup only provides thresholds and planning inputs; it never creates purchase, production or stock transactions automatically. |
+| 25 Oct 2026 | Laravel 13 upgrade | Upgraded the application baseline from Laravel 12.36.1 to Laravel 13.38.0 on PHP 8.3. Cache/session serialization follows Laravel 13 secure defaults, cached permission/branch data uses arrays/scalars, and the full 47-test suite passes. | Removed unused legacy Excel, barcode and Sail dependencies; install a Laravel 13-compatible barcode package only when barcode printing is implemented. |
 
 When a decision changes, add a new dated row; do not overwrite the old decision without recording what superseded it and why.
 
