@@ -27,14 +27,14 @@ trait HasPermissions
         // 1) User overrides (tri-state: NULL=inherit, 1=allow, 0=deny)
         $uPerms = $this->userPermCache();
         if (isset($uPerms[$permId])) {
-            $val = $uPerms[$permId]->{$col};
+            $val = $uPerms[$permId][$col] ?? null;
             if ($val !== null) return (bool)$val;
         }
 
         // 2) Role baseline
         $rPerms = $this->rolePermCache();
         $row    = $rPerms[$permId] ?? null;
-        return (bool)($row?->{$col} ?? false);
+        return (bool)($row[$col] ?? false);
     }
 
     /** Menu heading auto-hide: any allowed inside this permission key prefix */
@@ -111,24 +111,28 @@ protected function inferAbilitiesFromKey(string $key): array
     }
 
     /** cache: role permissions keyed by permission_id */
-    protected function rolePermCache()
+    protected function rolePermCache(): array
     {
         return Cache::remember("perm_role_{$this->role_id}", 300, function () {
             return DB::table('role_permissions')
                 ->where('role_id', $this->role_id)
                 ->get()
-                ->keyBy('permission_id');
+                ->keyBy('permission_id')
+                ->map(fn ($permission) => (array) $permission)
+                ->all();
         });
     }
 
     /** cache: user overrides keyed by permission_id */
-    protected function userPermCache()
+    protected function userPermCache(): array
     {
         return Cache::remember("perm_user_{$this->id}", 300, function () {
             return DB::table('user_permissions')
                 ->where('user_id', $this->id)
                 ->get()
-                ->keyBy('permission_id');
+                ->keyBy('permission_id')
+                ->map(fn ($permission) => (array) $permission)
+                ->all();
         });
     }
 
