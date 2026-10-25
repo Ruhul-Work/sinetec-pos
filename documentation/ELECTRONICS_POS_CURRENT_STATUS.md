@@ -1,6 +1,6 @@
 # Electronics POS — Current Status and Next Actions
 
-**Status:** Phase 1 inventory foundation complete; Phase 2 stock core is next
+**Status:** Phase 2 stock posting foundation complete; Opening Stock is next
 **Updated:** 25 October 2026
 
 ## 1. Current result
@@ -15,7 +15,7 @@
 - Parts support `MAKE`, `BUY` and `BOTH`.
 - Packaging and consumables are Raw Material classifications.
 - Offers, coupons and loyalty are inactive future foundations only.
-- The application baseline is upgraded to Laravel 13.38 on PHP 8.3; Composer validation, security audit, production cache compilation and all 47 automated tests pass.
+- The application baseline is upgraded to Laravel 13.38 on PHP 8.3; Composer validation, security audit and production cache compilation pass. The current suite has 55 passing automated tests with 226 assertions.
 
 ## 2. Database readiness
 
@@ -77,9 +77,10 @@ Old permission data points to removed routes. Permissions must be created from t
 - Raw Material Supplier and Part Supplier Mapping are implemented as separate route/controller/RBAC modules backed by `raw_material_suppliers` and `part_suppliers`. Each mapping stores the supplier's item code, lead days and one preferred source per item; purchase prices remain transaction-derived.
 - Warehouse-wise Raw Material, Part and Finished Product Reorder Levels are implemented as separate route/controller/RBAC modules. Minimum quantity is required; fixed replenishment and maximum/target quantities are optional. A blank fixed quantity is stored as zero and means future demand-based planning rather than an automatic purchase or production action.
 - Laravel 13 cache/session hardening is active: sessions use JSON serialization, cached PHP classes are disabled, permission and branch-switch caches store plain arrays/scalars, and the browser smoke-test regression in the shared topbar is resolved.
+- The Phase 2 Stock Posting foundation is implemented for Raw Material, Part and Finished Product. Each domain has typed movement/balance models and a separate public posting service over one controlled transaction engine. Posting uses row locks, deterministic unique keys, base-unit quantities, branch/warehouse validation, atomic ledger/balance updates, negative-stock prevention and immutable reversal movements.
 - A reusable Sinetec Image Picker now progressively enhances a standard `<input type="file" class="js-image-picker">` with compact dashed upload, preview, filename/size, replace/remove, drag-and-drop and configurable single/multiple modes on both full pages and AJAX modals. Raw Material, Part, Finished Product, Payment Type, Brand, Supplier and Customer now use it; no active retained screen executes Spartan.
-- Build models/controllers/services/views for the new inventory and manufacturing tables.
-- Rebuild stock posting as transaction-safe services.
+- Build the Opening Stock document/import flow on top of the completed posting services.
+- Build the remaining inventory, transfer, adjustment and manufacturing application flows.
 - Rebuild automatic finance drafts; a journal cannot be posted before account mapping and approval.
 - Test retained Supplier/Customer CSV imports against the clean schema.
 - Review public registration before production; unrestricted role selection must not be exposed.
@@ -95,7 +96,8 @@ Old permission data points to removed routes. Permissions must be created from t
 7. **Complete:** Build the three domain unit-mapping flows without combining their physical tables.
 8. **Complete:** Build raw-material/part supplier mappings with separate permissions.
 9. **Complete:** Build warehouse-wise Raw Material, Part and Finished Product reorder-level setup.
-10. **Next:** Build the three transaction-safe stock posting services, movement ledgers and current-balance flow.
+10. **Complete:** Build the three transaction-safe stock posting services, typed movement ledgers and warehouse-wise current balances.
+11. **Next:** Build the controlled Opening Stock document/import flow for all three inventory domains.
 
 ## 5. Implementation decision trace
 
@@ -117,6 +119,7 @@ Old permission data points to removed routes. Permissions must be created from t
 | 11 Oct 2026 | Route/RBAC convention | New functionally separate modules use explicit route groups and independent permission keys, even when safe internal implementation code or views are shared. | Existing Item Units remains one approved shared permission unless domain-specific access is later requested. |
 | 18 Oct 2026 | Reorder levels | Raw Material, Part and Finished Product use separate warehouse-wise modules/tables/permissions. Minimum quantity is required; fixed replenishment quantity and maximum/target quantity are optional. A blank replenishment value is stored as zero and means demand-based planning. | The setup only provides thresholds and planning inputs; it never creates purchase, production or stock transactions automatically. |
 | 25 Oct 2026 | Laravel 13 upgrade | Upgraded the application baseline from Laravel 12.36.1 to Laravel 13.38.0 on PHP 8.3. Cache/session serialization follows Laravel 13 secure defaults, cached permission/branch data uses arrays/scalars, and the full 47-test suite passes. | Removed unused legacy Excel, barcode and Sail dependencies; install a Laravel 13-compatible barcode package only when barcode printing is implemented. |
+| 25 Oct 2026 | Stock Posting foundation | Raw Material, Part and Finished Product keep separate movement/balance tables and public posting services while sharing one internal transaction engine. Each posting is base-unit, idempotent by `posting_key`, branch/warehouse checked, row-locked and balance-safe; posted rows are corrected only through an opposite reversal movement. | Opening Stock is the first document workflow to consume the service; transfer, adjustment, purchase, production and sale integrations follow in roadmap order. |
 
 When a decision changes, add a new dated row; do not overwrite the old decision without recording what superseded it and why.
 

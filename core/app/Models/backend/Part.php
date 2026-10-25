@@ -2,8 +2,11 @@
 
 namespace App\Models\backend;
 
+use App\Models\Inventory\PartStockBalance;
+use App\Models\Inventory\PartStockMovement;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Part extends Model
@@ -41,5 +44,15 @@ class Part extends Model
     public function brand(): BelongsTo
     {
         return $this->belongsTo(Brand::class, 'brand_id');
+    }
+
+    public function stockMovements(): HasMany
+    {
+        return $this->hasMany(PartStockMovement::class);
+    }
+
+    public function stockBalances(): HasMany
+    {
+        return $this->hasMany(PartStockBalance::class);
     }
 }

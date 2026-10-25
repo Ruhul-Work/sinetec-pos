@@ -133,10 +133,10 @@ Receipt      Adjustment      Production   Stock Count
 
 | Build / adapt | Reuse or new | Depends on | Connects to |
 | --- | --- | --- | --- |
-| Raw-material stock posting service | New core service | Raw material + warehouse | Purchase, production/assembly consumption, transfer, adjustment |
-| Part stock posting service | New core service | Part + warehouse | Purchase, production output, assembly consumption, transfer, adjustment |
-| Finished-product stock posting service | New core service | Finished product + warehouse | Assembly output, sale, return, transfer, adjustment |
-| Three movement ledgers and balances | New | Domain posting services | Audit, availability and reporting |
+| **Complete:** Raw-material stock posting service | New core service | Raw material + warehouse | Purchase, production/assembly consumption, transfer, adjustment |
+| **Complete:** Part stock posting service | New core service | Part + warehouse | Purchase, production output, assembly consumption, transfer, adjustment |
+| **Complete:** Finished-product stock posting service | New core service | Finished product + warehouse | Assembly output, sale, return, transfer, adjustment |
+| **Complete:** Three movement ledgers and balances | New | Domain posting services | Audit, availability and reporting |
 | Opening stock document/import | New controlled flow | Ledger + rate rules | Go-live stock |
 | Warehouse transfer | Adapt current concept | Ledger + balance | Branch/showroom replenishment |
 | Stock adjustment/count | Adapt current concept | Ledger + balance | Damage/physical count |
@@ -379,7 +379,8 @@ Receipt      Adjustment      Production   Stock Count
 12. **Complete:** Domain unit mappings for Raw Material, Part and Finished Product with item-specific conversion factors and process usage rules.
 13. **Complete:** Raw-material/part supplier mappings with approved supplier code, lead time and single preferred source rules.
 14. **Complete:** Warehouse-wise Raw Material, Part and Finished Product reorder-level setup with independent permissions.
-15. **Next implementation:** Phase 2 transaction-safe stock posting services, movement ledgers and balances.
+15. **Complete:** Phase 2 transaction-safe stock posting services, typed movement models and warehouse-wise current balances with idempotency, negative-stock protection and reversal support.
+16. **Next implementation:** Opening Stock document and controlled posting flow for Raw Material, Part and Finished Product.
 
 Finance account mapping and the opening-stock valuation/approval date remain later operational gates. Draft journals cannot be posted before mapping approval.
 
