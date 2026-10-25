@@ -28,21 +28,27 @@
                     // সুপার হলে: list cache করে দেখাবো
                     $branchList = collect();
                     if ($isSuper) {
-                        $branchList = Cache::remember(
+                        $branchList = collect(Cache::remember(
                             'ui:branches:list',
                             60,
                             fn() => \App\Models\backend\Branch::where('is_active', 1)
                                 ->orderBy('name')
-                                ->get(['id', 'name']),
-                        );
+                                ->get(['id', 'name'])
+                                ->map(fn($branch) => [
+                                    'id' => (int) $branch->id,
+                                    'name' => (string) $branch->name,
+                                ])
+                                ->all(),
+                        ));
                     }
 
                     // বর্তমান branch নাম বের করা (সুপার হলে scope থেকে, normal হলে user->branch)
                     $currentBranchName = 'Not assigned';
                     if ($isSuper) {
+                        $currentBranch = $branchList->firstWhere('id', (int) $curId);
                         $currentBranchName = $isAll
                             ? 'All Branches'
-                            : 'Branch: ' . optional($branchList->firstWhere('id', $curId))->name ?? '#' . $curId;
+                            : 'Branch: ' . ($currentBranch['name'] ?? '#' . $curId);
                     } else {
                         $currentBranchName = optional($auth?->branch)->name ?? 'Not assigned';
                     }
@@ -69,8 +75,8 @@
                             @foreach ($branchList as $b)
                                 <li>
                                     <a href="#" class="dropdown-item js-branch-switch" data-mode="one"
-                                        data-branch="{{ $b->id }}">
-                                        {{ $b->name }}
+                                        data-branch="{{ $b['id'] }}">
+                                        {{ $b['name'] }}
                                     </a>
                                 </li>
                             @endforeach
