@@ -1,6 +1,6 @@
 # Electronics POS — Current Status and Next Actions
 
-**Status:** Phase 2 stock posting foundation complete; Opening Stock is next
+**Status:** Phase 2 stock posting, Opening Stock and Stock Transfer workflows complete; Stock Adjustment/Count is next
 **Updated:** 25 October 2026
 
 ## 1. Current result
@@ -15,7 +15,7 @@
 - Parts support `MAKE`, `BUY` and `BOTH`.
 - Packaging and consumables are Raw Material classifications.
 - Offers, coupons and loyalty are inactive future foundations only.
-- The application baseline is upgraded to Laravel 13.38 on PHP 8.3; Composer validation, security audit and production cache compilation pass. The current suite has 55 passing automated tests with 226 assertions.
+- The application baseline is upgraded to Laravel 13.38 on PHP 8.3; Composer validation, security audit and production cache compilation pass. The current suite has 68 passing automated tests with 278 assertions.
 
 ## 2. Database readiness
 
@@ -67,7 +67,7 @@ Old permission data points to removed routes. Permissions must be created from t
 - Phase 0.5 application cleanup is complete: route-detached legacy product, purchase, POS, stock, report, promotion and old transaction controllers/models/services/views were removed after the new Git baseline tag was created.
 - The retained Supplier controller is now master-data only; its old purchase/return/ledger coupling was removed and its browser-parsed CSV/XLSX import was aligned with the clean supplier schema.
 - The shared helper file now contains only retained image upload/path and branch/warehouse/fiscal-year context helpers; legacy storefront product, cart, coupon and shipping helpers were removed.
-- The active application currently exposes 289 retained/new routes, with no undefined literal route references in backend/auth Blade templates.
+- The active application currently exposes 313 retained/new routes, with no undefined literal route references in backend/auth Blade templates.
 - The first Phase 1 module is complete: Units and company-wide universal Unit Conversions have CRUD screens, reverse conversion display, duplicate-pair protection, reference-safe unit deletion and automated feature coverage.
 - The three Phase 1 category masters are complete: Raw Material, Part and Finished Product categories have separate CRUD routes/tables/permissions, optional parent hierarchy, cycle protection, Select2 parent lookup and reference-safe deletion.
 - Raw Material Master is implemented with material/packaging/consumable classification, category/base-unit/optional-brand lookup, image handling, list filters, independent RBAC and downstream-reference delete protection. Stock quantity, rates, alternate units and suppliers are intentionally not stored in this master.
@@ -78,8 +78,10 @@ Old permission data points to removed routes. Permissions must be created from t
 - Warehouse-wise Raw Material, Part and Finished Product Reorder Levels are implemented as separate route/controller/RBAC modules. Minimum quantity is required; fixed replenishment and maximum/target quantities are optional. A blank fixed quantity is stored as zero and means future demand-based planning rather than an automatic purchase or production action.
 - Laravel 13 cache/session hardening is active: sessions use JSON serialization, cached PHP classes are disabled, permission and branch-switch caches store plain arrays/scalars, and the browser smoke-test regression in the shared topbar is resolved.
 - The Phase 2 Stock Posting foundation is implemented for Raw Material, Part and Finished Product. Each domain has typed movement/balance models and a separate public posting service over one controlled transaction engine. Posting uses row locks, deterministic unique keys, base-unit quantities, branch/warehouse validation, atomic ledger/balance updates, negative-stock prevention and immutable reversal movements.
+- The manual Opening Stock workflow is implemented as a multi-line document across all three inventory domains. Drafts are editable, approval makes the document read-only, and posting creates idempotent `OPENING` ledger entries and balances. Quantity can use a base or mapped alternative unit; conversion is calculated server-side, cost is recorded per base unit, and opening is blocked after an item already has a movement in that warehouse.
+- Stock Transfer is implemented as a mixed-domain `DRAFT → POSTED` document. Posting atomically creates `TRANSFER_OUT` in the source and `TRANSFER_IN` in the destination, supports same-branch and cross-branch warehouse/showroom movement, blocks insufficient stock, converts mapped units to base quantity and is retry-idempotent.
 - A reusable Sinetec Image Picker now progressively enhances a standard `<input type="file" class="js-image-picker">` with compact dashed upload, preview, filename/size, replace/remove, drag-and-drop and configurable single/multiple modes on both full pages and AJAX modals. Raw Material, Part, Finished Product, Payment Type, Brand, Supplier and Customer now use it; no active retained screen executes Spartan.
-- Build the Opening Stock document/import flow on top of the completed posting services.
+- Opening Stock CSV import is optional and deferred; add it later if go-live volume makes manual entry impractical.
 - Build the remaining inventory, transfer, adjustment and manufacturing application flows.
 - Rebuild automatic finance drafts; a journal cannot be posted before account mapping and approval.
 - Test retained Supplier/Customer CSV imports against the clean schema.
@@ -97,7 +99,9 @@ Old permission data points to removed routes. Permissions must be created from t
 8. **Complete:** Build raw-material/part supplier mappings with separate permissions.
 9. **Complete:** Build warehouse-wise Raw Material, Part and Finished Product reorder-level setup.
 10. **Complete:** Build the three transaction-safe stock posting services, typed movement ledgers and warehouse-wise current balances.
-11. **Next:** Build the controlled Opening Stock document/import flow for all three inventory domains.
+11. **Complete:** Build the controlled manual Opening Stock document and approval/posting flow for all three inventory domains.
+12. **Complete:** Build Stock Transfer with atomic source OUT/destination IN posting for all three inventory domains.
+13. **Next:** Build Stock Adjustment / Physical Count. Opening Stock CSV import remains an optional deferred bulk-entry tool.
 
 ## 5. Implementation decision trace
 
@@ -120,6 +124,8 @@ Old permission data points to removed routes. Permissions must be created from t
 | 18 Oct 2026 | Reorder levels | Raw Material, Part and Finished Product use separate warehouse-wise modules/tables/permissions. Minimum quantity is required; fixed replenishment quantity and maximum/target quantity are optional. A blank replenishment value is stored as zero and means demand-based planning. | The setup only provides thresholds and planning inputs; it never creates purchase, production or stock transactions automatically. |
 | 25 Oct 2026 | Laravel 13 upgrade | Upgraded the application baseline from Laravel 12.36.1 to Laravel 13.38.0 on PHP 8.3. Cache/session serialization follows Laravel 13 secure defaults, cached permission/branch data uses arrays/scalars, and the full 47-test suite passes. | Removed unused legacy Excel, barcode and Sail dependencies; install a Laravel 13-compatible barcode package only when barcode printing is implemented. |
 | 25 Oct 2026 | Stock Posting foundation | Raw Material, Part and Finished Product keep separate movement/balance tables and public posting services while sharing one internal transaction engine. Each posting is base-unit, idempotent by `posting_key`, branch/warehouse checked, row-locked and balance-safe; posted rows are corrected only through an opposite reversal movement. | Opening Stock is the first document workflow to consume the service; transfer, adjustment, purchase, production and sale integrations follow in roadmap order. |
+| 25 Oct 2026 | Opening Stock | One multi-line document may contain Raw Material, Part and Finished Product rows while persisting each row to its domain table. Workflow is `DRAFT → APPROVED → POSTED`; only posting changes stock. Base/mapped units are accepted, conversion is server-controlled, valuation input is cost per base unit, and opening is allowed only before any other movement for the same item/warehouse. | CSV import is optional/deferred; Stock Transfer follows as the next active module. |
+| 28 Oct 2026 | Stock Transfer | The user-facing/module name is Stock Transfer. One Draft may contain all three inventory domains; posting creates atomic source `TRANSFER_OUT` and destination `TRANSFER_IN` movements, supports cross-branch locations and never permits a negative source balance. | `IN_TRANSIT`, transfer reversal/void and shipment workflow remain deferred; Stock Adjustment/Physical Count is next. |
 
 When a decision changes, add a new dated row; do not overwrite the old decision without recording what superseded it and why.
 

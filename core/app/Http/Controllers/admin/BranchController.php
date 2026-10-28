@@ -66,7 +66,7 @@ class BranchController extends Controller
                         data-url="' . route('org.branches.destroy', $branch) . '"
                         title="Delete branch"
                         aria-label="Delete branch">
-                        <iconify-icon icon="mdi:delete"></iconify-icon>
+                        <iconify-icon icon="solar:trash-bin-minimalistic-outline"></iconify-icon>
                     </button>
                 </div>';
 

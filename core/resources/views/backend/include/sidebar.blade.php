@@ -181,6 +181,24 @@
                 </li>
             @endpermgroup
 
+            @permgroup(['inventory.opening_stock', 'inventory.stock_transfer'])
+                <li class="sidebar-menu-group-title">Inventory Operations</li>
+                <li class="dropdown {{ Route::is('inventory.opening-stocks.*') || Route::is('inventory.stock-transfers.*') ? 'active' : '' }}">
+                    <a href="javascript:void(0)">
+                        <iconify-icon icon="mdi:warehouse-plus-outline" class="menu-icon"></iconify-icon>
+                        <span>Stock Operations</span>
+                    </a>
+                    <ul class="sidebar-submenu">
+                        @perm('inventory.opening-stocks.index')
+                            <li><a class="{{ Route::is('inventory.opening-stocks.*') ? 'active' : '' }}" href="{{ route('inventory.opening-stocks.index') }}"><iconify-icon icon="mdi:package-variant-plus" class="menu-icon"></iconify-icon><span>Opening Stock</span></a></li>
+                        @endperm
+                        @perm('inventory.stock-transfers.index')
+                            <li><a class="{{ Route::is('inventory.stock-transfers.*') ? 'active' : '' }}" href="{{ route('inventory.stock-transfers.index') }}"><iconify-icon icon="mdi:swap-horizontal-bold" class="menu-icon"></iconify-icon><span>Stock Transfer</span></a></li>
+                        @endperm
+                    </ul>
+                </li>
+            @endpermgroup
+
             @permgroup(['core.fiscal_years', 'core.account_types', 'core.accounts', 'core.branch_accounts'])
                 <li class="sidebar-menu-group-title">Finance Foundation</li>
                 <li class="dropdown {{ Route::is('fiscal-years.*') || Route::is('account-types.*') || Route::is('accounts.*') || Route::is('branch-accounts.*') ? 'active' : '' }}">

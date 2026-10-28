@@ -73,7 +73,7 @@ class WarehouseController extends Controller
                     bg-danger-focus text-danger-main btn-warehouse-delete"
                     data-url="' . route('inventory.warehouses.destroy', $w->id) . '"
                     title="Delete">
-                    <iconify-icon icon="mdi:delete"></iconify-icon>
+                    <iconify-icon icon="solar:trash-bin-minimalistic-outline"></iconify-icon>
                 </a>
             </div>';
 
@@ -121,13 +121,16 @@ class WarehouseController extends Controller
         $val = $r->validate([
             'name'       => ['required', 'string', 'max:255'],
             'code'       => ['required', 'string', 'max:32', 'unique:warehouses,code'],
-            'branch_id'  => ['nullable', 'exists:branches,id'],
+            'branch_id'  => ['required', 'exists:branches,id'],
             'type'       => ['nullable', Rule::in(['store', 'showroom', 'returns', 'virtual'])],
             'is_default' => ['sometimes', 'boolean'],
             'is_active'  => ['sometimes', 'boolean'],
             'phone'      => ['nullable', 'string', 'max:32'],
             'email'      => ['nullable', 'email', 'max:120'],
             'address'    => ['nullable', 'string', 'max:255'],
+        ], [
+            'branch_id.required' => 'Please select a branch for this warehouse.',
+            'branch_id.exists'   => 'The selected branch is no longer available. Please choose another branch.',
         ]);
 
         $val['is_default'] = $r->boolean('is_default');
@@ -147,13 +150,16 @@ class WarehouseController extends Controller
         $val = $r->validate([
             'name'       => ['required', 'string', 'max:255'],
             'code'       => ['required', 'string', 'max:32', 'unique:warehouses,code,' . $warehouse->id],
-            'branch_id'  => ['nullable', 'exists:branches,id'],
+            'branch_id'  => ['required', 'exists:branches,id'],
             'type'       => ['nullable', Rule::in(['store', 'showroom', 'returns', 'virtual'])],
             'is_default' => ['sometimes', 'boolean'],
             'is_active'  => ['sometimes', 'boolean'],
             'phone'      => ['nullable', 'string', 'max:32'],
             'email'      => ['nullable', 'email', 'max:120'],
             'address'    => ['nullable', 'string', 'max:255'],
+        ], [
+            'branch_id.required' => 'Please select a branch for this warehouse.',
+            'branch_id.exists'   => 'The selected branch is no longer available. Please choose another branch.',
         ]);
         $val['is_default'] = $r->boolean('is_default');
         $val['is_active']  = $r->boolean('is_active');

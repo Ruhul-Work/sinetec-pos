@@ -1,0 +1,78 @@
+@extends('backend.layouts.master')
+
+@php
+  $status = $adjustment->status;
+  $statusClass = match ($status) {
+      \App\Enums\Inventory\StockAdjustmentStatus::Draft => 'bg-dark-warning-gradient',
+      \App\Enums\Inventory\StockAdjustmentStatus::Approved => 'bg-dark-info-gradient',
+      \App\Enums\Inventory\StockAdjustmentStatus::Posted => 'bg-dark-success-gradient',
+      default => 'bg-dark-danger-gradient',
+  };
+@endphp
+
+@section('meta') <title>{{ $adjustment->adjustment_no }}</title> @endsection
+
+@section('content')
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
+    <div>
+      <h6 class="fw-semibold mb-1">Opening Stock {{ $adjustment->adjustment_no }}</h6>
+      <span class="badge text-sm fw-semibold {{ $statusClass }} px-12 py-7 radius-4 text-white">{{ $status->label() }}</span>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+      <a href="{{ route('inventory.opening-stocks.index') }}" class="btn btn-outline-secondary btn-sm px-14 py-8 radius-8 app-action-button"><iconify-icon icon="mdi:arrow-left"></iconify-icon><span>Back</span></a>
+      @if ($status === \App\Enums\Inventory\StockAdjustmentStatus::Draft)
+        @perm('inventory.opening-stocks.update', 'edit')
+          <a href="{{ route('inventory.opening-stocks.edit', $adjustment) }}" class="btn btn-outline-primary btn-sm px-14 py-8 radius-8 app-action-button"><iconify-icon icon="mdi:pencil-outline"></iconify-icon><span>Edit</span></a>
+          <form method="POST" action="{{ route('inventory.opening-stocks.approve', $adjustment) }}" class="d-flex" onsubmit="return confirm('Approve this opening stock document? It will become read-only.');">@csrf @method('PATCH')<button class="btn btn-info btn-sm px-14 py-8 radius-8 text-white app-action-button"><iconify-icon icon="mdi:check-decagram-outline"></iconify-icon><span>Approve</span></button></form>
+        @endperm
+      @elseif ($status === \App\Enums\Inventory\StockAdjustmentStatus::Approved)
+        @perm('inventory.opening-stocks.post', 'edit')
+          <form method="POST" action="{{ route('inventory.opening-stocks.post', $adjustment) }}" class="d-flex" onsubmit="return confirm('Post this opening stock now? Stock ledgers and balances will be updated permanently.');">@csrf @method('PATCH')<button class="btn btn-success btn-sm px-14 py-8 radius-8 app-action-button"><iconify-icon icon="mdi:book-check-outline"></iconify-icon><span>Post to Stock</span></button></form>
+        @endperm
+      @endif
+    </div>
+  </div>
+
+  <div class="card mb-24">
+    <div class="card-header"><h5 class="card-title mb-0">Document Information</h5></div>
+    <div class="card-body">
+      <div class="row gy-3">
+        <div class="col-md-3"><small class="text-muted d-block">Branch</small><strong>{{ $adjustment->branch->name }}</strong></div>
+        <div class="col-md-3"><small class="text-muted d-block">Warehouse</small><strong>{{ $adjustment->warehouse->name }}</strong><br><code>{{ $adjustment->warehouse->code }}</code></div>
+        <div class="col-md-3"><small class="text-muted d-block">Opening Date</small><strong>{{ $adjustment->adjustment_at->format('d M Y, h:i A') }}</strong></div>
+        <div class="col-md-3"><small class="text-muted d-block">Created By</small><strong>{{ $adjustment->createdBy?->name ?? 'System' }}</strong></div>
+        @if ($adjustment->reason)<div class="col-md-6"><small class="text-muted d-block">Reason</small><span>{{ $adjustment->reason }}</span></div>@endif
+        @if ($adjustment->note)<div class="col-md-6"><small class="text-muted d-block">Note</small><span>{{ $adjustment->note }}</span></div>@endif
+        @if ($adjustment->approved_at)<div class="col-md-3"><small class="text-muted d-block">Approved</small><span>{{ $adjustment->approved_at->format('d M Y, h:i A') }} by {{ $adjustment->approvedBy?->name ?? 'System' }}</span></div>@endif
+        @if ($adjustment->posted_at)<div class="col-md-3"><small class="text-muted d-block">Posted</small><span>{{ $adjustment->posted_at->format('d M Y, h:i A') }} by {{ $adjustment->postedBy?->name ?? 'System' }}</span></div>@endif
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><h5 class="card-title mb-0">Stock Lines</h5></div>
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table bordered-table align-middle mb-0">
+          <thead><tr><th>#</th><th>Type</th><th>Item</th><th>Entered Unit</th><th class="text-end">Entered Qty</th><th class="text-end">Base Qty</th><th class="text-end">Cost / Base Unit</th><th>Note</th></tr></thead>
+          <tbody>
+            @forelse ($lines as $index => $line)
+              <tr>
+                <td>{{ $index + 1 }}</td>
+                <td><span class="badge bg-light text-dark">{{ $line['domain_label'] }}</span></td>
+                <td><strong>{{ $line['item_text'] }}</strong></td>
+                <td>{{ $line['unit_text'] }}</td>
+                <td class="text-end">{{ rtrim(rtrim(number_format((float) $line['quantity'], 6, '.', ','), '0'), '.') }}</td>
+                <td class="text-end fw-semibold">{{ rtrim(rtrim(number_format((float) $line['base_quantity'], 6, '.', ','), '0'), '.') }} {{ $line['base_unit_code'] }}</td>
+                <td class="text-end">{{ $line['unit_cost'] !== null ? number_format((float) $line['unit_cost'], 4) : '—' }}</td>
+                <td>{{ $line['note'] ?: '—' }}</td>
+              </tr>
+            @empty
+              <tr><td colspan="8" class="text-center text-muted">No lines found.</td></tr>
+            @endforelse
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+@endsection

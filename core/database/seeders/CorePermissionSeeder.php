@@ -36,6 +36,8 @@ class CorePermissionSeeder extends Seeder
             ['key' => 'inventory.raw_material_reorder_levels', 'name' => 'Raw Material Reorder Levels', 'module' => 'Inventory Setup', 'prefixes' => ['inventory.raw-material-reorder-levels.']],
             ['key' => 'inventory.part_reorder_levels', 'name' => 'Part Reorder Levels', 'module' => 'Inventory Setup', 'prefixes' => ['inventory.part-reorder-levels.']],
             ['key' => 'inventory.finished_product_reorder_levels', 'name' => 'Finished Product Reorder Levels', 'module' => 'Inventory Setup', 'prefixes' => ['inventory.finished-product-reorder-levels.']],
+            ['key' => 'inventory.opening_stock', 'name' => 'Opening Stock', 'module' => 'Inventory Operations', 'prefixes' => ['inventory.opening-stocks.']],
+            ['key' => 'inventory.stock_transfer', 'name' => 'Stock Transfer', 'module' => 'Inventory Operations', 'prefixes' => ['inventory.stock-transfers.']],
             ['key' => 'core.warehouses', 'name' => 'Warehouses', 'module' => 'Inventory', 'prefixes' => ['inventory.warehouses.']],
             ['key' => 'core.suppliers', 'name' => 'Suppliers', 'module' => 'Master Data', 'prefixes' => ['supplier.']],
             ['key' => 'core.customers', 'name' => 'Customers', 'module' => 'Master Data', 'prefixes' => ['customer.']],

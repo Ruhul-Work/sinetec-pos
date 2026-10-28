@@ -61,4 +61,37 @@
 
 **Total:** 6.5 hours
 
+---
+
+## Date: 2026-10-25
+
+**ID:** BFT4
+
+1. Laravel 12 থেকে Laravel 13.38 upgrade, PHP/package compatibility update এবং unused dependency cleanup — 1.5 hours
+2. Laravel 13 cache/session serialization compatibility, permission cache এবং topbar branch-list regression fix — 1 hour
+3. Login page redesign, electronics background image integration এবং logo contrast/color polish — 45 min
+4. Upgrade branch verification, main branch merge, push এবং local/remote branch cleanup — 30 min
+5. Raw Material, Part এবং Finished Product-এর transaction-safe Stock Posting Core, movement ledger, balance ও reversal service development — 1.75 hours
+6. Multi-line Opening Stock module with Draft → Approve → Post workflow, unit conversion, valuation এবং first-movement protection implementation — 2.25 hours
+7. Opening Stock routes, independent permission, sidebar, action/icon alignment, automated tests এবং roadmap/status documentation update — 45 min
+
+**Total:** 8.5 hours
+
+---
+
+## Date: 2026-10-28
+
+**ID:** BFT4
+
+1. Opening Stock final functional review, unit-precision quantity display and form column layout polish — 45 min
+2. Opening Stock CSV import deferred-scope decision and roadmap/status documentation update — 15 min
+3. DataTable row-action delete icons standardized across active modules — 30 min
+4. Mixed-item Stock Transfer module with Draft → Post workflow, create/edit/show/list interface and same/cross-branch warehouse support — 3 hours
+5. Atomic Transfer Out/Transfer In stock posting, unit conversion, insufficient-stock rollback, idempotency and automated tests — 1.5 hours
+6. Stock Transfer routes, independent permission, sidebar integration and project documentation update — 45 min
+7. Opening Stock and Stock Transfer Save Draft button reusable gradient action style integration — 15 min
+8. Warehouse Branch required validation, clear field-level error message and regression test verification — 30 min
+
+**Total:** 7.5 hours
+
 

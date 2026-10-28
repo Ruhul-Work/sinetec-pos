@@ -173,7 +173,7 @@ class RoleController extends Controller
                 <a href="#" class="w-32-px h-32-px bg-success-focus text-success-main rounded-circle d-inline-flex align-items-center justify-content-center btn-role-edit"
                     data-id="' . $r->id . '" title="Edit"><iconify-icon icon="lucide:edit"></iconify-icon></a>
                 <a href="#" class="w-32-px h-32-px bg-danger-focus text-danger-main rounded-circle d-inline-flex align-items-center justify-content-center btn-role-delete"
-                    data-id="' . $r->id . '" title="Delete"><iconify-icon icon="mdi:delete"></iconify-icon></a>
+                    data-id="' . $r->id . '" title="Delete"><iconify-icon icon="solar:trash-bin-minimalistic-outline"></iconify-icon></a>
                 </div></div>';
 
             $data[] = [$r->id, $name, $key, $type, $actions];

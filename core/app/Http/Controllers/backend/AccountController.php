@@ -94,7 +94,7 @@ class AccountController extends Controller
                         bg-danger-focus text-danger-main btn-account-del"
                 data-url="' . route('accounts.destroy', $r->id) . '"
                 title="Disable">
-                <iconify-icon icon="mdi:delete"></iconify-icon>
+                <iconify-icon icon="solar:trash-bin-minimalistic-outline"></iconify-icon>
                 </a>
 
             </div>';

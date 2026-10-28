@@ -67,7 +67,7 @@ class UnitConversionController extends Controller
                 <a href="#" class="w-32-px h-32-px rounded-circle d-inline-flex align-items-center justify-content-center bg-danger-focus text-danger-main btn-conversion-delete"
                     data-url="'.route('units.conversions.destroy', $conversion).'"
                     title="Delete" aria-label="Delete unit conversion">
-                    <iconify-icon icon="mdi:delete"></iconify-icon>
+                    <iconify-icon icon="solar:trash-bin-minimalistic-outline"></iconify-icon>
                 </a>
             </div>';
 

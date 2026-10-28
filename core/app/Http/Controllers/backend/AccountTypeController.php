@@ -60,7 +60,7 @@ class AccountTypeController extends Controller
                data-id="' . $r->id . '"
                data-url="' . route('account-types.destroy', $r->id) . '"
                title="Delete">
-               <iconify-icon icon="mdi:delete"></iconify-icon>
+               <iconify-icon icon="solar:trash-bin-minimalistic-outline"></iconify-icon>
             </a>
 
         </div>';

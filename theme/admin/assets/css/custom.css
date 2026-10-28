@@ -84,7 +84,8 @@ html[data-theme="dark"] .branch-switcher-control {
    Primary actions used in data tables and modal forms
    ================================================================ */
 .basic-data-table .actions-bar .btn-primary,
-.modal form .btn.btn-primary[type="submit"] {
+.modal form .btn.btn-primary[type="submit"],
+.app-primary-action {
   color: #fff !important;
   border-color: #0f766e !important;
   background: linear-gradient(135deg, #0f766e 0%, #10b981 100%) !important;
@@ -95,7 +96,9 @@ html[data-theme="dark"] .branch-switcher-control {
 .basic-data-table .actions-bar .btn-primary:hover,
 .basic-data-table .actions-bar .btn-primary:focus,
 .modal form .btn.btn-primary[type="submit"]:hover,
-.modal form .btn.btn-primary[type="submit"]:focus {
+.modal form .btn.btn-primary[type="submit"]:focus,
+.app-primary-action:hover,
+.app-primary-action:focus {
   color: #fff !important;
   border-color: #0b625c !important;
   filter: saturate(1.08) brightness(0.96);
@@ -104,7 +107,8 @@ html[data-theme="dark"] .branch-switcher-control {
 }
 
 .basic-data-table .actions-bar .btn-primary:disabled,
-.modal form .btn.btn-primary[type="submit"]:disabled {
+.modal form .btn.btn-primary[type="submit"]:disabled,
+.app-primary-action:disabled {
   box-shadow: none;
   filter: grayscale(0.15);
   transform: none;
@@ -181,7 +185,10 @@ html[data-theme="dark"] .domain-unit-tabs .show > .nav-link {
 .page-note {
   position: relative;
   display: inline-flex;
+  align-items: center;
   flex: 0 0 auto;
+  line-height: 1;
+  vertical-align: middle;
 }
 
 .page-note__toggle {
@@ -212,7 +219,31 @@ html[data-theme="dark"] .domain-unit-tabs .show > .nav-link {
 }
 
 .page-note__toggle iconify-icon {
+  display: block;
+  flex: 0 0 auto;
   font-size: 1.0625rem;
+  line-height: 1;
+}
+
+/* ================================================================
+   Inline action buttons
+   Keeps Iconify glyphs and labels centered on one visual baseline.
+   ================================================================ */
+.app-action-button {
+  min-height: 36px;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.app-action-button iconify-icon {
+  display: block;
+  flex: 0 0 auto;
+  font-size: 1.125rem;
+  line-height: 1;
 }
 
 .page-note__panel {

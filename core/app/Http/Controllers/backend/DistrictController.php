@@ -63,7 +63,7 @@ class DistrictController extends Controller
                     data-id="' . $b->district_id . '"
                     data-url="' . route('district.districts.destroy', $b->district_id) . '"
                     title="Delete">
-                    <iconify-icon icon="mdi:delete"></iconify-icon>
+                    <iconify-icon icon="solar:trash-bin-minimalistic-outline"></iconify-icon>
                 </a>
             </div>';
 

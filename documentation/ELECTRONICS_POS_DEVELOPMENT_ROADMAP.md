@@ -137,8 +137,9 @@ Receipt      Adjustment      Production   Stock Count
 | **Complete:** Part stock posting service | New core service | Part + warehouse | Purchase, production output, assembly consumption, transfer, adjustment |
 | **Complete:** Finished-product stock posting service | New core service | Finished product + warehouse | Assembly output, sale, return, transfer, adjustment |
 | **Complete:** Three movement ledgers and balances | New | Domain posting services | Audit, availability and reporting |
-| Opening stock document/import | New controlled flow | Ledger + rate rules | Go-live stock |
-| Warehouse transfer | Adapt current concept | Ledger + balance | Branch/showroom replenishment |
+| **Complete (manual):** Opening stock document with approval/posting | New controlled flow | Ledger + unit mappings | Go-live stock |
+| **Deferred/optional:** Opening stock CSV import | New controlled input | Manual opening workflow | Bulk go-live stock entry only if required |
+| **Complete:** Stock Transfer | New controlled flow | Ledger + balance | Branch/showroom replenishment |
 | Stock adjustment/count | Adapt current concept | Ledger + balance | Damage/physical count |
 | Stock inquiry/ledger report | New query/UI | Ledger + balance | Operations/reporting |
 
@@ -380,7 +381,9 @@ Receipt      Adjustment      Production   Stock Count
 13. **Complete:** Raw-material/part supplier mappings with approved supplier code, lead time and single preferred source rules.
 14. **Complete:** Warehouse-wise Raw Material, Part and Finished Product reorder-level setup with independent permissions.
 15. **Complete:** Phase 2 transaction-safe stock posting services, typed movement models and warehouse-wise current balances with idempotency, negative-stock protection and reversal support.
-16. **Next implementation:** Opening Stock document and controlled posting flow for Raw Material, Part and Finished Product.
+16. **Complete:** Manual Opening Stock document with mixed domain lines, unit conversion and controlled `DRAFT → APPROVED → POSTED` flow.
+17. **Complete:** Stock Transfer with mixed-domain lines, mapped-unit conversion and atomic source OUT/destination IN posting.
+18. **Next implementation:** Stock Adjustment / Physical Count. Opening Stock CSV import remains deferred and will use the same Draft validation if later required.
 
 Finance account mapping and the opening-stock valuation/approval date remain later operational gates. Draft journals cannot be posted before mapping approval.
 

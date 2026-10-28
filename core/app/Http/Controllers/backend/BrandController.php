@@ -64,7 +64,7 @@ class BrandController extends Controller
                     data-id="' . $b->id . '"
                     data-url="' . route('brand.brands.destroy', $b->id) . '"
                     title="Delete">
-                    <iconify-icon icon="mdi:delete"></iconify-icon>
+                    <iconify-icon icon="solar:trash-bin-minimalistic-outline"></iconify-icon>
                 </a>
             </div>';
 

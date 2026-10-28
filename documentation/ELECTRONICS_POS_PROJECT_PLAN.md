@@ -60,7 +60,7 @@ Every quantity change must create an entry in the appropriate domain ledger. Eac
 | Finished-product assembly | Components OUT; finished product IN |
 | POS / wholesale sale | OUT |
 | Customer return | IN after acceptance |
-| Warehouse transfer | OUT from source; IN to destination |
+| Stock transfer | OUT from source warehouse; IN to destination warehouse/showroom |
 | Adjustment / damage / wastage | Separate, documented movement |
 
 ### 2.3 Month-based report rate and stock valuation principle

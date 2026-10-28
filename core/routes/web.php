@@ -10,10 +10,11 @@ use App\Http\Controllers\backend\CustomerController;
 use App\Http\Controllers\backend\DistrictController;
 use App\Http\Controllers\backend\DivisionController;
 use App\Http\Controllers\backend\DomainUnitMappingController;
-use App\Http\Controllers\backend\FiscalYearController;
 use App\Http\Controllers\backend\FinishedProductCategoryController;
 use App\Http\Controllers\backend\FinishedProductController;
 use App\Http\Controllers\backend\FinishedProductReorderLevelController;
+use App\Http\Controllers\backend\FiscalYearController;
+use App\Http\Controllers\backend\OpeningStockController;
 use App\Http\Controllers\backend\PartCategoryController;
 use App\Http\Controllers\backend\PartController;
 use App\Http\Controllers\backend\PartReorderLevelController;
@@ -23,6 +24,7 @@ use App\Http\Controllers\backend\RawMaterialCategoryController;
 use App\Http\Controllers\backend\RawMaterialController;
 use App\Http\Controllers\backend\RawMaterialReorderLevelController;
 use App\Http\Controllers\backend\RawMaterialSupplierController;
+use App\Http\Controllers\backend\StockTransferController;
 use App\Http\Controllers\backend\SupplierController;
 use App\Http\Controllers\backend\UnitController;
 use App\Http\Controllers\backend\UnitConversionController;
@@ -239,6 +241,35 @@ Route::middleware(['web', 'auth', 'perm', 'branchscope'])->group(function () {
             Route::get('{level}/edit-modal', 'editModal')->whereNumber('level')->name('editModal');
             Route::put('{level}', 'update')->whereNumber('level')->name('update');
             Route::delete('{level}', 'destroy')->whereNumber('level')->name('destroy');
+        });
+
+        Route::prefix('opening-stocks')->name('opening-stocks.')->controller(OpeningStockController::class)->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::post('list', 'listAjax')->name('list.ajax');
+            Route::get('create', 'create')->name('create');
+            Route::post('/', 'store')->name('store');
+            Route::get('items/select2', 'itemSelect2')->name('items.select2');
+            Route::get('units/select2', 'unitSelect2')->name('units.select2');
+            Route::get('{openingStock}', 'show')->whereNumber('openingStock')->name('show');
+            Route::get('{openingStock}/edit', 'edit')->whereNumber('openingStock')->name('edit');
+            Route::put('{openingStock}', 'update')->whereNumber('openingStock')->name('update');
+            Route::patch('{openingStock}/approve', 'approve')->whereNumber('openingStock')->name('approve');
+            Route::patch('{openingStock}/post', 'post')->whereNumber('openingStock')->name('post');
+            Route::delete('{openingStock}', 'destroy')->whereNumber('openingStock')->name('destroy');
+        });
+
+        Route::prefix('stock-transfers')->name('stock-transfers.')->controller(StockTransferController::class)->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::post('list', 'listAjax')->name('list.ajax');
+            Route::get('create', 'create')->name('create');
+            Route::post('/', 'store')->name('store');
+            Route::get('items/select2', 'itemSelect2')->name('items.select2');
+            Route::get('units/select2', 'unitSelect2')->name('units.select2');
+            Route::get('{stockTransfer}', 'show')->whereNumber('stockTransfer')->name('show');
+            Route::get('{stockTransfer}/edit', 'edit')->whereNumber('stockTransfer')->name('edit');
+            Route::put('{stockTransfer}', 'update')->whereNumber('stockTransfer')->name('update');
+            Route::patch('{stockTransfer}/post', 'post')->whereNumber('stockTransfer')->name('post');
+            Route::delete('{stockTransfer}', 'destroy')->whereNumber('stockTransfer')->name('destroy');
         });
 
         Route::get('warehouses', [WarehouseController::class, 'index'])->name('warehouses.index');

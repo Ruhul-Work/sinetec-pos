@@ -68,7 +68,7 @@ class UnitController extends Controller
                     data-id="' . $u->id . '"
                     data-url="' . route('units.destroy', $u->id) . '"
                     title="Delete">
-                    <iconify-icon icon="mdi:delete"></iconify-icon>
+                    <iconify-icon icon="solar:trash-bin-minimalistic-outline"></iconify-icon>
                 </a>
             </div>';
 

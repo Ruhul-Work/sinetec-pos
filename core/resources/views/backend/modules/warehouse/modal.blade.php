@@ -26,7 +26,7 @@
 
 
       {{-- <div class="col-md-10 mb-16">
-        <label class="form-label text-sm mb-8">Branch</label>
+        <label class="form-label text-sm mb-8">Branch <span class="text-danger">*</span></label>
         <select name="branch_id" class="form-control radius-8  js-branch-select">
           @if(!empty($warehouse?->branch_id))
             <option value="{{ $warehouse->branch_id }}" selected>{{ optional($warehouse->branch)->name }}</option>
@@ -43,6 +43,7 @@
                 data-url="{{ route('org.branches.select2') }}"
                 data-init-id="{{ $warehouse?->branch_id ?? '' }}"       
                 data-init-text="{{ $warehouse?->branch?->name ?? '' }}"  
+                aria-required="true"
                 placeholder="Select branch"></select>
 
         <div class="invalid-feedback d-block branch_id-error" style="display:none"></div>

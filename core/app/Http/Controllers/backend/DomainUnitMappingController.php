@@ -138,7 +138,7 @@ class DomainUnitMappingController extends Controller
             if ($canDelete) {
                 $actions .= '<a href="#" class="w-32-px h-32-px rounded-circle d-inline-flex align-items-center justify-content-center bg-danger-focus text-danger-main btn-domain-unit-delete"'
                     .' data-url="'.e(route('inventory.item-units.destroy', ['domain' => $domain, 'mapping' => $mapping->id])).'" title="Delete">'
-                    .'<iconify-icon icon="mdi:delete"></iconify-icon></a>';
+                    .'<iconify-icon icon="solar:trash-bin-minimalistic-outline"></iconify-icon></a>';
             }
 
             $actions .= '</div>';

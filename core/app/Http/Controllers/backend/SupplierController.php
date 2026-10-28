@@ -58,7 +58,7 @@ class SupplierController extends Controller
                     <iconify-icon icon="lucide:edit"></iconify-icon>
                 </a>
                 <a href="#" class="w-32-px h-32-px rounded-circle d-inline-flex align-items-center justify-content-center bg-danger-focus text-danger-main btn-branch-delete" data-id="'.$supplier->id.'" data-url="'.route('supplier.destroy', $supplier).'" title="Delete" aria-label="Delete supplier">
-                    <iconify-icon icon="mdi:delete"></iconify-icon>
+                    <iconify-icon icon="solar:trash-bin-minimalistic-outline"></iconify-icon>
                 </a>
             </div>';
 

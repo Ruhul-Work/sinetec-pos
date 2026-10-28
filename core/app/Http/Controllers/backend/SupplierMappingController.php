@@ -83,7 +83,7 @@ abstract class SupplierMappingController extends Controller
             if ($canDelete) {
                 $actions .= '<a href="#" class="w-32-px h-32-px rounded-circle d-inline-flex align-items-center justify-content-center bg-danger-focus text-danger-main btn-supplier-mapping-delete"'
                     .' data-url="'.e(route($routeName.'.destroy', $mapping->id)).'" title="Delete">'
-                    .'<iconify-icon icon="mdi:delete"></iconify-icon></a>';
+                    .'<iconify-icon icon="solar:trash-bin-minimalistic-outline"></iconify-icon></a>';
             }
 
             $actions .= '</div>';

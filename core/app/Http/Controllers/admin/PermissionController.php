@@ -150,7 +150,7 @@ class PermissionController extends Controller
                 <a href="#" class="w-32-px h-32-px bg-success-focus text-success-main rounded-circle d-inline-flex align-items-center justify-content-center btn-perm-edit"
                 data-id="' . $r->id . '" title="Edit"><iconify-icon icon="lucide:edit"></iconify-icon></a>
                  <a href="#" class="w-32-px h-32-px bg-danger-focus text-danger-main rounded-circle d-inline-flex align-items-center justify-content-center text-danger btn-perm-delete "
-       data-id="' . $r->id . '" title="Delete"><iconify-icon icon="mdi:delete"></iconify-icon></a>
+       data-id="' . $r->id . '" title="Delete"><iconify-icon icon="solar:trash-bin-minimalistic-outline"></iconify-icon></a>
                 <a href="#" class="w-32-px h-32-px rounded-circle d-inline-flex align-items-center justify-content-center btn-perm-routes text-info"
                 data-id="' . $r->id . '" title="Manage Routes"><iconify-icon icon="mdi:route"></iconify-icon></a>
             </div>';
