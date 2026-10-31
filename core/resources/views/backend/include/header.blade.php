@@ -52,6 +52,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"/>
 
     {{-- Project-specific UI rules live here; keep the theme stylesheet untouched. --}}
-    <link rel="stylesheet" href="{{ asset('theme/admin/assets/css/custom.css') }}?v=20261028.1">
+    <link rel="stylesheet" href="{{ asset('theme/admin/assets/css/custom.css') }}?v=20261029.3">
  
 </head>

@@ -20,7 +20,7 @@
       @if ($status === \App\Enums\Inventory\StockTransferStatus::Draft)
         @perm('inventory.stock-transfers.update', 'edit')
           <a href="{{ route('inventory.stock-transfers.edit', $transfer) }}" class="btn btn-outline-primary btn-sm px-14 py-8 radius-8 app-action-button"><iconify-icon icon="mdi:pencil-outline"></iconify-icon><span>Edit</span></a>
-          <form method="POST" action="{{ route('inventory.stock-transfers.post', $transfer) }}" class="d-flex" onsubmit="return confirm('Post this stock transfer? Source and destination balances will be updated permanently.');">@csrf @method('PATCH')<button class="btn btn-success btn-sm px-14 py-8 radius-8 app-action-button"><iconify-icon icon="mdi:swap-horizontal-bold"></iconify-icon><span>Post Transfer</span></button></form>
+          <form method="POST" action="{{ route('inventory.stock-transfers.post', $transfer) }}" class="d-flex js-swal-confirm" data-confirm-title="Post stock transfer?" data-confirm-text="Source and destination warehouse balances will be updated permanently." data-confirm-button="Yes, post transfer" data-confirm-color="#198754">@csrf @method('PATCH')<button class="btn btn-success btn-sm px-14 py-8 radius-8 app-action-button"><iconify-icon icon="mdi:swap-horizontal-bold"></iconify-icon><span>Post Transfer</span></button></form>
         @endperm
       @endif
     </div>

@@ -94,4 +94,21 @@
 
 **Total:** 7.5 hours
 
+---
+
+## Date: 2026-10-29
+
+**ID:** BFT4
+
+1. Mixed-domain Stock Adjustment module with Draft → Approve → Post workflow, controlled direction rules and stock-safe posting — 2 hours
+2. Cross-domain Stock Ledger with warehouse/item/movement/date filters, source references and chronological running balance — 1.25 hours
+3. Topbar POS action button spacing, animated border effect and shared interface polish — 30 min
+4. Purchase Order backend flow with mixed Raw Material/Part lines, purchase-unit conversion, totals, approval/cancellation and permissions — 2 hours
+5. Modern 50/50 Purchase Order catalogue/cart interface, compact item cards, fixed panel actions and responsive selected-item grid — 1.5 hours
+6. Instant Supplier creation, open-purchasing catalogue, optional mapped/preferred badges and business-rule item filtering — 45 min
+7. Purchase quantity stepper, two-decimal price display, selected-row alignment and common table-header UI polish — 45 min
+8. Automated regression tests and project roadmap/current-status documentation update — 30 min
+
+**Total:** 9.25 hours
+
 

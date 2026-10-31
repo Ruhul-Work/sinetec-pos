@@ -140,8 +140,9 @@ Receipt      Adjustment      Production   Stock Count
 | **Complete (manual):** Opening stock document with approval/posting | New controlled flow | Ledger + unit mappings | Go-live stock |
 | **Deferred/optional:** Opening stock CSV import | New controlled input | Manual opening workflow | Bulk go-live stock entry only if required |
 | **Complete:** Stock Transfer | New controlled flow | Ledger + balance | Branch/showroom replenishment |
-| Stock adjustment/count | Adapt current concept | Ledger + balance | Damage/physical count |
-| Stock inquiry/ledger report | New query/UI | Ledger + balance | Operations/reporting |
+| **Complete:** Manual Stock Adjustment | New controlled flow | Ledger + balance | Gain, loss, damage, wastage and correction |
+| **Deferred/optional:** Physical Count | New count snapshot flow | Balance + adjustment | Counted-vs-system difference and approved correction |
+| **Complete:** Stock Inquiry / Movement Ledger | New query/UI | Ledger + balance | Operations/reporting |
 
 **Mandatory service behaviour**
 
@@ -164,7 +165,7 @@ Receipt      Adjustment      Production   Stock Count
 
 | Build / adapt | Reuse or new | Depends on | Connects to |
 | --- | --- | --- | --- |
-| Optional purchase order | New/adapt header-line pattern | Item, supplier, warehouse | Purchase receipt |
+| **Complete:** Optional purchase order | New mixed raw-material/part header-line workflow | Active supplier, purchasable item, purchase unit, warehouse; supplier mapping is optional metadata | Purchase receipt |
 | Purchase receipt | New/adapt | Inventory posting service | Stock IN, finance draft, price history |
 | Purchase return | New/adapt | Receipt + inventory | Stock OUT, finance draft |
 | Purchase payment / supplier due | Reuse after finance review | Receipt + accounts | Finance |
@@ -383,7 +384,11 @@ Receipt      Adjustment      Production   Stock Count
 15. **Complete:** Phase 2 transaction-safe stock posting services, typed movement models and warehouse-wise current balances with idempotency, negative-stock protection and reversal support.
 16. **Complete:** Manual Opening Stock document with mixed domain lines, unit conversion and controlled `DRAFT → APPROVED → POSTED` flow.
 17. **Complete:** Stock Transfer with mixed-domain lines, mapped-unit conversion and atomic source OUT/destination IN posting.
-18. **Next implementation:** Stock Adjustment / Physical Count. Opening Stock CSV import remains deferred and will use the same Draft validation if later required.
+18. **Complete:** Manual Stock Adjustment with mixed-domain lines, type-controlled direction, mapped-unit conversion and `DRAFT → APPROVED → POSTED` workflow.
+19. **Deferred/optional:** Physical Count with system/count snapshot and approved difference posting; implement later when periodic warehouse audit is required.
+20. **Complete:** Stock Inquiry / Movement Ledger over the three domain movement tables with cross-domain filters, source-document links and true chronological running balance.
+21. **Complete:** Phase 3 Purchase Order with mixed Raw Material/Part lines, open purchasing (optional mapping badge/preference), business-rule item eligibility, purchase-unit conversion and controlled `DRAFT → APPROVED/CANCELLED` flow. It has no stock or finance effect.
+22. **Next implementation:** Direct/PO-based Purchase Receipt with actual supplier-rate snapshot and idempotent stock IN posting. Opening Stock CSV import remains deferred.
 
 Finance account mapping and the opening-stock valuation/approval date remain later operational gates. Draft journals cannot be posted before mapping approval.
 

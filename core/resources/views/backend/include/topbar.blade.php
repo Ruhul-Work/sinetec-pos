@@ -99,10 +99,9 @@
             <div class="d-flex align-items-center justify-content-center justify-content-sm-end gap-2 gap-md-3">
                 <!-- POS link -->
                 <a href="#"
-                    class="btn text-success-600 border border-success-main px-2 px-md-3 py-4 radius-4 fw-medium text-xs text-sm-sm d-flex align-items-center gap-1 pos-top-btn">
-
-                    <iconify-icon icon="mdi:point-of-sale" class="text-lg"></iconify-icon>
-                    <span class="fw-semibold">POS</span>
+                    class="btn pos-top-btn">
+                    <iconify-icon icon="mdi:point-of-sale" aria-hidden="true"></iconify-icon>
+                    <span>POS</span>
                 </a>
                 <!-- POS link end -->
                 <button type="button" data-theme-toggle

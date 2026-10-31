@@ -109,6 +109,7 @@ class SupplierController extends Controller
             'ok' => true,
             'msg' => 'Supplier created successfully.',
             'id' => $supplier->id,
+            'supplier' => $supplier->only(['id', 'code', 'name']),
         ]);
     }
 
@@ -167,6 +168,7 @@ class SupplierController extends Controller
             foreach ($rows as $rawRow) {
                 if (! is_array($rawRow)) {
                     $skipped++;
+
                     continue;
                 }
 
@@ -182,6 +184,7 @@ class SupplierController extends Controller
 
                 if ($name === null || ($code === null && $phone === null && $email === null)) {
                     $skipped++;
+
                     continue;
                 }
 

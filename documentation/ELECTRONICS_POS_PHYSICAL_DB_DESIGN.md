@@ -136,6 +136,14 @@ Item-line rule:
 - `finished_product_id` does not exist on purchase lines in release 1;
 - store document unit, conversion, document quantity, base quantity, unit rate and line total.
 
+Purchase-order discount snapshot:
+
+- `discount_type` is `FLAT` or `PERCENT`;
+- `discount_value` stores the user's entered flat amount or percentage;
+- `discount` remains the calculated monetary amount used by totals and historical reports;
+- percentage value is limited to 100 and calculated against the current subtotal while the order is a Draft;
+- existing orders are migrated as `FLAT`, with their previous `discount` copied to `discount_value`.
+
 Receipt posting writes either a raw-material movement or part movement. Actual supplier rate remains on the receipt item and is never overwritten by a monthly rate.
 
 ## 5. Separate stock cores

@@ -1,4 +1,4 @@
-<div class="modal-header py-16 px-24 border-0" data-modal-key="branch-create">
+<div class="modal-header py-16 px-24 border-0" data-modal-key="supplier-create">
     <h5 class="modal-title">Add Supplier</h5>
     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 </div>
@@ -45,13 +45,4 @@
     </div>
   </form>
 </div>
-
-<script>
-  $(document).on('click','#submit',function(){
-    setTimeout(() => {
-      loadSupplier();
-    }, 500);
-  })
-</script>
-
 

@@ -858,3 +858,39 @@
         };
     })(jQuery);
 </script>
+
+<script>
+    /* Reusable SweetAlert confirmation for normal POST/PATCH/DELETE forms. */
+    $(document).on('submit', 'form.js-swal-confirm', function(event) {
+        event.preventDefault();
+
+        const form = this;
+        const title = form.dataset.confirmTitle || 'Are you sure?';
+        const text = form.dataset.confirmText || 'Please confirm this action.';
+        const confirmButtonText = form.dataset.confirmButton || 'Yes, continue';
+        const confirmButtonColor = form.dataset.confirmColor || '#0f766e';
+
+        const submitForm = function() {
+            $(form).find(':submit').prop('disabled', true);
+            HTMLFormElement.prototype.submit.call(form);
+        };
+
+        if (window.Swal) {
+            Swal.fire({
+                icon: form.dataset.confirmIcon || 'warning',
+                title: title,
+                text: text,
+                showCancelButton: true,
+                focusCancel: true,
+                confirmButtonText: confirmButtonText,
+                cancelButtonText: 'Cancel',
+                confirmButtonColor: confirmButtonColor,
+                reverseButtons: true
+            }).then(function(result) {
+                if (result.isConfirmed) submitForm();
+            });
+        } else if (window.confirm(`${title}\n\n${text}`)) {
+            submitForm();
+        }
+    });
+</script>

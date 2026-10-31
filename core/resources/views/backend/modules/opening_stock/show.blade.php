@@ -23,11 +23,11 @@
       @if ($status === \App\Enums\Inventory\StockAdjustmentStatus::Draft)
         @perm('inventory.opening-stocks.update', 'edit')
           <a href="{{ route('inventory.opening-stocks.edit', $adjustment) }}" class="btn btn-outline-primary btn-sm px-14 py-8 radius-8 app-action-button"><iconify-icon icon="mdi:pencil-outline"></iconify-icon><span>Edit</span></a>
-          <form method="POST" action="{{ route('inventory.opening-stocks.approve', $adjustment) }}" class="d-flex" onsubmit="return confirm('Approve this opening stock document? It will become read-only.');">@csrf @method('PATCH')<button class="btn btn-info btn-sm px-14 py-8 radius-8 text-white app-action-button"><iconify-icon icon="mdi:check-decagram-outline"></iconify-icon><span>Approve</span></button></form>
+          <form method="POST" action="{{ route('inventory.opening-stocks.approve', $adjustment) }}" class="d-flex js-swal-confirm" data-confirm-title="Approve opening stock?" data-confirm-text="After approval this document becomes read-only and ready for posting." data-confirm-button="Yes, approve" data-confirm-color="#0f766e">@csrf @method('PATCH')<button class="btn btn-info btn-sm px-14 py-8 radius-8 text-white app-action-button"><iconify-icon icon="mdi:check-decagram-outline"></iconify-icon><span>Approve</span></button></form>
         @endperm
       @elseif ($status === \App\Enums\Inventory\StockAdjustmentStatus::Approved)
         @perm('inventory.opening-stocks.post', 'edit')
-          <form method="POST" action="{{ route('inventory.opening-stocks.post', $adjustment) }}" class="d-flex" onsubmit="return confirm('Post this opening stock now? Stock ledgers and balances will be updated permanently.');">@csrf @method('PATCH')<button class="btn btn-success btn-sm px-14 py-8 radius-8 app-action-button"><iconify-icon icon="mdi:book-check-outline"></iconify-icon><span>Post to Stock</span></button></form>
+          <form method="POST" action="{{ route('inventory.opening-stocks.post', $adjustment) }}" class="d-flex js-swal-confirm" data-confirm-title="Post opening stock?" data-confirm-text="Stock ledgers and warehouse balances will be updated permanently." data-confirm-button="Yes, post to stock" data-confirm-color="#198754">@csrf @method('PATCH')<button class="btn btn-success btn-sm px-14 py-8 radius-8 app-action-button"><iconify-icon icon="mdi:book-check-outline"></iconify-icon><span>Post to Stock</span></button></form>
         @endperm
       @endif
     </div>

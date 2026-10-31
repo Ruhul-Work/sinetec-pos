@@ -20,10 +20,13 @@ use App\Http\Controllers\backend\PartController;
 use App\Http\Controllers\backend\PartReorderLevelController;
 use App\Http\Controllers\backend\PartSupplierController;
 use App\Http\Controllers\backend\PaymentTypeController;
+use App\Http\Controllers\backend\PurchaseOrderController;
 use App\Http\Controllers\backend\RawMaterialCategoryController;
 use App\Http\Controllers\backend\RawMaterialController;
 use App\Http\Controllers\backend\RawMaterialReorderLevelController;
 use App\Http\Controllers\backend\RawMaterialSupplierController;
+use App\Http\Controllers\backend\StockAdjustmentController;
+use App\Http\Controllers\backend\StockLedgerController;
 use App\Http\Controllers\backend\StockTransferController;
 use App\Http\Controllers\backend\SupplierController;
 use App\Http\Controllers\backend\UnitController;
@@ -272,6 +275,27 @@ Route::middleware(['web', 'auth', 'perm', 'branchscope'])->group(function () {
             Route::delete('{stockTransfer}', 'destroy')->whereNumber('stockTransfer')->name('destroy');
         });
 
+        Route::prefix('stock-adjustments')->name('stock-adjustments.')->controller(StockAdjustmentController::class)->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::post('list', 'listAjax')->name('list.ajax');
+            Route::get('create', 'create')->name('create');
+            Route::post('/', 'store')->name('store');
+            Route::get('items/select2', 'itemSelect2')->name('items.select2');
+            Route::get('units/select2', 'unitSelect2')->name('units.select2');
+            Route::get('{stockAdjustment}', 'show')->whereNumber('stockAdjustment')->name('show');
+            Route::get('{stockAdjustment}/edit', 'edit')->whereNumber('stockAdjustment')->name('edit');
+            Route::put('{stockAdjustment}', 'update')->whereNumber('stockAdjustment')->name('update');
+            Route::patch('{stockAdjustment}/approve', 'approve')->whereNumber('stockAdjustment')->name('approve');
+            Route::patch('{stockAdjustment}/post', 'post')->whereNumber('stockAdjustment')->name('post');
+            Route::delete('{stockAdjustment}', 'destroy')->whereNumber('stockAdjustment')->name('destroy');
+        });
+
+        Route::prefix('stock-ledger')->name('stock-ledger.')->controller(StockLedgerController::class)->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::post('list', 'listAjax')->name('list.ajax');
+            Route::get('items/select2', 'itemSelect2')->name('items.select2');
+        });
+
         Route::get('warehouses', [WarehouseController::class, 'index'])->name('warehouses.index');
         Route::post('warehouses/list', [WarehouseController::class, 'listAjax'])->name('warehouses.list.ajax');
         Route::get('warehouses/create-modal', [WarehouseController::class, 'createModal'])->name('warehouses.createModal');
@@ -281,6 +305,23 @@ Route::middleware(['web', 'auth', 'perm', 'branchscope'])->group(function () {
         Route::delete('warehouses/{warehouse}', [WarehouseController::class, 'destroy'])->name('warehouses.destroy');
         Route::get('warehouses/select2', [WarehouseController::class, 'select2'])->name('warehouses.select2');
         Route::get('warehouses/{warehouse}/ajax', [WarehouseController::class, 'showForAjax'])->name('warehouses.showForAjax');
+    });
+
+    Route::prefix('purchase')->name('purchase.')->group(function () {
+        Route::prefix('orders')->name('orders.')->controller(PurchaseOrderController::class)->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::post('list', 'listAjax')->name('list.ajax');
+            Route::get('create', 'create')->name('create');
+            Route::post('/', 'store')->name('store');
+            Route::get('items/select2', 'itemSelect2')->name('items.select2');
+            Route::get('units/select2', 'unitSelect2')->name('units.select2');
+            Route::get('{purchaseOrder}', 'show')->whereNumber('purchaseOrder')->name('show');
+            Route::get('{purchaseOrder}/edit', 'edit')->whereNumber('purchaseOrder')->name('edit');
+            Route::put('{purchaseOrder}', 'update')->whereNumber('purchaseOrder')->name('update');
+            Route::patch('{purchaseOrder}/approve', 'approve')->whereNumber('purchaseOrder')->name('approve');
+            Route::patch('{purchaseOrder}/cancel', 'cancel')->whereNumber('purchaseOrder')->name('cancel');
+            Route::delete('{purchaseOrder}', 'destroy')->whereNumber('purchaseOrder')->name('destroy');
+        });
     });
 
     Route::prefix('supplier')->name('supplier.')->group(function () {

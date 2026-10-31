@@ -181,9 +181,9 @@
                 </li>
             @endpermgroup
 
-            @permgroup(['inventory.opening_stock', 'inventory.stock_transfer'])
+            @permgroup(['inventory.opening_stock', 'inventory.stock_transfer', 'inventory.stock_adjustment', 'inventory.stock_ledger'])
                 <li class="sidebar-menu-group-title">Inventory Operations</li>
-                <li class="dropdown {{ Route::is('inventory.opening-stocks.*') || Route::is('inventory.stock-transfers.*') ? 'active' : '' }}">
+                <li class="dropdown {{ Route::is('inventory.opening-stocks.*') || Route::is('inventory.stock-transfers.*') || Route::is('inventory.stock-adjustments.*') || Route::is('inventory.stock-ledger.*') ? 'active' : '' }}">
                     <a href="javascript:void(0)">
                         <iconify-icon icon="mdi:warehouse-plus-outline" class="menu-icon"></iconify-icon>
                         <span>Stock Operations</span>
@@ -194,6 +194,27 @@
                         @endperm
                         @perm('inventory.stock-transfers.index')
                             <li><a class="{{ Route::is('inventory.stock-transfers.*') ? 'active' : '' }}" href="{{ route('inventory.stock-transfers.index') }}"><iconify-icon icon="mdi:swap-horizontal-bold" class="menu-icon"></iconify-icon><span>Stock Transfer</span></a></li>
+                        @endperm
+                        @perm('inventory.stock-adjustments.index')
+                            <li><a class="{{ Route::is('inventory.stock-adjustments.*') ? 'active' : '' }}" href="{{ route('inventory.stock-adjustments.index') }}"><iconify-icon icon="mdi:clipboard-edit-outline" class="menu-icon"></iconify-icon><span>Stock Adjustment</span></a></li>
+                        @endperm
+                        @perm('inventory.stock-ledger.index')
+                            <li><a class="{{ Route::is('inventory.stock-ledger.*') ? 'active' : '' }}" href="{{ route('inventory.stock-ledger.index') }}"><iconify-icon icon="mdi:book-open-page-variant-outline" class="menu-icon"></iconify-icon><span>Stock Ledger</span></a></li>
+                        @endperm
+                    </ul>
+                </li>
+            @endpermgroup
+
+            @permgroup(['purchase.orders'])
+                <li class="sidebar-menu-group-title">Purchasing</li>
+                <li class="dropdown {{ Route::is('purchase.*') ? 'active' : '' }}">
+                    <a href="javascript:void(0)">
+                        <iconify-icon icon="mdi:cart-arrow-down" class="menu-icon"></iconify-icon>
+                        <span>Purchasing</span>
+                    </a>
+                    <ul class="sidebar-submenu">
+                        @perm('purchase.orders.index')
+                            <li><a class="{{ Route::is('purchase.orders.*') ? 'active' : '' }}" href="{{ route('purchase.orders.index') }}"><iconify-icon icon="mdi:file-document-edit-outline" class="menu-icon"></iconify-icon><span>Purchase Orders</span></a></li>
                         @endperm
                     </ul>
                 </li>

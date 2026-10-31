@@ -1,6 +1,6 @@
 @include('backend.include.header')
 
-<body>
+<body class="@yield('body_class')">
     <div>
         @include('backend.include.sidebar')
         <main class="dashboard-main">
