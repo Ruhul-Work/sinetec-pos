@@ -31,26 +31,27 @@
 21. Purchase Order
 22. Purchase Order Open Purchasing & Instant Supplier
 23. Purchase Order Flat/Percentage Discount
-24. Automated Tests & Project Documentation
+24. Direct & PO-based Purchase Receipt
+25. Partial Receiving, Stock IN & PO Progress Update
+26. Automated Tests & Project Documentation
 
 ## Currently In Progress
 
-- Purchase Order final UI review and user testing
+- Purchase Order and Purchase Receipt user testing
 - Foundation data verification
-- Purchase Receipt planning and preparation
+- Purchase Return planning
 
 ## Next Steps
 
-1. Purchase Receipt
-2. Purchase Return
-3. Supplier Payment, Due & Purchase Price History
-4. Finance Account Mapping & Draft Journal Integration
-5. Part BOM & Part Production
-6. Finished Product BOM & Assembly
-7. POS & Wholesale Sales
-8. Reports, Monthly Rate & Supply Planning
-9. Module Integration, Testing & Bug Fixing
-10. Final Deployment
+1. Purchase Return
+2. Supplier Payment, Due & Purchase Price History
+3. Finance Account Mapping & Draft Journal Integration
+4. Part BOM & Part Production
+5. Finished Product BOM & Assembly
+6. POS & Wholesale Sales
+7. Reports, Monthly Rate & Supply Planning
+8. Module Integration, Testing & Bug Fixing
+9. Final Deployment
 
 ## Deferred
 
@@ -62,7 +63,7 @@
 
 ## Current Status
 
-Development is progressing according to the approved roadmap. Core master data, inventory and Purchase Order are complete. Purchase Receipt is the next operational module.
+Development is progressing according to the approved roadmap. Core master data, inventory, Purchase Order and Purchase Receipt are complete. Purchase Return is the next purchasing module.
 
 ---
 

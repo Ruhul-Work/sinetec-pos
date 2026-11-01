@@ -7,6 +7,7 @@ use App\Models\backend\RawMaterial;
 use App\Models\backend\Unit;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PurchaseOrderItem extends Model
 {
@@ -47,5 +48,10 @@ class PurchaseOrderItem extends Model
     public function unit(): BelongsTo
     {
         return $this->belongsTo(Unit::class);
+    }
+
+    public function receiptItems(): HasMany
+    {
+        return $this->hasMany(PurchaseReceiptItem::class, 'purchase_order_item_id');
     }
 }

@@ -205,7 +205,7 @@
                 </li>
             @endpermgroup
 
-            @permgroup(['purchase.orders'])
+            @permgroup(['purchase.orders', 'purchase.receipts', 'purchase.returns'])
                 <li class="sidebar-menu-group-title">Purchasing</li>
                 <li class="dropdown {{ Route::is('purchase.*') ? 'active' : '' }}">
                     <a href="javascript:void(0)">
@@ -215,6 +215,12 @@
                     <ul class="sidebar-submenu">
                         @perm('purchase.orders.index')
                             <li><a class="{{ Route::is('purchase.orders.*') ? 'active' : '' }}" href="{{ route('purchase.orders.index') }}"><iconify-icon icon="mdi:file-document-edit-outline" class="menu-icon"></iconify-icon><span>Purchase Orders</span></a></li>
+                        @endperm
+                        @perm('purchase.receipts.index')
+                            <li><a class="{{ Route::is('purchase.receipts.*') ? 'active' : '' }}" href="{{ route('purchase.receipts.index') }}"><iconify-icon icon="mdi:package-variant-plus" class="menu-icon"></iconify-icon><span>Purchase Receipts</span></a></li>
+                        @endperm
+                        @perm('purchase.returns.index')
+                            <li><a class="{{ Route::is('purchase.returns.*') ? 'active' : '' }}" href="{{ route('purchase.returns.index') }}"><iconify-icon icon="mdi:package-variant-remove" class="menu-icon"></iconify-icon><span>Purchase Returns</span></a></li>
                         @endperm
                     </ul>
                 </li>

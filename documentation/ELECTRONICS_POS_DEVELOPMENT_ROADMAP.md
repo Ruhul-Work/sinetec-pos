@@ -388,7 +388,9 @@ Receipt      Adjustment      Production   Stock Count
 19. **Deferred/optional:** Physical Count with system/count snapshot and approved difference posting; implement later when periodic warehouse audit is required.
 20. **Complete:** Stock Inquiry / Movement Ledger over the three domain movement tables with cross-domain filters, source-document links and true chronological running balance.
 21. **Complete:** Phase 3 Purchase Order with mixed Raw Material/Part lines, open purchasing (optional mapping badge/preference), business-rule item eligibility, purchase-unit conversion and controlled `DRAFT → APPROVED/CANCELLED` flow. It has no stock or finance effect.
-22. **Next implementation:** Direct/PO-based Purchase Receipt with actual supplier-rate snapshot and idempotent stock IN posting. Opening Stock CSV import remains deferred.
+22. **Complete:** Direct/PO-based Purchase Receipt with a 50/50 hybrid catalogue/form UI, pending-only PO receiving context, actual supplier-rate snapshot, partial/full PO progress, server-controlled totals, over-receipt protection and idempotent Raw Material/Part stock IN posting.
+23. **Complete:** Purchase Return against posted receipts with receipt-controlled supplier/warehouse/item/unit/rate, partial and cumulative return validation, and atomic idempotent Raw Material/Part stock OUT posting.
+24. **Next implementation:** Finance account mapping, Supplier Payment/Due and automatic draft journal integration, followed by purchase price history. Opening Stock CSV import remains deferred.
 
 Finance account mapping and the opening-stock valuation/approval date remain later operational gates. Draft journals cannot be posted before mapping approval.
 

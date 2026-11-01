@@ -1,13 +1,13 @@
 # Electronics POS — Current Status and Next Actions
 
-**Status:** Phase 3 Purchase Order complete; Purchase Receipt is next
+**Status:** Phase 3 Purchase Order, Purchase Receipt and Purchase Return complete; finance integration is next
 **Updated:** 31 October 2026
 
 ## 1. Current result
 
 - The new active database is `pos-sinetec`.
 - The former database is retained as `pos-sinetec-legacy` for backup/reference.
-- All nine clean baseline migrations ran successfully in batch 1; the Purchase Order discount-mode forward migration ran successfully in batch 2.
+- All nine clean baseline migrations ran successfully in batch 1; the Purchase Order and Purchase Receipt discount-mode forward migrations also ran successfully.
 - The new database contains 113 tables: 112 application/framework tables plus Laravel's `migrations` table.
 - The 116 generated legacy migrations remain archived outside Laravel's active migration path.
 - Raw Material, Part and Finished Product use separate masters, stock movements and stock balances.
@@ -15,7 +15,7 @@
 - Parts support `MAKE`, `BUY` and `BOTH`.
 - Packaging and consumables are Raw Material classifications.
 - Offers, coupons and loyalty are inactive future foundations only.
-- The application baseline is upgraded to Laravel 13.38 on PHP 8.3; Composer validation, security audit and production cache compilation pass. The current suite has 86 passing automated tests with 356 assertions.
+- The application baseline is upgraded to Laravel 13.38 on PHP 8.3; Composer validation, security audit and production cache compilation pass. The current suite has 98 passing automated tests with 428 assertions.
 
 ## 2. Database readiness
 
@@ -67,7 +67,7 @@ Old permission data points to removed routes. Permissions must be created from t
 - Phase 0.5 application cleanup is complete: route-detached legacy product, purchase, POS, stock, report, promotion and old transaction controllers/models/services/views were removed after the new Git baseline tag was created.
 - The retained Supplier controller is now master-data only; its old purchase/return/ledger coupling was removed and its browser-parsed CSV/XLSX import was aligned with the clean supplier schema.
 - The shared helper file now contains only retained image upload/path and branch/warehouse/fiscal-year context helpers; legacy storefront product, cart, coupon and shipping helpers were removed.
-- The active application currently exposes 340 retained/new routes, with no undefined literal route references in backend/auth Blade templates.
+- Purchase Order, Purchase Receipt and Purchase Return each have independently permission-mapped routes.
 - The first Phase 1 module is complete: Units and company-wide universal Unit Conversions have CRUD screens, reverse conversion display, duplicate-pair protection, reference-safe unit deletion and automated feature coverage.
 - The three Phase 1 category masters are complete: Raw Material, Part and Finished Product categories have separate CRUD routes/tables/permissions, optional parent hierarchy, cycle protection, Select2 parent lookup and reference-safe deletion.
 - Raw Material Master is implemented with material/packaging/consumable classification, category/base-unit/optional-brand lookup, image handling, list filters, independent RBAC and downstream-reference delete protection. Stock quantity, rates, alternate units and suppliers are intentionally not stored in this master.
@@ -83,9 +83,11 @@ Old permission data points to removed routes. Permissions must be created from t
 - Manual Stock Adjustment is implemented as a mixed-domain `DRAFT → APPROVED → POSTED` document. `GAIN` always posts IN; `LOSS`, `DAMAGE` and `WASTAGE` always post OUT; `CORRECTION` requires an explicit direction. Posting uses mapped-unit conversion, atomic ledger/balance updates, negative-stock protection and retry-idempotent keys.
 - Stock Ledger is implemented as one read-only cross-domain movement view over Raw Material, Part and Finished Product ledgers. It supports inventory/item, branch/warehouse, movement, direction and date filters; shows IN/OUT, source reference, unit cost and true chronological running balance; and links retained source documents when permitted.
 - Purchase Order is implemented as a mixed Raw Material/Part document with supplier and receiving warehouse, server-controlled purchase-unit conversion, exact quantity/rate totals and `DRAFT → APPROVED/CANCELLED` control. Its creation screen uses an equal 50/50 open purchase catalogue and order form/cart: compact four-column image cards, fixed catalogue filters, Raw Material/Part tabs and one-click item selection. Supplier mapping is optional metadata: mapped/preferred items are highlighted and ordered first, while unmapped active Raw Materials and `BUY`/`BOTH` Parts remain purchasable. Order discount supports `FLAT` and `PERCENT`, while preserving the calculated amount as a historical snapshot. `MAKE`-only parts remain blocked by business policy. A PO deliberately creates no stock movement, balance or journal; those effects begin only when a Purchase Receipt is posted.
+- Purchase Receipt is implemented for both approved/partial Purchase Orders and direct receiving. Its 50/50 purchasing workspace keeps Direct Receipt open to all active purchasable items, while PO-based Receipt shows only pending order items with Ordered/Received/Pending context. Receipt Source and Supplier share one compact row, and an optional PDF/JPG/PNG supplier-invoice attachment is stored with the receipt. Drafts remain editable and have no stock effect. Posting is atomic and retry-idempotent: actual quantities/rates are converted and snapshotted server-side, Raw Material/Part stock is posted IN, linked PO received quantities are locked and updated, over-receipt is blocked, and PO status becomes `PARTIAL` or `RECEIVED`. Receipt discounts support Flat/Percent with a calculated monetary snapshot. Finance journal creation remains intentionally deferred until account mapping is approved.
+- Purchase Return is implemented only against a posted Purchase Receipt. Supplier, warehouse, source item/unit, conversion and original receipt rate are locked from the receipt; users enter return quantity, date and reason. Draft has no stock effect. Posting is atomic and idempotent, writes Raw Material/Part stock OUT in the receipt warehouse, prevents cumulative over-return and negative stock, and keeps the return visible as a source in Stock Ledger. Finance impact remains deferred with the rest of purchase accounting.
 - A reusable Sinetec Image Picker now progressively enhances a standard `<input type="file" class="js-image-picker">` with compact dashed upload, preview, filename/size, replace/remove, drag-and-drop and configurable single/multiple modes on both full pages and AJAX modals. Raw Material, Part, Finished Product, Payment Type, Brand, Supplier and Customer now use it; no active retained screen executes Spartan.
 - Opening Stock CSV import is optional and deferred; add it later if go-live volume makes manual entry impractical.
-- Build Purchase Receipt/Return, then BOM and manufacturing application flows.
+- Complete finance account mapping/draft journal scope, then continue to BOM and manufacturing application flows.
 - Rebuild automatic finance drafts; a journal cannot be posted before account mapping and approval.
 - Test retained Supplier/Customer CSV imports against the clean schema.
 - Review public registration before production; unrestricted role selection must not be exposed.
@@ -108,7 +110,9 @@ Old permission data points to removed routes. Permissions must be created from t
 14. **Deferred/optional:** Build Physical Count later when periodic warehouse audit requires a preserved system/count snapshot and automatic difference adjustment.
 15. **Complete:** Build Stock Ledger for Opening, Transfer and Adjustment history across all three inventory domains.
 16. **Complete:** Build Phase 3 Purchase Order without changing stock or accounts.
-17. **Next:** Build direct/PO-based Purchase Receipt with actual-rate snapshot and stock IN posting. Opening Stock CSV import and Physical Count remain deferred.
+17. **Complete:** Build direct/PO-based Purchase Receipt with actual-rate snapshot, partial receiving, over-receipt protection and idempotent stock IN posting.
+18. **Complete:** Build Purchase Return against posted receipts with locked source context, cumulative over-return protection and idempotent stock OUT posting.
+19. **Next:** Confirm finance account mapping and implement Supplier Payment/Due plus automatic draft journals. Purchase price history follows; Opening Stock CSV import and Physical Count remain deferred.
 
 ## 5. Implementation decision trace
 
@@ -136,9 +140,11 @@ Old permission data points to removed routes. Permissions must be created from t
 | 29 Oct 2026 | Stock Adjustment | One mixed-domain Draft supports `GAIN`, `LOSS`, `DAMAGE`, `WASTAGE` and `CORRECTION`. Business type controls direction except Correction, which requires explicit IN/OUT. Approval makes the document read-only; posting atomically writes movement/balance changes and blocks negative stock. | Physical Count remains a separate next submodule so system quantity and counted quantity can be preserved as an auditable snapshot before difference posting. |
 | 29 Oct 2026 | Physical Count priority | Physical Count is not required for the first operational release because Opening Stock and approved Manual Stock Adjustment already provide controlled quantity entry and correction. | Physical Count is deferred until periodic audit is needed; Stock Inquiry / Movement Ledger becomes the next active module. |
 | 29 Oct 2026 | Stock Ledger | One read-only `Stock Ledger` combines the three physical movement tables without combining their storage. Filters cover domain/item, branch/warehouse, type, direction and date; running balance includes movements before the selected date so the displayed balance remains true. | No new transaction table is introduced; Phase 3 Purchasing is next and its posted receipt/return movements will automatically appear in this ledger. |
-| 29 Oct 2026 | Purchase Order | One optional PO contains mixed Raw Material and purchasable Part lines. Its creation UI uses equal 50/50 independently scrollable catalogue/form panels with three compact item cards per gallery row rather than copying the legacy product/payment logic. Item selection is restricted to the selected supplier's approved mapping; `MAKE`-only parts are blocked. Quantity/rate use the selected purchase unit and conversion/base quantity is stored server-side. Approval makes the order read-only; cancellation is allowed only before receipt. | PO has no stock or finance effect. Supplier invoice belongs to Purchase Receipt. Purchase Receipt is next and must support both direct and PO-based receipt, actual supplier-rate snapshots and idempotent stock IN posting. |
+| 29 Oct 2026 | Purchase Order | One optional PO contains mixed Raw Material and purchasable Part lines. Its creation UI uses equal 50/50 independently scrollable catalogue/form panels with four compact item cards per gallery row rather than copying the legacy product/payment logic. Supplier mapping is optional discovery metadata: mapped/preferred items are prioritised, but other active purchasable items remain available; `MAKE`-only parts are blocked. Quantity/rate use the selected purchase unit and conversion/base quantity is stored server-side. Approval makes the order read-only; cancellation is allowed only before receipt. | PO has no stock or finance effect. Supplier invoice belongs to Purchase Receipt. |
 | 29 Oct 2026 | Open purchasing supersedes strict supplier catalogue | A selected active supplier may purchase any active Raw Material and any active `BUY`/`BOTH` Part. Supplier mapping is no longer an eligibility gate; it supplies optional supplier code/lead-time/preferred metadata, and mapped items receive a small badge and appear first. | This supersedes the strict-mapping part of the Purchase Order decision above. `MAKE`-only Parts remain excluded because that is an item sourcing business rule, not a supplier-mapping restriction. |
 | 31 Oct 2026 | Purchase Order discount mode | Order-level discount accepts `FLAT` or `PERCENT`. The entered type/value and calculated monetary discount are all stored, so approved documents and historical reports never recalculate against future data. | Percentage is based on the current Draft subtotal and limited to 100%; flat discount cannot exceed subtotal. Line-level discount remains outside the first release. |
+| 31 Oct 2026 | Purchase Receipt | Direct receipt and approved/partial PO-based receipt share one controlled Draft workflow and the same 50/50 catalogue/form workspace. Direct mode uses an open purchasing gallery; PO mode exposes only pending order lines and shows Ordered/Received/Pending quantities. Posting locks the receipt/order lines, blocks over-receipt, converts quantities to base units, writes idempotent Raw Material/Part stock IN movements and updates PO progress to `PARTIAL` or `RECEIVED`. Actual rate and Flat/Percent discount are immutable receipt snapshots after posting. Stock movement timestamp keeps the selected receipt business date and combines it with the Bangladesh posting clock time; existing midnight receipt movements were synchronised from `posted_at`. | Purchase Return is next. Finance drafts remain deferred until account mapping and approval rules are implemented. |
+| 1 Nov 2026 | Purchase Return | Return is source-controlled by one posted Purchase Receipt. Receipt supplier/warehouse, line item, unit, conversion and original rate are immutable snapshots; draft does not affect stock. Posting rechecks cumulative returnable quantity under lock, blocks negative stock, writes idempotent Raw Material/Part OUT movements, and rolls back the entire document if any line fails. | Finance journal/payment effects remain deferred until account mapping is approved. |
 
 When a decision changes, add a new dated row; do not overwrite the old decision without recording what superseded it and why.
 

@@ -195,6 +195,14 @@ class StockLedgerController extends Controller
                 $join->on('st.id', '=', $movementAlias.'.source_id')
                     ->where($movementAlias.'.source_type', '=', 'stock_transfer');
             })
+            ->leftJoin('purchase_receipt as pr', function (JoinClause $join) use ($movementAlias): void {
+                $join->on('pr.id', '=', $movementAlias.'.source_id')
+                    ->where($movementAlias.'.source_type', '=', 'purchase_receipt');
+            })
+            ->leftJoin('purchase_return as pret', function (JoinClause $join) use ($movementAlias): void {
+                $join->on('pret.id', '=', $movementAlias.'.source_id')
+                    ->where($movementAlias.'.source_type', '=', 'purchase_return');
+            })
             ->selectRaw('? as domain', [$domain])
             ->addSelect([
                 $movementAlias.'.id as movement_id',
@@ -221,7 +229,7 @@ class StockLedgerController extends Controller
                 'poster.name as posted_by_name',
             ])
             ->selectRaw("CASE WHEN {$movementAlias}.direction = 'IN' THEN {$movementAlias}.quantity ELSE -{$movementAlias}.quantity END as signed_quantity")
-            ->selectRaw("COALESCE(sa.adjustment_no, st.transfer_no, {$movementAlias}.source_type) as source_reference");
+            ->selectRaw("COALESCE(sa.adjustment_no, st.transfer_no, pr.receipt_no, pret.return_no, {$movementAlias}.source_type) as source_reference");
     }
 
     private function applyFilters(Builder $query, Request $request): void
@@ -269,6 +277,12 @@ class StockLedgerController extends Controller
         if ($row->source_type === 'stock_transfer' && $user->canDo('inventory.stock-transfers.show')) {
             return route('inventory.stock-transfers.show', $row->source_id);
         }
+        if ($row->source_type === 'purchase_receipt' && $user->canDo('purchase.receipts.show')) {
+            return route('purchase.receipts.show', $row->source_id);
+        }
+        if ($row->source_type === 'purchase_return' && $user->canDo('purchase.returns.show')) {
+            return route('purchase.returns.show', $row->source_id);
+        }
         if ($row->source_type === 'stock_adjustment') {
             if ($row->movement_type === StockMovementType::Opening->value && $user->canDo('inventory.opening-stocks.show')) {
                 return route('inventory.opening-stocks.show', $row->source_id);
@@ -288,7 +302,7 @@ class StockLedgerController extends Controller
 
     private function sourceReference(object $row): string
     {
-        if (in_array($row->source_type, ['stock_adjustment', 'stock_transfer'], true)) {
+        if (in_array($row->source_type, ['stock_adjustment', 'stock_transfer', 'purchase_receipt', 'purchase_return'], true)) {
             return (string) $row->source_reference;
         }
 

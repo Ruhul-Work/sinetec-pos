@@ -1,11 +1,11 @@
 <?php
+
 namespace App\Providers;
 
-use Illuminate\Support\Facades\Blade;
-use Illuminate\Support\ServiceProvider;
 use App\Models\backend\CompanySetting;
-use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -22,49 +22,47 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        Blade::if('perm', fn($keyOrRoute, $ability = 'view') =>
-            auth()->check()
+        Blade::if('perm', fn ($keyOrRoute, $ability = 'view') => auth()->check()
             && method_exists(auth()->user(), 'canDo')
             && auth()->user()->canDo($keyOrRoute, $ability)
         );
 
         // Multiple prefix supported: @permgroup(['usermanage.users.','usermanage.rbac.'])
-        Blade::if('permgroup', function ($prefixes, array $abilities = null) {
+        Blade::if('permgroup', function ($prefixes, ?array $abilities = null) {
             $u = auth()->user();
             if (! $u || ! method_exists($u, 'canAnyPrefix')) {
                 return false;
             }
 
             $abilities = $abilities ?? ['view', 'add', 'edit', 'delete', 'export'];
-            $prefixes  = is_array($prefixes) ? $prefixes : [$prefixes];
+            $prefixes = is_array($prefixes) ? $prefixes : [$prefixes];
 
             foreach ($prefixes as $p) {
                 if ($u->canAnyPrefix(rtrim($p, '.'), $abilities)) { // ⬅️ এখানে rtrim
                     return true;
                 }
             }
+
             return false;
         });
 
         // Share active company setting with all views (logo, name, phone etc.)
+        $company = null;
         try {
-            $company = null;
             if (class_exists(CompanySetting::class)) {
                 $company = CompanySetting::where('is_active', 1)->first();
             }
-            view()->share('companySetting', $company);
         } catch (\Exception $e) {
             // Ignore DB errors during install/migrations
         }
+        view()->share('companySetting', $company);
 
-        //froce https in production
-            if (request()->header('x-forwarded-proto') == 'https') {
-        \URL::forceScheme('https');
+        // froce https in production
+        if (request()->header('x-forwarded-proto') == 'https') {
+            \URL::forceScheme('https');
+        }
+
+        Schema::defaultStringLength(191);
+
     }
-
-         Schema::defaultStringLength(191);
-
-    }
-
-
 }

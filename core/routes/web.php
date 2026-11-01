@@ -21,6 +21,8 @@ use App\Http\Controllers\backend\PartReorderLevelController;
 use App\Http\Controllers\backend\PartSupplierController;
 use App\Http\Controllers\backend\PaymentTypeController;
 use App\Http\Controllers\backend\PurchaseOrderController;
+use App\Http\Controllers\backend\PurchaseReceiptController;
+use App\Http\Controllers\backend\PurchaseReturnController;
 use App\Http\Controllers\backend\RawMaterialCategoryController;
 use App\Http\Controllers\backend\RawMaterialController;
 use App\Http\Controllers\backend\RawMaterialReorderLevelController;
@@ -321,6 +323,32 @@ Route::middleware(['web', 'auth', 'perm', 'branchscope'])->group(function () {
             Route::patch('{purchaseOrder}/approve', 'approve')->whereNumber('purchaseOrder')->name('approve');
             Route::patch('{purchaseOrder}/cancel', 'cancel')->whereNumber('purchaseOrder')->name('cancel');
             Route::delete('{purchaseOrder}', 'destroy')->whereNumber('purchaseOrder')->name('destroy');
+        });
+
+        Route::prefix('receipts')->name('receipts.')->controller(PurchaseReceiptController::class)->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::post('list', 'listAjax')->name('list.ajax');
+            Route::get('create', 'create')->name('create');
+            Route::post('/', 'store')->name('store');
+            Route::get('items/select2', 'itemSelect2')->name('items.select2');
+            Route::get('units/select2', 'unitSelect2')->name('units.select2');
+            Route::get('{purchaseReceipt}', 'show')->whereNumber('purchaseReceipt')->name('show');
+            Route::get('{purchaseReceipt}/edit', 'edit')->whereNumber('purchaseReceipt')->name('edit');
+            Route::put('{purchaseReceipt}', 'update')->whereNumber('purchaseReceipt')->name('update');
+            Route::patch('{purchaseReceipt}/post', 'post')->whereNumber('purchaseReceipt')->name('post');
+            Route::delete('{purchaseReceipt}', 'destroy')->whereNumber('purchaseReceipt')->name('destroy');
+        });
+
+        Route::prefix('returns')->name('returns.')->controller(PurchaseReturnController::class)->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::post('list', 'listAjax')->name('list.ajax');
+            Route::get('create', 'create')->name('create');
+            Route::post('/', 'store')->name('store');
+            Route::get('{purchaseReturn}', 'show')->whereNumber('purchaseReturn')->name('show');
+            Route::get('{purchaseReturn}/edit', 'edit')->whereNumber('purchaseReturn')->name('edit');
+            Route::put('{purchaseReturn}', 'update')->whereNumber('purchaseReturn')->name('update');
+            Route::patch('{purchaseReturn}/post', 'post')->whereNumber('purchaseReturn')->name('post');
+            Route::delete('{purchaseReturn}', 'destroy')->whereNumber('purchaseReturn')->name('destroy');
         });
     });
 

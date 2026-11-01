@@ -136,15 +136,34 @@ Item-line rule:
 - `finished_product_id` does not exist on purchase lines in release 1;
 - store document unit, conversion, document quantity, base quantity, unit rate and line total.
 
-Purchase-order discount snapshot:
+Purchase-order and purchase-receipt discount snapshot:
 
 - `discount_type` is `FLAT` or `PERCENT`;
 - `discount_value` stores the user's entered flat amount or percentage;
 - `discount` remains the calculated monetary amount used by totals and historical reports;
-- percentage value is limited to 100 and calculated against the current subtotal while the order is a Draft;
-- existing orders are migrated as `FLAT`, with their previous `discount` copied to `discount_value`.
+- percentage value is limited to 100 and calculated against the server-derived current subtotal while the document is a Draft;
+- existing orders and receipts are migrated as `FLAT`, with their previous `discount` copied to `discount_value`.
 
 Receipt posting writes either a raw-material movement or part movement. Actual supplier rate remains on the receipt item and is never overwritten by a monthly rate.
+
+Receipt workflow rules:
+
+- `purchase_order_id` is nullable because direct receipt is allowed;
+- PO-based receipt lines reference `purchase_order_item_id` and may receive a pending quantity partially;
+- posting locks receipt, order and order lines; cumulative receipt cannot exceed ordered base quantity;
+- posting writes deterministic stock keys so a retry cannot duplicate stock;
+- PO status becomes `PARTIAL` while any ordered base quantity remains and `RECEIVED` when every line is complete;
+- optional supplier invoice attachment belongs to the receipt, not the order; `supplier_invoice_path` stores its managed relative path. The legacy nullable `supplier_invoice_no` remains compatible with earlier data.
+
+Purchase-return workflow rules:
+
+- every return references one posted `purchase_receipt`; direct/unlinked supplier returns are not allowed in release 1;
+- supplier, branch and warehouse are inherited from the source receipt and cannot be changed;
+- each `purchase_return_item` references its source `purchase_receipt_item`; item, unit, conversion and original receipt rate are copied server-side;
+- cumulative posted return base quantity cannot exceed the source receipt-item base quantity;
+- Draft return has no stock effect; posting writes an idempotent Raw Material/Part `OUT` movement in the receipt warehouse;
+- posting locks and rechecks the document and source quantities, blocks negative stock and rolls back every line if any line fails;
+- finance journal/payable effects remain deferred until account mapping is approved.
 
 ## 5. Separate stock cores
 

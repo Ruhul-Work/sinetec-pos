@@ -41,6 +41,8 @@ class CorePermissionSeeder extends Seeder
             ['key' => 'inventory.stock_adjustment', 'name' => 'Stock Adjustment', 'module' => 'Inventory Operations', 'prefixes' => ['inventory.stock-adjustments.']],
             ['key' => 'inventory.stock_ledger', 'name' => 'Stock Ledger', 'module' => 'Inventory Operations', 'prefixes' => ['inventory.stock-ledger.']],
             ['key' => 'purchase.orders', 'name' => 'Purchase Orders', 'module' => 'Purchasing', 'prefixes' => ['purchase.orders.']],
+            ['key' => 'purchase.receipts', 'name' => 'Purchase Receipts', 'module' => 'Purchasing', 'prefixes' => ['purchase.receipts.']],
+            ['key' => 'purchase.returns', 'name' => 'Purchase Returns', 'module' => 'Purchasing', 'prefixes' => ['purchase.returns.']],
             ['key' => 'core.warehouses', 'name' => 'Warehouses', 'module' => 'Inventory', 'prefixes' => ['inventory.warehouses.']],
             ['key' => 'core.suppliers', 'name' => 'Suppliers', 'module' => 'Master Data', 'prefixes' => ['supplier.']],
             ['key' => 'core.customers', 'name' => 'Customers', 'module' => 'Master Data', 'prefixes' => ['customer.']],

@@ -763,7 +763,9 @@ html[data-theme="dark"] .field-note .field-note__panel::after {
 }
 
 .purchase-order-screen-shell,
-.purchase-order-screen-shell > #purchaseOrderForm {
+.purchase-order-screen-shell > #purchaseOrderForm,
+.purchase-order-screen-shell > #purchaseReceiptForm,
+.purchase-order-screen-shell > #purchaseReturnForm {
   min-height: 0;
   height: 100%;
 }
@@ -774,7 +776,9 @@ html[data-theme="dark"] .field-note .field-note__panel::after {
   gap: 0.5rem;
 }
 
-.purchase-order-screen-shell > #purchaseOrderForm {
+.purchase-order-screen-shell > #purchaseOrderForm,
+.purchase-order-screen-shell > #purchaseReceiptForm,
+.purchase-order-screen-shell > #purchaseReturnForm {
   flex: 1 1 auto;
 }
 
@@ -871,6 +875,24 @@ html[data-theme="dark"] .field-note .field-note__panel::after {
 
 .po-order-meta-field .select2-container .select2-selection--single .select2-selection__arrow {
   height: 36px !important;
+}
+
+/* Keep purchasing Select2 controls visually attached to their open dropdown. */
+.po-order-meta-field .select2-container--below.select2-container--open .select2-selection--single {
+  border-bottom-right-radius: 0 !important;
+  border-bottom-left-radius: 0 !important;
+}
+
+.po-select2-dropdown.select2-dropdown--below {
+  margin-top: -1px;
+  border-top: 1px solid #aaa;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.1);
+}
+
+.po-select2-dropdown .select2-search--dropdown {
+  padding: 0.2rem 0.25rem 0.25rem;
 }
 
 .po-supplier-add {
@@ -1276,7 +1298,9 @@ html[data-theme="dark"] .field-note .field-note__panel::after {
   line-height: 1;
 }
 
-.po-cart-heading #clearPurchaseItems {
+.po-cart-heading #clearPurchaseItems,
+.po-cart-heading #clearReceiptItems,
+.po-cart-heading #clearReturnItems {
   min-height: 28px;
   height: 28px;
   padding-top: 0.2rem;
@@ -1442,7 +1466,9 @@ html[data-theme="dark"] .field-note .field-note__panel::after {
   align-items: stretch;
 }
 
-.po-quantity-control .js-po-quantity {
+.po-quantity-control .js-po-quantity,
+.po-quantity-control .js-receipt-quantity,
+.po-quantity-control .js-return-quantity {
   position: relative;
   z-index: 1;
   min-width: 0;
@@ -1461,6 +1487,10 @@ html[data-theme="dark"] .field-note .field-note__panel::after {
 
 .po-quantity-control .js-po-quantity::-webkit-inner-spin-button,
 .po-quantity-control .js-po-quantity::-webkit-outer-spin-button,
+.po-quantity-control .js-receipt-quantity::-webkit-inner-spin-button,
+.po-quantity-control .js-receipt-quantity::-webkit-outer-spin-button,
+.po-quantity-control .js-return-quantity::-webkit-inner-spin-button,
+.po-quantity-control .js-return-quantity::-webkit-outer-spin-button,
 .po-cart-line .js-po-rate::-webkit-inner-spin-button,
 .po-cart-line .js-po-rate::-webkit-outer-spin-button {
   margin: 0;
@@ -1657,7 +1687,9 @@ html[data-theme="dark"] .po-summary-total {
   }
 
   .purchase-order-screen-shell,
-  .purchase-order-screen-shell > #purchaseOrderForm {
+  .purchase-order-screen-shell > #purchaseOrderForm,
+  .purchase-order-screen-shell > #purchaseReceiptForm,
+  .purchase-order-screen-shell > #purchaseReturnForm {
     height: auto;
   }
 
@@ -1683,6 +1715,45 @@ html[data-theme="dark"] .po-summary-total {
   .po-catalog-scroll {
     overflow-y: visible;
   }
+}
+
+/* Purchase Receipt additions: PO progress stays compact inside shared catalogue cards. */
+.receipt-pending-stats {
+  margin-top: 0.28rem;
+  display: grid;
+  gap: 0.12rem;
+  color: #64748b;
+  font-size: 0.54rem;
+  line-height: 1.3;
+}
+
+.receipt-pending-stats span {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.25rem;
+}
+
+.receipt-pending-stats b {
+  overflow: hidden;
+  color: #334155;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.receipt-line-pending {
+  display: block;
+  overflow: hidden;
+  width: 100%;
+  color: #64748b;
+  font-size: 0.61rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+html[data-theme="dark"] .receipt-pending-stats b {
+  color: #e2e8f0;
 }
 
 @media (max-width: 767.98px) {

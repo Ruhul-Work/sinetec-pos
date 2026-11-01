@@ -31,6 +31,11 @@
           <form method="POST" action="{{ route('purchase.orders.cancel', $order) }}" class="d-flex js-swal-confirm" data-confirm-title="Cancel purchase order?" data-confirm-text="A cancelled order cannot be edited or used for receipt." data-confirm-button="Yes, cancel" data-confirm-color="#dc3545">@csrf @method('PATCH')<button class="btn btn-outline-danger btn-sm px-14 py-8 radius-8 app-action-button"><iconify-icon icon="mdi:cancel"></iconify-icon><span>Cancel Order</span></button></form>
         @endperm
       @endif
+      @if (in_array($status, [\App\Enums\Purchase\PurchaseOrderStatus::Approved, \App\Enums\Purchase\PurchaseOrderStatus::Partial], true))
+        @perm('purchase.receipts.create', 'add')
+          <a href="{{ route('purchase.receipts.create', ['purchase_order_id' => $order->id]) }}" class="btn btn-success btn-sm px-14 py-8 radius-8 text-white app-action-button"><iconify-icon icon="mdi:package-variant-plus"></iconify-icon><span>Receive Items</span></a>
+        @endperm
+      @endif
     </div>
   </div>
 
