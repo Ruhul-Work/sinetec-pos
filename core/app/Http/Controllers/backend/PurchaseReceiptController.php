@@ -4,6 +4,8 @@ namespace App\Http\Controllers\backend;
 
 use App\Enums\Purchase\PurchaseOrderStatus;
 use App\Enums\Purchase\PurchaseReceiptStatus;
+use App\Exceptions\Finance\FinanceConfigurationException;
+use App\Exceptions\Finance\InvalidJournalDraftException;
 use App\Exceptions\Purchase\InvalidPurchaseReceiptException;
 use App\Http\Controllers\Controller;
 use App\Models\Purchase\PurchaseOrder;
@@ -169,11 +171,11 @@ class PurchaseReceiptController extends Controller
     {
         try {
             $this->purchaseReceipt->post($this->record($purchaseReceipt), $request->user()?->id);
-        } catch (InvalidPurchaseReceiptException $e) {
+        } catch (InvalidPurchaseReceiptException|FinanceConfigurationException|InvalidJournalDraftException $e) {
             return back()->with('error', $e->getMessage());
         }
 
-        return back()->with('success', 'Purchase receipt posted. Stock and purchase-order progress were updated.');
+        return back()->with('success', 'Purchase receipt posted. Stock, purchase-order progress and the finance draft were updated.');
     }
 
     public function destroy(int $purchaseReceipt): JsonResponse

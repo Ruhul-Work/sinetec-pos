@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers\admin;
 
 use App\Http\Controllers\Controller;
@@ -25,17 +26,17 @@ class RoleController extends Controller
 
         // role_permissions → matrix: [role_id][permission_id] => ['view'=>.., ...]
         $matrix = [];
-        $rows   = DB::table('role_permissions')
+        $rows = DB::table('role_permissions')
             ->select('role_id', 'permission_id', 'can_view', 'can_add', 'can_edit', 'can_delete', 'can_export')
             ->get();
 
         foreach ($rows as $r) {
-            $rid                = (int) $r->role_id;
-            $pid                = (int) $r->permission_id;
+            $rid = (int) $r->role_id;
+            $pid = (int) $r->permission_id;
             $matrix[$rid][$pid] = [
-                'view'   => (int) $r->can_view,
-                'add'    => (int) $r->can_add,
-                'edit'   => (int) $r->can_edit,
+                'view' => (int) $r->can_view,
+                'add' => (int) $r->can_add,
+                'edit' => (int) $r->can_edit,
                 'delete' => (int) $r->can_delete,
                 'export' => (int) $r->can_export,
             ];
@@ -43,7 +44,7 @@ class RoleController extends Controller
 
         // config থেকে abilities + labels
         $abilities = config('perm.abilities', ['view', 'add', 'edit', 'delete', 'export']);
-        $labels    = config('perm.labels', [
+        $labels = config('perm.labels', [
             'view' => 'View', 'add' => 'Add', 'edit' => 'Edit', 'delete' => 'Delete', 'export' => 'Export',
         ]);
 
@@ -63,9 +64,9 @@ class RoleController extends Controller
                     DB::table('role_permissions')->updateOrInsert(
                         ['role_id' => (int) $roleId, 'permission_id' => (int) $pid],
                         [
-                            'can_view'   => (int) ($flags['view'] ?? 0),
-                            'can_add'    => (int) ($flags['add'] ?? 0),
-                            'can_edit'   => (int) ($flags['edit'] ?? 0),
+                            'can_view' => (int) ($flags['view'] ?? 0),
+                            'can_add' => (int) ($flags['add'] ?? 0),
+                            'can_edit' => (int) ($flags['edit'] ?? 0),
                             'can_delete' => (int) ($flags['delete'] ?? 0),
                             'can_export' => (int) ($flags['export'] ?? 0),
                             'updated_at' => now(),
@@ -84,8 +85,8 @@ class RoleController extends Controller
     public function store(Request $req)
     {
         $data = $req->validate([
-            'name'     => ['required', 'string', 'max:100', Rule::unique('roles', 'name')],
-            'key'      => ['nullable', 'string', 'max:100', Rule::unique('roles', 'key')],
+            'name' => ['required', 'string', 'max:100', Rule::unique('roles', 'name')],
+            'key' => ['nullable', 'string', 'max:100', Rule::unique('roles', 'key')],
             'is_super' => ['nullable', 'boolean'],
         ]);
 
@@ -95,24 +96,24 @@ class RoleController extends Controller
         }
 
         // key না দিলে name থেকে underscore slug; conflict হলে suffix
-        $key  = $data['key'] ?: Str::slug($data['name'], '_');
+        $key = $data['key'] ?: Str::slug($data['name'], '_');
         $base = $key;
-        $i    = 1;
+        $i = 1;
         while (Role::where('key', $key)->exists()) {
-            $key = $base . '_' . $i++;
+            $key = $base.'_'.$i++;
         }
 
         $role = Role::create([
-            'name'     => $data['name'],
-            'key'      => $key,
+            'name' => $data['name'],
+            'key' => $key,
             'is_super' => $isSuper,
         ]);
 
         if ($req->ajax() || $req->wantsJson()) {
             return response()->json([
-                'ok'   => true,
-                'id'   => $role->id,
-                'msg'  => 'Role created successfully.',
+                'ok' => true,
+                'id' => $role->id,
+                'msg' => 'Role created successfully.',
                 'role' => $role,
             ]);
         }
@@ -127,13 +128,13 @@ class RoleController extends Controller
 
     public function listAjax(Request $request)
     {
-        $columns   = ['id', 'name', 'key', 'is_super'];
-        $draw      = (int) $request->input('draw');
-        $start     = (int) $request->input('start', 0);
-        $length    = (int) $request->input('length', 10);
-        $orderIdx  = (int) $request->input('order.0.column', 0);
-        $orderCol  = $columns[$orderIdx] ?? 'id';
-        $orderDir  = strtolower($request->input('order.0.dir', 'desc')) === 'asc' ? 'asc' : 'desc';
+        $columns = ['id', 'name', 'key', 'is_super'];
+        $draw = (int) $request->input('draw');
+        $start = (int) $request->input('start', 0);
+        $length = (int) $request->input('length', 10);
+        $orderIdx = (int) $request->input('order.0.column', 0);
+        $orderCol = $columns[$orderIdx] ?? 'id';
+        $orderDir = strtolower($request->input('order.0.dir', 'desc')) === 'asc' ? 'asc' : 'desc';
         $searchVal = trim($request->input('search.value', ''));
 
         $base = Role::query()->select(['id', 'name', 'key', 'is_super']);
@@ -155,35 +156,35 @@ class RoleController extends Controller
         $data = [];
         foreach ($rows as $r) {
             $checkbox = '<label class="checkboxs">
-            <input type="checkbox" class="row-check" data-id="' . $r->id . '">
+            <input type="checkbox" class="row-check" data-id="'.$r->id.'">
             <span class="checkmarks"></span>
         </label>';
 
-            $name = '<strong class="badge text-sm fw-semibold bg-dark-primary-gradient px-20 py-9 radius-4 text-white">' . $r->name . '</strong>';
-            $key  = '<code>' . $r->key . '</code>';
+            $name = '<strong class="badge text-sm fw-semibold bg-dark-primary-gradient px-20 py-9 radius-4 text-white">'.$r->name.'</strong>';
+            $key = '<code>'.$r->key.'</code>';
             $type = $r->is_super
                 ? '<span class="badge text-sm fw-semibold bg-dark-success-gradient px-20 py-9 radius-4 text-white">Super</span>'
                 : '<span class="badge text-sm fw-semibold text-lilac-600 bg-lilac-100 px-20 py-9 radius-4 text-white">Normal</span>';
 
             // Actions:
-            $actions = '<div class="action-table-data"><div class="edit-delete-action">
-                <a class="btn btn-info p-2" href="' . route('rbac.role.matrix', $r->id) . '" title="Manage permissions">
-                    <iconify-icon icon="mdi:lock" class="text-lg"></iconify-icon>
+            $actions = '<div class="d-inline-flex align-items-center justify-content-center gap-1 w-100">
+                <a class="w-32-px h-32-px bg-info-focus text-info-main rounded-circle d-inline-flex align-items-center justify-content-center" href="'.route('rbac.role.matrix', $r->id).'" title="Manage permissions" aria-label="Manage permissions">
+                    <iconify-icon icon="mdi:shield-key-outline" class="text-lg"></iconify-icon>
                 </a>
                 <a href="#" class="w-32-px h-32-px bg-success-focus text-success-main rounded-circle d-inline-flex align-items-center justify-content-center btn-role-edit"
-                    data-id="' . $r->id . '" title="Edit"><iconify-icon icon="lucide:edit"></iconify-icon></a>
+                    data-id="'.$r->id.'" title="Edit role" aria-label="Edit role"><iconify-icon icon="lucide:edit"></iconify-icon></a>
                 <a href="#" class="w-32-px h-32-px bg-danger-focus text-danger-main rounded-circle d-inline-flex align-items-center justify-content-center btn-role-delete"
-                    data-id="' . $r->id . '" title="Delete"><iconify-icon icon="solar:trash-bin-minimalistic-outline"></iconify-icon></a>
-                </div></div>';
+                    data-id="'.$r->id.'" title="Delete role" aria-label="Delete role"><iconify-icon icon="solar:trash-bin-minimalistic-outline"></iconify-icon></a>
+                </div>';
 
             $data[] = [$r->id, $name, $key, $type, $actions];
         }
 
         return response()->json([
-            'draw'                 => $draw,
-            'iTotalRecords'        => $total,
+            'draw' => $draw,
+            'iTotalRecords' => $total,
             'iTotalDisplayRecords' => $filtered,
-            'aaData'               => $data,
+            'aaData' => $data,
         ]);
     }
 
@@ -196,21 +197,21 @@ class RoleController extends Controller
 
         // শুধু এই রোলের permission flags আনো
         $matrix = [];
-        $rows   = \DB::table('role_permissions')
+        $rows = \DB::table('role_permissions')
             ->where('role_id', $role->id)
             ->select('permission_id', 'can_view', 'can_add', 'can_edit', 'can_delete', 'can_export')
             ->get();
 
         foreach ($rows as $r) {
-            $pid          = (int) $r->permission_id;
+            $pid = (int) $r->permission_id;
             $matrix[$pid] = [
-                'view'   => (int) $r->can_view, 'add'      => (int) $r->can_add, 'edit' => (int) $r->can_edit,
+                'view' => (int) $r->can_view, 'add' => (int) $r->can_add, 'edit' => (int) $r->can_edit,
                 'delete' => (int) $r->can_delete, 'export' => (int) $r->can_export,
             ];
         }
 
         $abilities = config('perm.abilities', ['view', 'add', 'edit', 'delete', 'export']);
-        $labels    = config('perm.labels', [
+        $labels = config('perm.labels', [
             'view' => 'View', 'add' => 'Add', 'edit' => 'Edit', 'delete' => 'Delete', 'export' => 'Export',
         ]);
 
@@ -233,9 +234,9 @@ class RoleController extends Controller
                 \DB::table('role_permissions')->updateOrInsert(
                     ['role_id' => $role->id, 'permission_id' => (int) $pid],
                     [
-                        'can_view'   => (int) ($flags['view'] ?? 0),
-                        'can_add'    => (int) ($flags['add'] ?? 0),
-                        'can_edit'   => (int) ($flags['edit'] ?? 0),
+                        'can_view' => (int) ($flags['view'] ?? 0),
+                        'can_add' => (int) ($flags['add'] ?? 0),
+                        'can_edit' => (int) ($flags['edit'] ?? 0),
                         'can_delete' => (int) ($flags['delete'] ?? 0),
                         'can_export' => (int) ($flags['export'] ?? 0),
                         'updated_at' => now(), 'created_at' => now(),
@@ -245,15 +246,15 @@ class RoleController extends Controller
             PermCache::forgetRole($role->id);
         });
 
-        return back()->with('success', 'Permissions updated for role: ' . $role->name);
+        return back()->with('success', 'Permissions updated for role: '.$role->name);
     }
 
     public function edit(Role $role)
     {
         return response()->json([
-            'id'       => $role->id,
-            'name'     => $role->name,
-            'key'      => $role->key,
+            'id' => $role->id,
+            'name' => $role->name,
+            'key' => $role->key,
             'is_super' => (bool) $role->is_super,
         ]);
     }
@@ -261,8 +262,8 @@ class RoleController extends Controller
     public function update(Request $req, Role $role)
     {
         $data = $req->validate([
-            'name'     => ['required', 'string', 'max:100', Rule::unique('roles', 'name')->ignore($role->id)],
-            'key'      => ['nullable', 'string', 'max:100', Rule::unique('roles', 'key')->ignore($role->id)],
+            'name' => ['required', 'string', 'max:100', Rule::unique('roles', 'name')->ignore($role->id)],
+            'key' => ['nullable', 'string', 'max:100', Rule::unique('roles', 'key')->ignore($role->id)],
             'is_super' => ['nullable', 'boolean'],
         ]);
 
@@ -276,15 +277,15 @@ class RoleController extends Controller
         $newKey = $data['key'] ?? $role->key;
         if ($newKey !== $role->key) {
             $newKey = Str::slug($newKey, '_');
-            $base   = $newKey;
-            $i      = 1;
+            $base = $newKey;
+            $i = 1;
             while (Role::where('key', $newKey)->where('id', '!=', $role->id)->exists()) {
-                $newKey = $base . '_' . $i++;
+                $newKey = $base.'_'.$i++;
             }
         }
 
-        $role->name     = $data['name'];
-        $role->key      = $newKey;
+        $role->name = $data['name'];
+        $role->key = $newKey;
         $role->is_super = $wantSuper ? 1 : 0;
         $role->save();
 
@@ -294,6 +295,7 @@ class RoleController extends Controller
         if ($req->ajax() || $req->wantsJson()) {
             return response()->json(['ok' => true, 'msg' => 'Role updated successfully.', 'role' => $role]);
         }
+
         return back()->with('success', 'Role updated successfully.');
     }
 
@@ -302,7 +304,7 @@ class RoleController extends Controller
         // Super role delete restriction (optional)
         if ($role->is_super) {
             return response()->json([
-                'ok'  => false,
+                'ok' => false,
                 'msg' => 'Super role cannot be deleted.',
             ], 403);
         }
@@ -310,7 +312,7 @@ class RoleController extends Controller
         $role->delete();
 
         return response()->json([
-            'ok'  => true,
+            'ok' => true,
             'msg' => 'Role deleted successfully.',
         ]);
     }

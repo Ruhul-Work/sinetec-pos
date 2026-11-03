@@ -269,10 +269,26 @@ The first release generates recommendations only; it does not auto-create purcha
 Retain finance master tables, but transaction posting must be rebuilt around:
 
 - `journal_entries.status`: `DRAFT`, `POSTED`, `VOID`;
-- durable `source_type` and `source_id`;
+- durable `source_type` and `source_id`, unique together for one journal per source document;
+- mandatory unique `posting_key` for retry-safe journal creation;
 - balanced journal lines before posting;
 - reversal instead of deletion for posted journals;
 - configurable mapping for inventory, payable, cash/bank, production/WIP, sales, COGS, expenses and wastage.
+
+Implemented finance-foundation rules:
+
+- account types have mandatory codes and `DEBIT`/`CREDIT` normal balances; starter types/accounts are idempotent system records;
+- account codes are mandatory and unique, hierarchy cycles are rejected, and mapped accounts cannot be disabled;
+- fiscal-year date ranges cannot overlap and only one fiscal year is active;
+- `finance_account_mappings` uses explicit `COMPANY` or `BRANCH` scope plus a unique `scope_key + mapping_key` pair, avoiding nullable-branch uniqueness ambiguity;
+- purchase mapping keys are `RAW_MATERIAL_INVENTORY`, `PART_INVENTORY`, `SUPPLIER_PAYABLE`, `INPUT_TAX`, and `PURCHASE_DISCOUNT`;
+- effective mapping resolves branch override first and company default second; branch overrides require an active branch-account assignment;
+- the generic Draft Journal service accepts only active branch-assigned BDT accounts, exactly balanced four-decimal lines and a journal date covered by the single active fiscal year;
+- identical posting/source retries return the original journal, while conflicting reuse is rejected; the service creates `DRAFT` only and has no automatic posting authority;
+- Purchase Receipt/Return posting creates balanced `DRAFT` journals atomically with stock effects. The retry-safe reconciliation command is `finance:reconcile-purchase-journals`.
+- A Draft must be balanced and approved before posting. Posting revalidates active branch, covering active fiscal year and every active BDT branch-assigned account, then records `posted_by` and `posted_at`; only `POSTED` journals affect balances.
+- A Draft may be voided with `voided_by`, `voided_at` and a required reason. A posted journal cannot be voided or changed; one linked reversal Draft (`reversal_of_id` is unique) swaps every debit/credit line and itself requires approval and posting.
+- Account Ledger is a read-only derived view over `POSTED` `journal_entry_lines` plus `POSTED` `account_opening_balances`. It partitions chronological running balance by `account_id` and `branch_id`; date filters hide rows but do not reset the true balance brought forward.
 
 ## 11. Future inactive tables
 

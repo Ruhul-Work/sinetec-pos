@@ -32,7 +32,7 @@
                 {{-- Branch Select --}}
                 <div class="mb-4 col-md-4">
                     <label class="form-label fw-semibold">Select Branch</label>
-                    <select name="branch_id" id="branchSelect" class="form-control" required>
+                    <select name="branch_id" id="branchSelect" class="form-control js-s2" required>
                         <option value="">-- Select Branch --</option>
                         @foreach ($branches as $branch)
                             <option value="{{ $branch->id }}">
@@ -62,7 +62,7 @@
 
                                     <label class="form-check-label mb-0" for="acc{{ $account->id }}">
                                         {{ $account->name }}
-                                        <span class="text-muted">({{ $account->type?->name }})</span>
+                                        <span class="text-muted">({{ $account->code }} · {{ $account->type?->name }})</span>
                                     </label>
 
                                     <small class="text-danger  ms-1 default-label d-none" id="lbl{{ $account->id }}">
@@ -90,6 +90,7 @@
 
 @section('script')
     <script>
+        S2.auto($(document));
         const loadAssignedAccountsUrl = "{{ route('branch-accounts.assigned', ':id') }}";
 
         $('#branchSelect').on('change', function() {
@@ -115,6 +116,12 @@
                     });
                 }
 
+                $('.account-checkbox').removeAttr('data-required-mapping');
+                (res.required_account_ids || []).forEach(function(id) {
+                    $('#acc' + id).prop('checked', true).attr('data-required-mapping', '1');
+                    $('#def' + id).prop('disabled', false);
+                });
+
                 if (res.default_account_id) {
                     $('#def' + res.default_account_id).prop('checked', true);
                 }
@@ -123,6 +130,12 @@
 
         // Enable / disable default radio based on checkbox
         $(document).on('change', '.account-checkbox', function() {
+
+            if ($(this).attr('data-required-mapping') === '1' && !$(this).is(':checked')) {
+                $(this).prop('checked', true);
+                Swal.fire({icon:'info', title:'Mapped account required', text:'Replace this account in Finance Account Mapping before removing it from the branch.'});
+                return;
+            }
 
             let accountId = $(this).val();
             let radio = $('#def' + accountId);

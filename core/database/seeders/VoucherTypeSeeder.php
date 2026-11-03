@@ -1,4 +1,5 @@
 <?php
+
 namespace Database\Seeders;
 
 use App\Models\backend\VoucherType;
@@ -31,6 +32,10 @@ class VoucherTypeSeeder extends Seeder
             [
                 'name' => 'Purchase Voucher',
                 'code' => 'PURCHASE',
+            ],
+            [
+                'name' => 'Purchase Return Voucher',
+                'code' => 'PURCHASE_RETURN',
             ],
             [
                 'name' => 'Expense Voucher',

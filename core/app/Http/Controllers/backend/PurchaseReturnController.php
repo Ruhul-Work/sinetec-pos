@@ -4,6 +4,8 @@ namespace App\Http\Controllers\backend;
 
 use App\Enums\Purchase\PurchaseReceiptStatus;
 use App\Enums\Purchase\PurchaseReturnStatus;
+use App\Exceptions\Finance\FinanceConfigurationException;
+use App\Exceptions\Finance\InvalidJournalDraftException;
 use App\Exceptions\Inventory\InsufficientStockException;
 use App\Exceptions\Purchase\InvalidPurchaseReturnException;
 use App\Http\Controllers\Controller;
@@ -156,11 +158,11 @@ class PurchaseReturnController extends Controller
     {
         try {
             $this->purchaseReturn->post($this->record($purchaseReturn), $request->user()?->id);
-        } catch (InvalidPurchaseReturnException|InsufficientStockException $e) {
+        } catch (InvalidPurchaseReturnException|InsufficientStockException|FinanceConfigurationException|InvalidJournalDraftException $e) {
             return back()->with('error', $e->getMessage());
         }
 
-        return back()->with('success', 'Purchase return posted. Warehouse stock was reduced.');
+        return back()->with('success', 'Purchase return posted. Warehouse stock was reduced and the finance draft was created.');
     }
 
     public function destroy(int $purchaseReturn): JsonResponse

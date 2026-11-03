@@ -3,6 +3,7 @@
 namespace App\Models\backend;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Branch extends Model
@@ -25,4 +26,9 @@ class Branch extends Model
         'is_active' => 'boolean',
         'settings' => 'array',
     ];
+
+    public function branchAccounts(): HasMany
+    {
+        return $this->hasMany(BranchAccount::class, 'branch_id');
+    }
 }

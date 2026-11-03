@@ -4,11 +4,18 @@ namespace App\Http\Controllers\admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\backend\Branch;
+use App\Services\Finance\FinanceAccountMappingService;
+use App\Services\Finance\FinanceFoundationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class BranchController extends Controller
 {
+    public function __construct(
+        private readonly FinanceFoundationService $financeFoundation,
+        private readonly FinanceAccountMappingService $financeAccountMapping,
+    ) {}
+
     public function index()
     {
         return view('backend.modules.branches.index');
@@ -54,7 +61,7 @@ class BranchController extends Controller
                 $actions = '<div class="d-inline-flex justify-content-end gap-1 w-100">
                     <a href="#"
                         class="w-32-px h-32-px rounded-circle d-inline-flex align-items-center justify-content-center bg-success-focus text-success-main AjaxModal"
-                        data-ajax-modal="' . route('org.branches.editModal', $branch) . '"
+                        data-ajax-modal="'.route('org.branches.editModal', $branch).'"
                         data-size="lg"
                         data-onsuccess="BranchesIndex.onSaved"
                         title="Edit branch"
@@ -63,7 +70,7 @@ class BranchController extends Controller
                     </a>
                     <button type="button"
                         class="border-0 w-32-px h-32-px rounded-circle d-inline-flex align-items-center justify-content-center bg-danger-focus text-danger-main btn-branch-delete"
-                        data-url="' . route('org.branches.destroy', $branch) . '"
+                        data-url="'.route('org.branches.destroy', $branch).'"
                         title="Delete branch"
                         aria-label="Delete branch">
                         <iconify-icon icon="solar:trash-bin-minimalistic-outline"></iconify-icon>
@@ -72,7 +79,7 @@ class BranchController extends Controller
 
                 return [
                     $branch->id,
-                    '<strong>' . e($branch->name) . '</strong><br><small>' . e($branch->code) . '</small>',
+                    '<strong>'.e($branch->name).'</strong><br><small>'.e($branch->code).'</small>',
                     e($branch->phone ?? '—'),
                     e($branch->address ?? '—'),
                     $status,
@@ -89,7 +96,13 @@ class BranchController extends Controller
 
     public function store(Request $request)
     {
-        $branch = Branch::create($this->validatedData($request));
+        $branch = DB::transaction(function () use ($request): Branch {
+            $branch = Branch::create($this->validatedData($request));
+            $this->financeFoundation->assignStarterAccountsToBranch($branch);
+            $this->financeAccountMapping->assignCompanyMappedAccountsToBranch($branch);
+
+            return $branch;
+        }, 3);
 
         return response()->json(['ok' => true, 'msg' => 'Branch created.', 'id' => $branch->id]);
     }
@@ -139,14 +152,14 @@ class BranchController extends Controller
         return response()->json([
             'results' => $branches->map(fn (Branch $branch) => [
                 'id' => $branch->id,
-                'text' => $branch->name . ($branch->code ? " ({$branch->code})" : ''),
+                'text' => $branch->name.($branch->code ? " ({$branch->code})" : ''),
             ]),
         ]);
     }
 
     private function validatedData(Request $request, ?Branch $branch = null): array
     {
-        $uniqueCode = 'unique:branches,code' . ($branch ? ',' . $branch->id : '');
+        $uniqueCode = 'unique:branches,code'.($branch ? ','.$branch->id : '');
 
         $data = $request->validate([
             'name' => ['required', 'string', 'max:150'],

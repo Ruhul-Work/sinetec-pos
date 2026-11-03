@@ -1,8 +1,8 @@
 <?php
+
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-
 
 class DatabaseSeeder extends Seeder
 {
@@ -14,6 +14,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             VoucherTypeSeeder::class,
             FiscalYearSeeder::class,
+            FinanceFoundationSeeder::class,
             CorePermissionSeeder::class,
         ]);
     }

@@ -74,4 +74,9 @@ class PurchaseReceipt extends Model
     {
         return $this->hasMany(PurchaseReturn::class);
     }
+
+    public function payments(): HasMany
+    {
+        return $this->hasMany(PurchasePayment::class);
+    }
 }

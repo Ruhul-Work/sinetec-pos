@@ -1,1 +1,0 @@
-<h1>Bintel Future Tech</h1>

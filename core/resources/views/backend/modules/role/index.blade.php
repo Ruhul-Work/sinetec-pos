@@ -10,9 +10,17 @@
     <h5>Role & Permission</h5>
     <p class="text-muted m-0">Tick abilities per role, per permission.</p>
   </div>
-  @if (session('success'))
-    <span class="badge bg-success">{{ session('success') }}</span>
-  @endif
+  <div class="d-flex align-items-center gap-2">
+    @if (session('success'))
+      <span class="badge bg-success">{{ session('success') }}</span>
+    @endif
+    @perm('rbac.role.list', 'view')
+      <a href="{{ route('rbac.role.list') }}" class="btn btn-outline-primary btn-sm app-action-button">
+        <iconify-icon icon="mdi:shield-account-outline"></iconify-icon>
+        <span>Manage Roles</span>
+      </a>
+    @endperm
+  </div>
 </div>
 
 <form method="POST" action="{{ route('rbac.role.save') }}">

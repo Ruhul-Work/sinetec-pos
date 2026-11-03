@@ -1,0 +1,254 @@
+<?php
+
+namespace App\Services\Finance;
+
+use App\Data\Finance\JournalDraftData;
+use App\Data\Finance\JournalLineData;
+use App\Enums\Finance\JournalStatus;
+use App\Exceptions\Finance\FinanceConfigurationException;
+use App\Exceptions\Finance\JournalWorkflowException;
+use App\Models\backend\Account;
+use App\Models\backend\Branch;
+use App\Models\backend\BranchAccount;
+use App\Models\backend\FiscalYear;
+use App\Models\backend\JournalEntry;
+use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\DB;
+use Throwable;
+
+final class JournalWorkflowService
+{
+    public function __construct(private readonly JournalDraftService $drafts) {}
+
+    public function approve(JournalEntry $journal, ?int $userId = null): JournalEntry
+    {
+        return DB::transaction(function () use ($journal, $userId): JournalEntry {
+            $journal = $this->lock($journal);
+            $userId = $this->requiredUserId($userId);
+
+            if ($journal->status === JournalStatus::Void) {
+                throw new JournalWorkflowException('A void journal cannot be approved.');
+            }
+            if ($journal->status === JournalStatus::Posted) {
+                throw new JournalWorkflowException('A posted journal is already final. Create a reversal draft if a correction is needed.');
+            }
+            if ($journal->approved_at !== null) {
+                return $this->load($journal);
+            }
+
+            $this->assertBalanced($journal);
+            $journal->update(['approved_by' => $userId, 'approved_at' => now()]);
+
+            return $this->load($journal);
+        }, 3);
+    }
+
+    public function post(JournalEntry $journal, ?int $userId = null): JournalEntry
+    {
+        return DB::transaction(function () use ($journal, $userId): JournalEntry {
+            $journal = $this->lock($journal);
+            $userId = $this->requiredUserId($userId);
+
+            if ($journal->status === JournalStatus::Posted) {
+                return $this->load($journal);
+            }
+            if ($journal->status === JournalStatus::Void) {
+                throw new JournalWorkflowException('A void journal cannot be posted.');
+            }
+            if ($journal->approved_at === null) {
+                throw new JournalWorkflowException('Journal approval is required before posting.');
+            }
+
+            $this->assertPostable($journal);
+            $journal->update([
+                'status' => JournalStatus::Posted,
+                'posted_by' => $userId,
+                'posted_at' => now(),
+            ]);
+
+            return $this->load($journal);
+        }, 3);
+    }
+
+    public function void(JournalEntry $journal, string $reason, ?int $userId = null): JournalEntry
+    {
+        return DB::transaction(function () use ($journal, $reason, $userId): JournalEntry {
+            $journal = $this->lock($journal);
+            $userId = $this->requiredUserId($userId);
+            $reason = trim($reason);
+            if ($reason === '' || mb_strlen($reason) > 1000) {
+                throw new JournalWorkflowException('A void reason is required and may not exceed 1000 characters.');
+            }
+            if ($journal->status === JournalStatus::Void) {
+                return $this->load($journal);
+            }
+            if ($journal->status === JournalStatus::Posted) {
+                throw new JournalWorkflowException('A posted journal cannot be voided. Create a reversal draft instead.');
+            }
+
+            $journal->update([
+                'status' => JournalStatus::Void,
+                'voided_by' => $userId,
+                'voided_at' => now(),
+                'void_reason' => $reason,
+            ]);
+
+            return $this->load($journal);
+        }, 3);
+    }
+
+    public function createReversalDraft(JournalEntry $journal, string $entryDate, string $reason, ?int $userId = null): JournalEntry
+    {
+        return DB::transaction(function () use ($journal, $entryDate, $reason, $userId): JournalEntry {
+            $journal = $this->lock($journal);
+            $userId = $this->requiredUserId($userId);
+            $reason = trim($reason);
+            if ($reason === '' || mb_strlen($reason) > 1000) {
+                throw new JournalWorkflowException('A reversal reason is required and may not exceed 1000 characters.');
+            }
+            if ($journal->status !== JournalStatus::Posted) {
+                throw new JournalWorkflowException('Only a posted journal can be reversed.');
+            }
+
+            $existing = JournalEntry::query()->where('reversal_of_id', $journal->id)->lockForUpdate()->first();
+            if ($existing) {
+                return $this->load($existing);
+            }
+
+            try {
+                $date = CarbonImmutable::parse($entryDate)->toDateString();
+            } catch (Throwable) {
+                throw new JournalWorkflowException('The reversal date is invalid.');
+            }
+
+            $draft = $this->drafts->create(new JournalDraftData(
+                voucherTypeCode: $journal->voucherType->code,
+                branchId: (int) $journal->branch_id,
+                entryDate: $date,
+                sourceType: 'journal_reversal',
+                sourceId: (int) $journal->id,
+                postingKey: 'journal:reversal:'.$journal->id,
+                lines: $journal->lines->map(fn ($line): JournalLineData => new JournalLineData(
+                    accountId: (int) $line->account_id,
+                    debit: $line->credit,
+                    credit: $line->debit,
+                    memo: 'Reversal: '.($line->memo ?: $journal->voucher_no),
+                ))->all(),
+                narration: 'Reversal of '.$journal->voucher_no.': '.$reason,
+                createdBy: $userId,
+            ));
+
+            $reversal = $draft->journal;
+            if ($reversal->reversal_of_id === null) {
+                $reversal->update(['reversal_of_id' => $journal->id]);
+            }
+
+            return $this->load($reversal);
+        }, 3);
+    }
+
+    private function lock(JournalEntry $journal): JournalEntry
+    {
+        return JournalEntry::query()->with(['lines', 'voucherType'])->whereKey($journal->id)->lockForUpdate()->first()
+            ?? throw new JournalWorkflowException('The journal does not exist.');
+    }
+
+    private function load(JournalEntry $journal): JournalEntry
+    {
+        return $journal->fresh([
+            'voucherType', 'branch', 'fiscalYear', 'createdBy', 'approvedBy', 'postedBy', 'voidedBy',
+            'reversal', 'reversalOf', 'lines.account.type',
+        ]);
+    }
+
+    private function requiredUserId(?int $userId): int
+    {
+        if ($userId === null || $userId < 1 || ! DB::table('users')->where('id', $userId)->exists()) {
+            throw new JournalWorkflowException('An active user is required for this journal workflow action.');
+        }
+
+        return $userId;
+    }
+
+    private function assertPostable(JournalEntry $journal): void
+    {
+        $branch = Branch::query()->whereKey($journal->branch_id)->where('is_active', true)->lockForUpdate()->first();
+        if (! $branch) {
+            throw new FinanceConfigurationException('The journal branch is inactive or unavailable.');
+        }
+        $year = FiscalYear::query()->whereKey($journal->fiscal_year_id)->where('is_active', true)->lockForUpdate()->first();
+        if (! $year || $journal->entry_date->toDateString() < $year->start_date->toDateString() || $journal->entry_date->toDateString() > $year->end_date->toDateString()) {
+            throw new FinanceConfigurationException('The journal entry date is not covered by an active fiscal year.');
+        }
+
+        $this->assertBalanced($journal);
+        $accountIds = $journal->lines->pluck('account_id')->unique()->values();
+        $accounts = Account::query()->whereKey($accountIds)->get()->keyBy('id');
+        $assigned = BranchAccount::query()->where('branch_id', $branch->id)->where('is_active', true)
+            ->whereIn('account_id', $accountIds)->pluck('account_id')->map(fn ($id): int => (int) $id)->all();
+        foreach ($accountIds as $accountId) {
+            $account = $accounts->get($accountId);
+            if (! $account || ! $account->is_active || strtoupper($account->currency) !== 'BDT') {
+                throw new FinanceConfigurationException('Every journal account must be active and use BDT at posting time.');
+            }
+            if (! in_array((int) $accountId, $assigned, true)) {
+                throw new FinanceConfigurationException("Account {$account->code} is no longer assigned to this journal branch.");
+            }
+        }
+    }
+
+    private function assertBalanced(JournalEntry $journal): void
+    {
+        if ($journal->lines->count() < 2) {
+            throw new JournalWorkflowException('A journal requires at least two lines.');
+        }
+
+        $debit = '0';
+        $credit = '0';
+        foreach ($journal->lines as $line) {
+            $lineDebit = $this->amount($line->debit);
+            $lineCredit = $this->amount($line->credit);
+            if (($lineDebit === '0.0000') === ($lineCredit === '0.0000')) {
+                throw new JournalWorkflowException('Every journal line must have exactly one debit or credit amount.');
+            }
+            $debit = $this->addIntegers($debit, $this->scaled($lineDebit));
+            $credit = $this->addIntegers($credit, $this->scaled($lineCredit));
+        }
+        if ($debit !== $credit) {
+            throw new JournalWorkflowException('The journal is not balanced and cannot continue in the workflow.');
+        }
+    }
+
+    private function amount(mixed $amount): string
+    {
+        $value = trim((string) $amount);
+        if (! preg_match('/^\d+(?:\.\d{1,4})?$/', $value)) {
+            throw new JournalWorkflowException('Journal line amounts must be non-negative four-decimal values.');
+        }
+        [$integer, $fraction] = array_pad(explode('.', $value, 2), 2, '');
+
+        return (ltrim($integer, '0') ?: '0').'.'.str_pad($fraction, 4, '0');
+    }
+
+    private function scaled(string $amount): string
+    {
+        return ltrim(str_replace('.', '', $amount), '0') ?: '0';
+    }
+
+    private function addIntegers(string $left, string $right): string
+    {
+        $leftIndex = strlen($left) - 1;
+        $rightIndex = strlen($right) - 1;
+        $carry = 0;
+        $sum = '';
+        while ($leftIndex >= 0 || $rightIndex >= 0 || $carry > 0) {
+            $digit = $carry;
+            $digit += $leftIndex >= 0 ? (int) $left[$leftIndex--] : 0;
+            $digit += $rightIndex >= 0 ? (int) $right[$rightIndex--] : 0;
+            $sum = ($digit % 10).$sum;
+            $carry = intdiv($digit, 10);
+        }
+
+        return ltrim($sum, '0') ?: '0';
+    }
+}

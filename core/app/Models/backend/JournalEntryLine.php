@@ -3,39 +3,33 @@
 namespace App\Models\backend;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class JournalEntryLine extends Model
 {
-    use HasFactory;
-
     protected $table = 'journal_entry_lines';
 
     protected $fillable = [
-        'journal_entry_id',
-        'account_id',
-        'branch_id',
-        'debit',
-        'credit',
+        'journal_entry_id', 'account_id', 'branch_id', 'debit', 'credit', 'memo',
     ];
 
-    protected $casts = [
-        'debit'  => 'decimal:2',
-        'credit' => 'decimal:2',
-    ];
+    protected function casts(): array
+    {
+        return ['debit' => 'decimal:4', 'credit' => 'decimal:4'];
+    }
 
-    // --------------------
-    // Relationships
-    // --------------------
-
-    public function journal()
+    public function journal(): BelongsTo
     {
         return $this->belongsTo(JournalEntry::class, 'journal_entry_id');
     }
 
-    public function account()
+    public function account(): BelongsTo
     {
         return $this->belongsTo(Account::class, 'account_id');
     }
 
+    public function branch(): BelongsTo
+    {
+        return $this->belongsTo(Branch::class, 'branch_id');
+    }
 }

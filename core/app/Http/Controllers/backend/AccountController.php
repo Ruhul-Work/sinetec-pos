@@ -1,408 +1,181 @@
 <?php
+
 namespace App\Http\Controllers\backend;
 
+use App\Enums\Finance\AccountNormalBalance;
+use App\Enums\Finance\FinanceMappingKey;
 use App\Http\Controllers\Controller;
 use App\Models\backend\Account;
 use App\Models\backend\AccountType;
-use App\Models\backend\JournalEntryLine;
-use App\Support\BranchScope;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
+use Illuminate\View\View;
 
 class AccountController extends Controller
 {
-    public function index()
+    public function index(): View
     {
-        // Guard: Only authenticated users can access
-        // Branch filtering will be applied in listAjax
         return view('backend.modules.account.index');
     }
 
-    public function listAjax(Request $request)
+    public function listAjax(Request $request): JsonResponse
     {
-        $columns   = ['name', 'account_type_id'];
-        $draw      = (int) $request->input('draw');
-        $start     = (int) $request->input('start', 0);
-        $length    = (int) $request->input('length', 10);
-        $orderIdx  = (int) $request->input('order.0.column', 0);
-        $orderDir  = strtolower($request->input('order.0.dir', 'asc')) === 'desc' ? 'desc' : 'asc';
-        $searchVal = trim($request->input('search.value', ''));
+        $columns = ['id', 'code', 'name', 'account_type_id', 'parent_id', 'id', 'is_active', 'id'];
+        $draw = (int) $request->input('draw');
+        $start = max((int) $request->input('start', 0), 0);
+        $length = min(max((int) $request->input('length', 10), 1), 1000);
+        $orderIndex = (int) $request->input('order.0.column', 1);
+        $direction = strtolower((string) $request->input('order.0.dir', 'asc')) === 'desc' ? 'desc' : 'asc';
+        $search = trim((string) $request->input('search.value', ''));
+        $query = Account::query()->with(['type:id,name,code,normal_balance', 'parent:id,name,code']);
+        $total = (clone $query)->count();
+        $query->when($search !== '', fn ($q) => $q->where(fn ($inner) => $inner
+            ->where('name', 'like', "%{$search}%")->orWhere('code', 'like', "%{$search}%")));
+        $filtered = (clone $query)->count();
+        $rows = $query->orderBy($columns[$orderIndex] ?? 'code', $direction)->skip($start)->take($length)->get();
+        $data = $rows->map(function (Account $account): array {
+            $actions = '<div class="d-inline-flex justify-content-end gap-1 w-100"><button class="border-0 w-32-px h-32-px rounded-circle d-inline-flex align-items-center justify-content-center bg-info-focus text-info-main btn-load-balance" data-account-id="'.$account->id.'" title="Load posted balance"><iconify-icon icon="mdi:reload"></iconify-icon></button><a href="#" class="w-32-px h-32-px rounded-circle d-inline-flex align-items-center justify-content-center bg-success-focus text-success-main AjaxModal" data-ajax-modal="'.e(route('accounts.editModal', $account)).'" data-size="lg" data-onsuccess="AccountsIndex.onSaved" title="Edit"><iconify-icon icon="lucide:edit"></iconify-icon></a>';
+            if ($account->is_active) {
+                $actions .= '<a href="#" class="w-32-px h-32-px rounded-circle d-inline-flex align-items-center justify-content-center bg-danger-focus text-danger-main btn-account-del" data-url="'.e(route('accounts.destroy', $account)).'" title="Disable"><iconify-icon icon="solar:trash-bin-minimalistic-outline"></iconify-icon></a>';
+            }
 
-        $base = Account::query()
-            ->with([
-                'type:id,name',
-                'branchAccounts' => function($query) {
-                    $query->where('is_active', 1);
-                }
-            ])
-            ->where('is_active', 1);
-
-        // Branch filtering
-        $branchAll = BranchScope::isAll();
-        $branchId = current_branch_id();
-
-        if (!$branchAll && $branchId) {
-            $base->whereHas('branchAccounts', function($query) use ($branchId) {
-                $query->where('branch_id', $branchId)
-                      ->where('is_active', 1);
-            });
-        }
-
-        $total = (clone $base)->count();
-
-        if ($searchVal !== '') {
-            $base->where('name', 'like', "%{$searchVal}%");
-        }
-
-        $filtered = (clone $base)->count();
-
-        $orderCol = $columns[$orderIdx] ?? 'name';
-
-        $rows = $base->orderBy($orderCol, $orderDir)
-            ->skip($start)
-            ->take($length)
-            ->get();
-
-        $data = [];
-
-        $sn = $start + 1;
-        foreach ($rows as $r) {
-
-            $actions = '
-            <div class="d-inline-flex justify-content-end gap-1 w-100">
-
-                <button
-                    class="w-32-px h-32-px rounded-circle d-inline-flex align-items-center justify-content-center
-                        bg-info-focus text-info-main btn-load-balance"
-                    data-account-id="' . $r->id . '"
-                    title="Load Balance">
-                    <iconify-icon icon="mdi:reload"></iconify-icon>
-                </button>
-
-                <a href="#"
-                class="w-32-px h-32-px rounded-circle d-inline-flex align-items-center justify-content-center
-                        bg-success-focus text-success-main AjaxModal"
-                data-ajax-modal="' . route('accounts.editModal', $r->id) . '"
-                data-size="lg"
-                data-onsuccess="AccountsIndex.onSaved"
-                title="Edit">
-                <iconify-icon icon="lucide:edit"></iconify-icon>
-                </a>
-
-                <a href="#"
-                class="w-32-px h-32-px rounded-circle d-inline-flex align-items-center justify-content-center
-                        bg-danger-focus text-danger-main btn-account-del"
-                data-url="' . route('accounts.destroy', $r->id) . '"
-                title="Disable">
-                <iconify-icon icon="solar:trash-bin-minimalistic-outline"></iconify-icon>
-                </a>
-
-            </div>';
-
-            $data[] = [
-                $sn++,
-                e($r->name),
-                e($r->type?->name ?? '-'),
-                e($r->bank_name ?? '-'),
-                e($r->bank_account_no ?? '-'),
-                e($r->bank_details ?? '-'),
-                // 🔹 Balance placeholder
-                '<span class="account-balance" data-id="' . $r->id . '">--</span>',
-                $actions,
+            return [
+                $account->id,
+                '<code>'.e($account->code).'</code>',
+                '<strong>'.e($account->name).'</strong>'.($account->is_system ? '<br><small class="text-info-main">Starter account</small>' : ''),
+                e($account->type?->name ?? '-').'<br><small class="text-muted">'.e($account->type?->normal_balance?->label() ?? '').'</small>',
+                $account->parent ? e($account->parent->code.' - '.$account->parent->name) : '<span class="text-muted">Root</span>',
+                '<span class="account-balance" data-id="'.$account->id.'">--</span>',
+                $account->is_active ? '<span class="badge bg-dark-success-gradient text-white">Active</span>' : '<span class="badge bg-dark-warning-gradient text-white">Inactive</span>',
+                $actions.'</div>',
             ];
-        }
+        })->all();
 
-        return response()->json([
-            'draw'                 => $draw,
-            'iTotalRecords'        => $total,
-            'iTotalDisplayRecords' => $filtered,
-            'aaData'               => $data,
-        ]);
+        return response()->json(['draw' => $draw, 'iTotalRecords' => $total, 'iTotalDisplayRecords' => $filtered, 'aaData' => $data]);
     }
 
-    public function createModal()
+    public function createModal(): View
     {
-        // Guard: Only super admin can create accounts
-        if (!auth()->user()->isSuperAdmin()) {
-            abort(403, 'Unauthorized');
-        }
-
-        $types = AccountType::orderBy('name')->get();
-        return view('backend.modules.account.modal.create', compact('types'));
+        return $this->formView();
     }
 
-    public function store(Request $request)
+    public function store(Request $request): JsonResponse
     {
-        // Guard: Only super admin can create accounts
-        if (!auth()->user()->isSuperAdmin()) {
-            abort(403, 'Unauthorized');
-        }
+        $data = $this->validated($request);
+        Account::query()->create([...$data, 'currency' => 'BDT', 'is_system' => false]);
 
-        $request->validate([
-            'name'            => 'required|string|max:100|unique:accounts,name',
-            'account_type_id' => 'required|exists:account_types,id',
-            'bank_name'       => 'nullable|string|max:150',
-            'bank_account_no' => 'nullable|string|max:150',
-            'bank_details'    => 'nullable|string',
-            'allow_negative'  => 'nullable|boolean',
-        ]);
-
-        DB::transaction(function () use ($request) {
-
-            Account::create([
-                'name'            => $request->name,
-                'account_type_id' => $request->account_type_id,
-                'description'     => null,
-                'currency'        => 'BDT',
-                'bank_name'       => $request->bank_name,
-                'bank_account_no' => $request->bank_account_no,
-                'bank_details'    => $request->bank_details,
-                'allow_negative'  => $request->allow_negative ? 1 : 0,
-                'is_active'       => 1, // ✅ always active on create
-            ]);
-
-        });
-
-        return response()->json(['success' => true]);
+        return response()->json(['success' => true, 'msg' => 'Account created.']);
     }
 
-    public function editModal(Account $account)
+    public function editModal(Account $account): View
     {
-        // Guard: Check if user can access this account
-        $user = auth()->user();
-        if (!$user->isSuperAdmin()) {
-            $branchId = $user->branch_id;
-            $hasAccess = $account->branchAccounts()
-                ->where('branch_id', $branchId)
-                ->where('is_active', 1)
-                ->exists();
+        return $this->formView($account);
+    }
 
-            if (!$hasAccess) {
-                abort(403, 'Unauthorized');
+    public function update(Request $request, Account $account): JsonResponse
+    {
+        $data = $this->validated($request, $account);
+        if ($account->is_system) {
+            $data['code'] = $account->code;
+            $data['account_type_id'] = $account->account_type_id;
+            $data['parent_id'] = $account->parent_id;
+        }
+        if ($this->wouldCreateCycle($account, $data['parent_id'])) {
+            return response()->json(['success' => false, 'message' => 'An account cannot be placed below itself or one of its descendants.'], 422);
+        }
+        $targetType = AccountType::query()->findOrFail($data['account_type_id']);
+        foreach ($account->financeMappings()->get() as $mapping) {
+            $key = $mapping->mapping_key instanceof FinanceMappingKey ? $mapping->mapping_key : FinanceMappingKey::from($mapping->mapping_key);
+            if ($targetType->code !== $key->expectedTypeCode() || $targetType->normal_balance !== $key->expectedNormalBalance()) {
+                return response()->json(['success' => false, 'message' => 'Replace this account in Finance Account Mapping before changing its account type.'], 422);
             }
         }
+        $account->update($data);
 
-        $types = AccountType::orderBy('name')->get();
-
-        return view('backend.modules.account.modal.edit', compact('account', 'types'));
+        return response()->json(['success' => true, 'msg' => 'Account updated.']);
     }
 
-    // public function update(Request $request, Account $account)
-    // {
-    //     $request->validate([
-    //         'name'            => 'required|string|max:100',
-    //         'account_type_id' => 'required|exists:account_types,id',
-    //         'opening_balance' => 'nullable|numeric',
-    //     ]);
-
-    //     DB::transaction(function () use ($request, $account) {
-
-    //         // 1️⃣ Update account basic info
-    //         $account->update([
-    //             'name'            => $request->name,
-    //             'account_type_id' => $request->account_type_id,
-    //             'bank_name'       => $request->bank_name,
-    //             'bank_account_no' => $request->bank_account_no,
-    //             'bank_details'    => $request->bank_details,
-    //             'allow_negative'  => $request->allow_negative ? 1 : 0,
-    //         ]);
-
-    //         // 2️⃣ Update opening balance (current branch + fiscal year)
-    //         $fiscalYear = currentFiscalYear();
-    //         if (! $fiscalYear) {
-    //             throw new \Exception('No active fiscal year found.');
-    //         }
-
-    //         if ($request->filled('opening_balance')) {
-    //             OpeningBalance::updateOrCreate(
-    //                 [
-    //                     'branch_id'      => auth()->user()->branch_id,
-    //                     'account_id'     => $account->id,
-    //                     'fiscal_year_id' => $fiscalYear->id,
-    //                 ],
-    //                 [
-    //                     'amount' => $request->opening_balance,
-    //                 ]
-    //             );
-    //         }
-    //     });
-
-    //     return response()->json(['success' => true]);
-    // }
-
-    public function update(Request $request, Account $account)
+    public function destroy(Account $account): JsonResponse
     {
-        // Guard: Check if user can access this account
-        $user = auth()->user();
-        if (!$user->isSuperAdmin()) {
-            $branchId = $user->branch_id;
-            $hasAccess = $account->branchAccounts()
-                ->where('branch_id', $branchId)
-                ->where('is_active', 1)
-                ->exists();
-
-            if (!$hasAccess) {
-                abort(403, 'Unauthorized');
-            }
-        }
-
-        $request->validate([
-            'name'            => 'required|string|max:100|unique:accounts,name,' . $account->id,
-            'account_type_id' => 'required|exists:account_types,id',
-            'bank_name'       => 'nullable|string|max:150',
-            'bank_account_no' => 'nullable|string|max:150',
-            'bank_details'    => 'nullable|string',
-            'allow_negative'  => 'nullable|boolean',
-        ]);
-
-        DB::transaction(function () use ($request, $account) {
-
-            $account->update([
-                'name'            => $request->name,
-                'account_type_id' => $request->account_type_id,
-                'bank_name'       => $request->bank_name,
-                'bank_account_no' => $request->bank_account_no,
-                'bank_details'    => $request->bank_details,
-                'allow_negative'  => $request->allow_negative ? 1 : 0,
-            ]);
-
-        });
-
-        return response()->json(['success' => true]);
-    }
-
-    public function destroy(Account $account)
-    {
-        // Guard: Check if user can access this account
-        $user = auth()->user();
-        if (!$user->isSuperAdmin()) {
-            $branchId = $user->branch_id;
-            $hasAccess = $account->branchAccounts()
-                ->where('branch_id', $branchId)
-                ->where('is_active', 1)
-                ->exists();
-
-            if (!$hasAccess) {
-                abort(403, 'Unauthorized');
-            }
-        }
-
-        // 🔒 Rule 1: Already disabled হলে কিছু করবে না
         if (! $account->is_active) {
-            return response()->json([
-                'message' => 'Account already disabled.',
-            ], 422);
+            return response()->json(['success' => false, 'message' => 'Account is already inactive.'], 422);
         }
-
-        // 🔒 Rule 2: Journal entry থাকলে delete/disable block
-        $hasJournal = JournalEntryLine::where('account_id', $account->id)->exists();
-
-        if ($hasJournal) {
-            return response()->json([
-                'message' => 'This account has accounting transactions. It cannot be deleted.',
-            ], 422);
+        if ($account->financeMappings()->where('is_active', true)->exists()) {
+            return response()->json(['success' => false, 'message' => 'Replace this account in Finance Account Mapping before disabling it.'], 422);
         }
+        if ($account->children()->where('is_active', true)->exists()) {
+            return response()->json(['success' => false, 'message' => 'Disable or move active child accounts first.'], 422);
+        }
+        $account->update(['is_active' => false]);
 
-        // 🔒 Rule 3: Opening balance থাকলেও safe → disable
-        $account->update([
-            'is_active' => 0,
-        ]);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Account disabled successfully.',
-        ]);
+        return response()->json(['success' => true, 'message' => 'Account disabled. Historical transactions remain unchanged.']);
     }
 
-    // global balance (no branch filter)
-    public function balance(Account $account)
+    public function balance(Account $account): JsonResponse
     {
-        $user = auth()->user();
+        $branchId = current_branch_id();
+        $journal = DB::table('journal_entry_lines as line')
+            ->join('journal_entries as journal', 'journal.id', '=', 'line.journal_entry_id')
+            ->where('line.account_id', $account->id)->where('journal.status', 'POSTED')
+            ->when($branchId, fn ($q, int $id) => $q->where('line.branch_id', $id))
+            ->selectRaw('COALESCE(SUM(line.debit),0) debit, COALESCE(SUM(line.credit),0) credit')->first();
+        $opening = DB::table('account_opening_balances')->where('account_id', $account->id)->where('status', 'POSTED')
+            ->when($branchId, fn ($q, int $id) => $q->where('branch_id', $id))
+            ->selectRaw('COALESCE(SUM(debit),0) debit, COALESCE(SUM(credit),0) credit')->first();
+        $debit = (float) $journal->debit + (float) $opening->debit;
+        $credit = (float) $journal->credit + (float) $opening->credit;
+        $normal = $account->loadMissing('type')->type?->normal_balance ?? AccountNormalBalance::Debit;
+        $balance = $normal === AccountNormalBalance::Debit ? $debit - $credit : $credit - $debit;
 
-        // Guard: Check if user can access this account
-        if (!$user->isSuperAdmin()) {
-            $branchId = $user->branch_id;
-            $hasAccess = $account->branchAccounts()
-                ->where('branch_id', $branchId)
-                ->where('is_active', 1)
-                ->exists();
-
-            if (!$hasAccess) {
-                abort(403, 'Unauthorized');
-            }
-        }
-
-        // 🔐 Optional: inactive account block
-        abort_if(! $account->is_active, 404, 'Account not active');
-
-        /*
-        |--------------------------------------------------------------------------
-        | GLOBAL BALANCE (no branch filter)
-        |--------------------------------------------------------------------------
-        */
-
-        $debit = DB::table('journal_entry_lines')
-            ->where('account_id', $account->id)
-            ->sum('debit');
-
-        $credit = DB::table('journal_entry_lines')
-            ->where('account_id', $account->id)
-            ->sum('credit');
-
-        $balance = round($debit - $credit, 2);
-
-        return response()->json([
-            'balance' => number_format($balance, 2),
-        ]);
+        return response()->json(['balance' => number_format($balance, 4), 'normal_balance' => $normal->value]);
     }
 
-    // branch-wise balance
-    public function branchBalance(Account $account)
+    private function formView(?Account $account = null): View
     {
-        $user = auth()->user();
-
-        // Guard: Check if user can access this account
-        if (!$user->isSuperAdmin()) {
-            $branchId = $user->branch_id;
-            $hasAccess = $account->branchAccounts()
-                ->where('branch_id', $branchId)
-                ->where('is_active', 1)
-                ->exists();
-
-            if (!$hasAccess) {
-                abort(403, 'Unauthorized');
-            }
-        }
-
-        $branchId = $user->isSuperAdmin()
-            ? current_branch_id() // must select branch
-            : $user->branch_id;
-
-        abort_if(! $branchId, 422, 'Please select a branch');
-
-        // optional: ensure account is assigned to this branch
-        $assigned = DB::table('branch_accounts')
-            ->where('branch_id', $branchId)
-            ->where('account_id', $account->id)
-            ->exists();
-
-        abort_if(! $assigned, 403, 'Account not assigned to this branch');
-
-        $debit = DB::table('journal_entry_lines')
-            ->where('account_id', $account->id)
-            ->where('branch_id', $branchId)
-            ->sum('debit');
-
-        $credit = DB::table('journal_entry_lines')
-            ->where('account_id', $account->id)
-            ->where('branch_id', $branchId)
-            ->sum('credit');
-
-        $balance = round($debit - $credit, 2);
-
-        return response()->json([
-            'balance' => number_format($balance, 2),
+        return view($account ? 'backend.modules.account.modal.edit' : 'backend.modules.account.modal.create', [
+            'account' => $account,
+            'types' => AccountType::query()->orderBy('name')->get(),
+            'parents' => Account::query()->where('is_active', true)->when($account, fn ($q) => $q->whereKeyNot($account->id))->orderBy('code')->get(),
         ]);
     }
 
+    /** @return array<string, mixed> */
+    private function validated(Request $request, ?Account $account = null): array
+    {
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:100'],
+            'code' => ['required', 'string', 'max:50', Rule::unique('accounts', 'code')->ignore($account?->id)],
+            'account_type_id' => ['required', 'integer', 'exists:account_types,id'],
+            'parent_id' => ['nullable', 'integer', 'exists:accounts,id'],
+            'description' => ['nullable', 'string', 'max:500'],
+            'bank_name' => ['nullable', 'string', 'max:100'],
+            'bank_account_no' => ['nullable', 'string', 'max:100'],
+            'bank_details' => ['nullable', 'string', 'max:5000'],
+            'allow_negative' => ['nullable', 'boolean'],
+            'is_active' => ['nullable', 'boolean'],
+        ]);
+        $data['name'] = trim($data['name']);
+        $data['code'] = strtoupper(trim($data['code']));
+        $data['parent_id'] = $data['parent_id'] ?? null;
+        $data['allow_negative'] = $request->boolean('allow_negative');
+        $data['is_active'] = $request->has('is_active') ? $request->boolean('is_active') : true;
+
+        return $data;
+    }
+
+    private function wouldCreateCycle(Account $account, ?int $parentId): bool
+    {
+        $seen = [$account->id => true];
+        while ($parentId) {
+            if (isset($seen[$parentId])) {
+                return true;
+            }
+            $seen[$parentId] = true;
+            $parentId = Account::query()->whereKey($parentId)->value('parent_id');
+        }
+
+        return false;
+    }
 }

@@ -111,4 +111,36 @@
 
 **Total:** 9.25 hours
 
+---
+
+## Date: 2026-11-01
+
+**ID:** BFT4
+
+1. Purchase Order flat/percentage discount support, backend recalculation and tamper-safe validation — 30 min
+2. Purchase Receipt module with direct/PO-based receiving, partial/full receipt, mixed-item stock posting and idempotency — 1.5 hours
+3. Purchase Receipt modern UI refactor, supplier invoice attachment, Select2 spacing, detail-view and Bangladesh time display polish — 1 hour
+4. Purchase Return module with original receipt-rate calculation, stock-safe reversal, over-return protection and interface integration — 1.5 hours
+5. Finance Foundation rebuild with Account Types, Chart of Accounts, Fiscal Year, Branch Accounts, journal-safe models and starter seeding — 1.5 hours
+6. Company/Branch Finance Account Mapping, compatible-account rules, fallback/override resolution and automatic branch assignment — 1.5 hours
+7. Finance interface polish, branch-level access security, permission isolation, automated regression tests and documentation update — 45 min
+
+**Total:** 9.25 hours
+
+
+---
+
+## Date: 2026-11-02
+
+**ID:** BFT4
+
+1. Role Management access-button fix, action alignment, permission-page heading/note and shield-key icon polish — 45 min
+2. Balanced Draft Journal core with exact debit/credit validation, posting-key/source idempotency, voucher sequencing and integrity migration — 2 hours
+3. Journal fiscal-year, branch-account, BDT account and four-decimal validation with automated finance tests — 45 min
+4. Purchase Receipt/Return atomic Draft Journal integration using approved company/branch account mappings — 1.5 hours
+5. Existing posted purchase-document reconciliation command, live backfill and duplicate-safe verification — 45 min
+6. Branch-scoped read-only Journal List/Details UI with filters, source links, balance summary, routes, permission and sidebar integration — 2 hours
+7. Permission sync, full regression testing and finance roadmap/current-status documentation update — 45 min
+
+**Total:** 8.5 hours
 

@@ -42,7 +42,7 @@
                             <li><a class="{{ Route::is('usermanage.users.*') ? 'active' : '' }}" href="{{ route('usermanage.users.index') }}"><iconify-icon icon="flowbite:users-outline" class="menu-icon"></iconify-icon><span>Users</span></a></li>
                         @endperm
                         @perm('rbac.role.index')
-                            <li><a class="{{ Route::is('rbac.role.*') ? 'active' : '' }}" href="{{ route('rbac.role.index') }}"><iconify-icon icon="mdi:shield-account-outline" class="menu-icon"></iconify-icon><span>Roles</span></a></li>
+                            <li><a class="{{ Route::is('rbac.role.*') ? 'active' : '' }}" href="{{ route('rbac.role.list') }}"><iconify-icon icon="mdi:shield-account-outline" class="menu-icon"></iconify-icon><span>Roles</span></a></li>
                         @endperm
                         @perm('rbac.permissions.index')
                             <li><a class="{{ Route::is('rbac.permissions.*') ? 'active' : '' }}" href="{{ route('rbac.permissions.index') }}"><iconify-icon icon="mdi:lock-check-outline" class="menu-icon"></iconify-icon><span>Permissions</span></a></li>
@@ -182,7 +182,7 @@
             @endpermgroup
 
             @permgroup(['inventory.opening_stock', 'inventory.stock_transfer', 'inventory.stock_adjustment', 'inventory.stock_ledger'])
-                <li class="sidebar-menu-group-title">Inventory Operations</li>
+                <li class="sidebar-menu-group-title">Inventory</li>
                 <li class="dropdown {{ Route::is('inventory.opening-stocks.*') || Route::is('inventory.stock-transfers.*') || Route::is('inventory.stock-adjustments.*') || Route::is('inventory.stock-ledger.*') ? 'active' : '' }}">
                     <a href="javascript:void(0)">
                         <iconify-icon icon="mdi:warehouse-plus-outline" class="menu-icon"></iconify-icon>
@@ -205,7 +205,7 @@
                 </li>
             @endpermgroup
 
-            @permgroup(['purchase.orders', 'purchase.receipts', 'purchase.returns'])
+            @permgroup(['purchase.orders', 'purchase.receipts', 'purchase.returns', 'purchase.payments', 'purchase.price_history'])
                 <li class="sidebar-menu-group-title">Purchasing</li>
                 <li class="dropdown {{ Route::is('purchase.*') ? 'active' : '' }}">
                     <a href="javascript:void(0)">
@@ -222,16 +222,22 @@
                         @perm('purchase.returns.index')
                             <li><a class="{{ Route::is('purchase.returns.*') ? 'active' : '' }}" href="{{ route('purchase.returns.index') }}"><iconify-icon icon="mdi:package-variant-remove" class="menu-icon"></iconify-icon><span>Purchase Returns</span></a></li>
                         @endperm
+                        @perm('purchase.payments.index')
+                            <li><a class="{{ Route::is('purchase.payments.*') ? 'active' : '' }}" href="{{ route('purchase.payments.index') }}"><iconify-icon icon="mdi:cash-check" class="menu-icon"></iconify-icon><span>Supplier Payments</span></a></li>
+                        @endperm
+                        @perm('purchase.price-history.index')
+                            <li><a class="{{ Route::is('purchase.price-history.*') ? 'active' : '' }}" href="{{ route('purchase.price-history.index') }}"><iconify-icon icon="mdi:chart-line" class="menu-icon"></iconify-icon><span>Purchase Price History</span></a></li>
+                        @endperm
                     </ul>
                 </li>
             @endpermgroup
 
-            @permgroup(['core.fiscal_years', 'core.account_types', 'core.accounts', 'core.branch_accounts'])
-                <li class="sidebar-menu-group-title">Finance Foundation</li>
-                <li class="dropdown {{ Route::is('fiscal-years.*') || Route::is('account-types.*') || Route::is('accounts.*') || Route::is('branch-accounts.*') ? 'active' : '' }}">
+            @permgroup(['core.fiscal_years', 'core.account_types', 'core.accounts', 'core.branch_accounts', 'finance.account_mappings', 'finance.journals', 'finance.account_ledger'])
+                <li class="sidebar-menu-group-title">Finance</li>
+                <li class="dropdown {{ Route::is('fiscal-years.*') || Route::is('account-types.*') || Route::is('accounts.*') || Route::is('branch-accounts.*') || Route::is('finance.account-mappings.*') || Route::is('finance.journals.*') || Route::is('finance.account-ledger.*') ? 'active' : '' }}">
                     <a href="javascript:void(0)">
                         <iconify-icon icon="mdi:bank-outline" class="menu-icon"></iconify-icon>
-                        <span>Accounts Setup</span>
+                        <span>Finance Management</span>
                     </a>
                     <ul class="sidebar-submenu">
                         @perm('fiscal-years.index')
@@ -245,6 +251,15 @@
                         @endperm
                         @perm('branch-accounts.index')
                             <li><a class="{{ Route::is('branch-accounts.*') ? 'active' : '' }}" href="{{ route('branch-accounts.index') }}"><iconify-icon icon="mdi:source-branch" class="menu-icon"></iconify-icon><span>Branch Accounts</span></a></li>
+                        @endperm
+                        @perm('finance.account-mappings.index')
+                            <li><a class="{{ Route::is('finance.account-mappings.*') ? 'active' : '' }}" href="{{ route('finance.account-mappings.index') }}"><iconify-icon icon="mdi:shape-outline" class="menu-icon"></iconify-icon><span>Account Mapping</span></a></li>
+                        @endperm
+                        @perm('finance.journals.index')
+                            <li><a class="{{ Route::is('finance.journals.*') ? 'active' : '' }}" href="{{ route('finance.journals.index') }}"><iconify-icon icon="mdi:notebook-outline" class="menu-icon"></iconify-icon><span>Journal Entries</span></a></li>
+                        @endperm
+                        @perm('finance.account-ledger.index')
+                            <li><a class="{{ Route::is('finance.account-ledger.*') ? 'active' : '' }}" href="{{ route('finance.account-ledger.index') }}"><iconify-icon icon="mdi:book-open-page-variant-outline" class="menu-icon"></iconify-icon><span>Account Ledger</span></a></li>
                         @endperm
                     </ul>
                 </li>

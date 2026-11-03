@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\backend\AccountController;
+use App\Http\Controllers\backend\AccountLedgerController;
 use App\Http\Controllers\backend\AccountTypeController;
 use App\Http\Controllers\backend\BranchAccountController;
 use App\Http\Controllers\backend\BrandController;
@@ -10,10 +11,12 @@ use App\Http\Controllers\backend\CustomerController;
 use App\Http\Controllers\backend\DistrictController;
 use App\Http\Controllers\backend\DivisionController;
 use App\Http\Controllers\backend\DomainUnitMappingController;
+use App\Http\Controllers\backend\FinanceAccountMappingController;
 use App\Http\Controllers\backend\FinishedProductCategoryController;
 use App\Http\Controllers\backend\FinishedProductController;
 use App\Http\Controllers\backend\FinishedProductReorderLevelController;
 use App\Http\Controllers\backend\FiscalYearController;
+use App\Http\Controllers\backend\JournalController;
 use App\Http\Controllers\backend\OpeningStockController;
 use App\Http\Controllers\backend\PartCategoryController;
 use App\Http\Controllers\backend\PartController;
@@ -21,6 +24,8 @@ use App\Http\Controllers\backend\PartReorderLevelController;
 use App\Http\Controllers\backend\PartSupplierController;
 use App\Http\Controllers\backend\PaymentTypeController;
 use App\Http\Controllers\backend\PurchaseOrderController;
+use App\Http\Controllers\backend\PurchasePaymentController;
+use App\Http\Controllers\backend\PurchasePriceHistoryController;
 use App\Http\Controllers\backend\PurchaseReceiptController;
 use App\Http\Controllers\backend\PurchaseReturnController;
 use App\Http\Controllers\backend\RawMaterialCategoryController;
@@ -438,5 +443,43 @@ Route::middleware(['web', 'auth', 'perm', 'branchscope'])->group(function () {
         Route::get('/', [BranchAccountController::class, 'index'])->name('index');
         Route::post('assign', [BranchAccountController::class, 'assign'])->name('assign');
         Route::get('{branch}/accounts', [BranchAccountController::class, 'assignedAccounts'])->name('assigned');
+    });
+
+    Route::prefix('finance/account-mappings')->name('finance.account-mappings.')->group(function () {
+        Route::get('/', [FinanceAccountMappingController::class, 'index'])->name('index');
+        Route::get('branches/{branch}', [FinanceAccountMappingController::class, 'branchData'])->whereNumber('branch')->name('branch-data');
+        Route::put('company', [FinanceAccountMappingController::class, 'updateCompany'])->name('company.update');
+        Route::put('branches/{branch}', [FinanceAccountMappingController::class, 'updateBranch'])->whereNumber('branch')->name('branch.update');
+    });
+
+    Route::prefix('finance/journals')->name('finance.journals.')->group(function () {
+        Route::get('/', [JournalController::class, 'index'])->name('index');
+        Route::post('list', [JournalController::class, 'listAjax'])->name('list.ajax');
+        Route::patch('{journal}/approve', [JournalController::class, 'approve'])->whereNumber('journal')->name('approve');
+        Route::patch('{journal}/post', [JournalController::class, 'post'])->whereNumber('journal')->name('post');
+        Route::patch('{journal}/void', [JournalController::class, 'void'])->whereNumber('journal')->name('void');
+        Route::post('{journal}/reversal', [JournalController::class, 'reverse'])->whereNumber('journal')->name('reverse');
+        Route::get('{journal}', [JournalController::class, 'show'])->whereNumber('journal')->name('show');
+    });
+
+    Route::prefix('finance/account-ledger')->name('finance.account-ledger.')->group(function () {
+        Route::get('/', [AccountLedgerController::class, 'index'])->name('index');
+        Route::post('list', [AccountLedgerController::class, 'listAjax'])->name('list.ajax');
+        Route::post('summary', [AccountLedgerController::class, 'summary'])->name('summary');
+        Route::get('accounts/select2', [AccountLedgerController::class, 'accountSelect2'])->name('accounts.select2');
+    });
+
+    Route::prefix('purchase/payments')->name('purchase.payments.')->group(function () {
+        Route::get('/', [PurchasePaymentController::class, 'index'])->name('index');
+        Route::post('list', [PurchasePaymentController::class, 'listAjax'])->name('list.ajax');
+        Route::get('create', [PurchasePaymentController::class, 'create'])->name('create');
+        Route::post('/', [PurchasePaymentController::class, 'store'])->name('store');
+        Route::get('receipt/{receipt}/due', [PurchasePaymentController::class, 'due'])->whereNumber('receipt')->name('due');
+        Route::patch('{payment}/post', [PurchasePaymentController::class, 'post'])->whereNumber('payment')->name('post');
+        Route::get('{payment}', [PurchasePaymentController::class, 'show'])->whereNumber('payment')->name('show');
+    });
+    Route::prefix('purchase/price-history')->name('purchase.price-history.')->group(function () {
+        Route::get('/', [PurchasePriceHistoryController::class, 'index'])->name('index');
+        Route::post('list', [PurchasePriceHistoryController::class, 'listAjax'])->name('list.ajax');
     });
 });

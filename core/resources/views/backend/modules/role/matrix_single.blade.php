@@ -1,10 +1,16 @@
 @extends('backend.layouts.master')
-@section('meta') <title>Manage Permissions — {{ $role->name }}</title> @endsection
+@section('meta') <title>Manage Role Permissions - {{ $role->name }}</title> @endsection
 
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-16">
   <div>
-    <h5 class="mb-0 mb-2">Manage Permissions</h5>
+    <div class="d-flex align-items-center gap-2 mb-1">
+      <h6 class="fw-semibold mb-0">Manage Role Permissions</h6>
+      <x-backend.page-note title="Role permission guide" label="View permission guide" align="start">
+        View controls access to a module. Add, Edit, Delete and Export control the related actions. Selecting any action automatically enables View. Module presets can apply a common permission set quickly. Save the page to apply changes to users assigned to this role.
+      </x-backend.page-note>
+    </div>
+    <p class="text-muted mb-2">Configure module access for the <strong>{{ $role->name }}</strong> role.</p>
     <small class="badge text-sm fw-semibold bg-dark-success-gradient px-20 py-9 radius-4 text-white">{{ $role->name }} {!! $role->is_super ? '<span class="badge bg-primary ms-1">Super</span>' : '' !!}</small>
   </div>
   <a href="{{ route('rbac.role.index') }}" class="btn btn-danger btn-sm">Bulk Matrix (advanced)</a>
@@ -97,7 +103,10 @@
 
     <div class="card-footer d-flex justify-content-end gap-2">
       <span id="unsavedBadge" class="badge bg-warning" style="display:none">Unsaved changes</span>
-      <button class="btn  btn-success" {{ $role->is_super ? 'disabled' : '' }}>Save </button>
+      <button class="btn btn-success app-action-button" {{ $role->is_super ? 'disabled' : '' }}>
+        <iconify-icon icon="mdi:content-save-check-outline"></iconify-icon>
+        <span>Save Permissions</span>
+      </button>
     </div>
   </div>
 </form>

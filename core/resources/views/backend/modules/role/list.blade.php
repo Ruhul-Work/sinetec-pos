@@ -49,7 +49,7 @@
               </a>
             </button>
           @endperm
-          @perm('rbac.role.create')
+          @perm('rbac.role.store', 'add')
             <button type="button"
               class="btn btn-primary btn-sm px-12 py-8 radius-8 d-flex align-items-center gap-2"
               data-bs-toggle="modal" data-bs-target="#exampleModal">

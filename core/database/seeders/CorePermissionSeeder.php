@@ -43,6 +43,8 @@ class CorePermissionSeeder extends Seeder
             ['key' => 'purchase.orders', 'name' => 'Purchase Orders', 'module' => 'Purchasing', 'prefixes' => ['purchase.orders.']],
             ['key' => 'purchase.receipts', 'name' => 'Purchase Receipts', 'module' => 'Purchasing', 'prefixes' => ['purchase.receipts.']],
             ['key' => 'purchase.returns', 'name' => 'Purchase Returns', 'module' => 'Purchasing', 'prefixes' => ['purchase.returns.']],
+            ['key' => 'purchase.payments', 'name' => 'Supplier Payments', 'module' => 'Purchasing', 'prefixes' => ['purchase.payments.']],
+            ['key' => 'purchase.price_history', 'name' => 'Purchase Price History', 'module' => 'Purchasing', 'prefixes' => ['purchase.price-history.']],
             ['key' => 'core.warehouses', 'name' => 'Warehouses', 'module' => 'Inventory', 'prefixes' => ['inventory.warehouses.']],
             ['key' => 'core.suppliers', 'name' => 'Suppliers', 'module' => 'Master Data', 'prefixes' => ['supplier.']],
             ['key' => 'core.customers', 'name' => 'Customers', 'module' => 'Master Data', 'prefixes' => ['customer.']],
@@ -52,6 +54,9 @@ class CorePermissionSeeder extends Seeder
             ['key' => 'core.account_types', 'name' => 'Account Types', 'module' => 'Finance', 'prefixes' => ['account-types.']],
             ['key' => 'core.accounts', 'name' => 'Accounts', 'module' => 'Finance', 'prefixes' => ['accounts.']],
             ['key' => 'core.branch_accounts', 'name' => 'Branch Accounts', 'module' => 'Finance', 'prefixes' => ['branch-accounts.']],
+            ['key' => 'finance.account_mappings', 'name' => 'Finance Account Mappings', 'module' => 'Finance', 'prefixes' => ['finance.account-mappings.']],
+            ['key' => 'finance.journals', 'name' => 'Journal Entries', 'module' => 'Finance', 'prefixes' => ['finance.journals.']],
+            ['key' => 'finance.account_ledger', 'name' => 'Account Ledger', 'module' => 'Finance', 'prefixes' => ['finance.account-ledger.']],
         ];
 
         $protectedRoutes = collect(Route::getRoutes())

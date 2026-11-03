@@ -1,35 +1,6 @@
-<div class="modal-header py-16 px-24 border-0">
-    <h5 class="modal-title">Edit Account Type</h5>
-    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-</div>
-
-<div class="modal-body modal-lg p-24">
-<form method="POST"
-      action="{{ route('account-types.update', $type->id) }}"
-      data-ajax="true">
-
-    @csrf
-    @method('POST')
-
-    <div class="mb-3">
-        <label class="form-label">Type Name</label>
-        <input type="text"
-               name="name"
-               class="form-control"
-               value="{{ $type->name }}"
-               required>
-    </div>
-
-    <div class="mb-3">
-        <label class="form-label">Code (optional)</label>
-        <input type="text"
-               name="code"
-               class="form-control"
-               value="{{ $type->code }}">
-    </div>
-
-    <div class="text-end">
-        <button class="btn btn-primary">Update</button>
-    </div>
-</form>
-</div>
+<div class="modal-header py-16 px-24 border-0"><h5 class="modal-title">Edit Account Type</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+<div class="modal-body p-24"><form method="POST" action="{{ route('account-types.update',$type) }}" data-ajax="true">@csrf
+<div class="mb-3"><label class="form-label">Type Name <span class="text-danger">*</span></label><input type="text" name="name" class="form-control" value="{{ $type->name }}" required></div>
+<div class="mb-3"><label class="form-label">Code <span class="text-danger">*</span></label><input type="text" name="code" class="form-control text-uppercase" value="{{ $type->code }}" @readonly($type->is_system) required>@if($type->is_system)<small class="text-muted">System type code is protected.</small>@endif</div>
+<div class="mb-3"><label class="form-label">Normal Balance <span class="text-danger">*</span></label><select name="normal_balance" class="form-control js-s2" @disabled($type->is_system) required>@foreach($normalBalances as $balance)<option value="{{ $balance->value }}" @selected($type->normal_balance===$balance)>{{ $balance->label() }}</option>@endforeach</select>@if($type->is_system)<input type="hidden" name="normal_balance" value="{{ $type->normal_balance->value }}">@endif</div>
+<div class="d-flex justify-content-end gap-2 mt-4"><button type="button" class="btn btn-outline-secondary app-action-button" data-bs-dismiss="modal">Cancel</button><button class="btn btn-primary app-action-button app-primary-action">Update Type</button></div></form></div><script>S2.auto($('.modal.show'));</script>

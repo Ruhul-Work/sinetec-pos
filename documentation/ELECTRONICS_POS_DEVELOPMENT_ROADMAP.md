@@ -390,9 +390,15 @@ Receipt      Adjustment      Production   Stock Count
 21. **Complete:** Phase 3 Purchase Order with mixed Raw Material/Part lines, open purchasing (optional mapping badge/preference), business-rule item eligibility, purchase-unit conversion and controlled `DRAFT → APPROVED/CANCELLED` flow. It has no stock or finance effect.
 22. **Complete:** Direct/PO-based Purchase Receipt with a 50/50 hybrid catalogue/form UI, pending-only PO receiving context, actual supplier-rate snapshot, partial/full PO progress, server-controlled totals, over-receipt protection and idempotent Raw Material/Part stock IN posting.
 23. **Complete:** Purchase Return against posted receipts with receipt-controlled supplier/warehouse/item/unit/rate, partial and cumulative return validation, and atomic idempotent Raw Material/Part stock OUT posting.
-24. **Next implementation:** Finance account mapping, Supplier Payment/Due and automatic draft journal integration, followed by purchase price history. Opening Stock CSV import remains deferred.
+24. **Complete:** Journal-safe Finance Foundation and purchase Account Mapping with typed starter Chart of Accounts, company defaults, branch overrides, compatibility validation and independent permission.
+25. **Complete:** Generic Balanced Draft Journal service with active fiscal-year/branch-account validation, exact four-decimal balancing, deterministic voucher sequencing and durable posting/source idempotency.
+26. **Complete:** Posted Purchase Receipt/Return events create balanced, retry-idempotent Draft Journals inside the stock transaction. A reconciliation command creates missing drafts for existing posted purchase documents without duplication.
+27. **Complete:** Add a branch-scoped Journal List/Details UI with independent permission, status/source filters, source-document navigation and account-wise debit/credit verification.
+28. **Complete:** Implement the controlled Journal workflow: balanced Draft approval, revalidation and posting, Draft-only void with audit reason, and one linked debit/credit-swapped reversal Draft for every posted correction.
+29. **Complete:** Build Account Ledger with branch/account/date filters, Posted journal plus Posted opening-balance history, source-journal navigation and chronological Dr/Cr running balance.
+30. **Next implementation:** Build Supplier Payment/Due and Purchase Price History, then move to Part BOM and Production. Opening Stock CSV import remains deferred.
 
-Finance account mapping and the opening-stock valuation/approval date remain later operational gates. Draft journals cannot be posted before mapping approval.
+Finance account mapping, the generic Draft Journal engine and the authorised accountant workflow are complete. Purchase integration creates reviewable drafts; only approved, successfully revalidated journals can be posted.
 
 ## 10. Out of current development roadmap
 

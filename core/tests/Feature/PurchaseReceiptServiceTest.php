@@ -2,11 +2,15 @@
 
 namespace Tests\Feature;
 
+use App\Enums\Finance\FinanceMappingKey;
 use App\Enums\Purchase\PurchaseOrderStatus;
 use App\Enums\Purchase\PurchaseReceiptStatus;
+use App\Exceptions\Finance\FinanceConfigurationException;
 use App\Exceptions\Purchase\InvalidPurchaseReceiptException;
 use App\Http\Controllers\backend\PurchaseReceiptController;
+use App\Models\backend\Account;
 use App\Models\backend\Branch;
+use App\Models\backend\FiscalYear;
 use App\Models\backend\Part;
 use App\Models\backend\PartCategory;
 use App\Models\backend\RawMaterial;
@@ -14,9 +18,11 @@ use App\Models\backend\RawMaterialCategory;
 use App\Models\backend\Supplier;
 use App\Models\backend\Unit;
 use App\Models\backend\Warehouse;
+use App\Services\Finance\FinanceAccountMappingService;
 use App\Services\Purchase\PurchaseOrderService;
 use App\Services\Purchase\PurchaseReceiptService;
 use Database\Seeders\CorePermissionSeeder;
+use Database\Seeders\FinanceFoundationSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -33,6 +39,7 @@ class PurchaseReceiptServiceTest extends TestCase
         $service = app(PurchaseReceiptService::class);
         $header = $this->header($supplier->id, $warehouse->id, discountType: 'PERCENT', discountValue: 10);
         $header['supplier_invoice_path'] = 'uploads/purchase-receipts/invoices/2026/11/01/test.pdf';
+        $header['tax'] = 10;
         $draft = $service->createDraft($header, [
             $this->line('raw_material', $raw->id, $piece->id, 4, 25),
             $this->line('part', $part->id, $piece->id, 2, 50),
@@ -42,6 +49,7 @@ class PurchaseReceiptServiceTest extends TestCase
         $this->assertSame($header['supplier_invoice_path'], $draft->supplier_invoice_path);
         $this->assertSame('200.0000', $draft->subtotal);
         $this->assertSame('20.0000', $draft->discount);
+        $this->assertSame('190.0000', $draft->total);
         $this->assertDatabaseCount('raw_material_stock_movements', 0);
 
         $posted = $service->post($draft);
@@ -54,7 +62,39 @@ class PurchaseReceiptServiceTest extends TestCase
         $this->assertDatabaseHas('part_stock_movements', ['part_id' => $part->id, 'movement_at' => '2026-10-31 10:26:30']);
         $this->assertDatabaseCount('raw_material_stock_movements', 1);
         $this->assertDatabaseCount('part_stock_movements', 1);
+        $this->assertDatabaseCount('journal_entries', 1);
+        $this->assertDatabaseHas('journal_entries', [
+            'source_type' => 'purchase_receipt', 'source_id' => $draft->id,
+            'posting_key' => 'journal:purchase_receipt:'.$draft->id, 'status' => 'DRAFT',
+        ]);
+        $journalId = DB::table('journal_entries')->where('source_type', 'purchase_receipt')->where('source_id', $draft->id)->value('id');
+        $this->assertJournalLine($journalId, '1100', '100.0000', '0.0000');
+        $this->assertJournalLine($journalId, '1110', '100.0000', '0.0000');
+        $this->assertJournalLine($journalId, '1200', '10.0000', '0.0000');
+        $this->assertJournalLine($journalId, '4100', '0.0000', '20.0000');
+        $this->assertJournalLine($journalId, '2000', '0.0000', '190.0000');
         $this->travelBack();
+    }
+
+    public function test_missing_finance_mapping_rolls_back_receipt_stock_and_status(): void
+    {
+        [$raw, , $supplier, $warehouse, $piece] = $this->foundation();
+        DB::table('finance_account_mappings')->where('mapping_key', FinanceMappingKey::SupplierPayable->value)->delete();
+        $draft = app(PurchaseReceiptService::class)->createDraft(
+            $this->header($supplier->id, $warehouse->id),
+            [$this->line('raw_material', $raw->id, $piece->id, 2, 25)],
+        );
+
+        try {
+            app(PurchaseReceiptService::class)->post($draft);
+            $this->fail('Receipt posting must fail when a required finance mapping is missing.');
+        } catch (FinanceConfigurationException $exception) {
+            $this->assertStringContainsString('Supplier Payable', $exception->getMessage());
+        }
+
+        $this->assertDatabaseHas('purchase_receipt', ['id' => $draft->id, 'status' => 'DRAFT']);
+        $this->assertDatabaseCount('raw_material_stock_movements', 0);
+        $this->assertDatabaseCount('journal_entries', 0);
     }
 
     public function test_purchase_order_can_be_received_partially_then_fully(): void
@@ -196,6 +236,34 @@ class PurchaseReceiptServiceTest extends TestCase
         $raw = RawMaterial::create(['material_code' => 'RM-001', 'name' => 'Copper', 'raw_material_category_id' => $rawCategory->id, 'base_unit_id' => $piece->id, 'material_kind' => 'MATERIAL', 'is_active' => true]);
         $part = Part::create(['part_code' => 'PT-001', 'name' => 'Transformer', 'part_category_id' => $partCategory->id, 'base_unit_id' => $piece->id, 'procurement_mode' => 'BOTH', 'is_active' => true]);
 
+        $this->configureFinance();
+
         return [$raw, $part, $supplier, $warehouse, $piece];
+    }
+
+    private function configureFinance(): void
+    {
+        FiscalYear::query()->create([
+            'name' => 'FY 2026', 'start_date' => '2026-01-01', 'end_date' => '2026-12-31', 'is_active' => true,
+        ]);
+        $this->seed(FinanceFoundationSeeder::class);
+        $accounts = Account::query()->pluck('id', 'code');
+        app(FinanceAccountMappingService::class)->saveCompanyMappings([
+            FinanceMappingKey::RawMaterialInventory->value => $accounts['1100'],
+            FinanceMappingKey::PartInventory->value => $accounts['1110'],
+            FinanceMappingKey::InputTax->value => $accounts['1200'],
+            FinanceMappingKey::SupplierPayable->value => $accounts['2000'],
+            FinanceMappingKey::PurchaseDiscount->value => $accounts['4100'],
+        ]);
+    }
+
+    private function assertJournalLine(int $journalId, string $accountCode, string $debit, string $credit): void
+    {
+        $this->assertDatabaseHas('journal_entry_lines', [
+            'journal_entry_id' => $journalId,
+            'account_id' => Account::query()->where('code', $accountCode)->value('id'),
+            'debit' => $debit,
+            'credit' => $credit,
+        ]);
     }
 }

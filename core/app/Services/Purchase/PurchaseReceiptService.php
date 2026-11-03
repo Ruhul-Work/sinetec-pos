@@ -13,6 +13,7 @@ use App\Models\backend\Warehouse;
 use App\Models\Purchase\PurchaseOrder;
 use App\Models\Purchase\PurchaseOrderItem;
 use App\Models\Purchase\PurchaseReceipt;
+use App\Services\Finance\PurchaseJournalService;
 use App\Services\Inventory\PartStockPostingService;
 use App\Services\Inventory\RawMaterialStockPostingService;
 use Illuminate\Support\Facades\DB;
@@ -28,6 +29,7 @@ final class PurchaseReceiptService
     public function __construct(
         private readonly RawMaterialStockPostingService $rawMaterialStock,
         private readonly PartStockPostingService $partStock,
+        private readonly PurchaseJournalService $purchaseJournal,
     ) {}
 
     /** @param array<string, mixed> $header @param array<int, array<string, mixed>> $lines */
@@ -93,6 +95,8 @@ final class PurchaseReceiptService
         return DB::transaction(function () use ($receipt, $userId) {
             $receipt = $this->lock($receipt);
             if ($receipt->status === PurchaseReceiptStatus::Posted) {
+                $this->purchaseJournal->createReceiptDraft($receipt, $userId);
+
                 return $this->load($receipt);
             }
             $this->assertDraft($receipt);
@@ -162,6 +166,8 @@ final class PurchaseReceiptService
                     ->whereColumn('received_base_quantity', '<', 'base_quantity')->exists();
                 $order->update(['status' => $hasPending ? PurchaseOrderStatus::Partial : PurchaseOrderStatus::Received]);
             }
+
+            $this->purchaseJournal->createReceiptDraft($receipt, $userId);
 
             $receipt->update([
                 'status' => PurchaseReceiptStatus::Posted,

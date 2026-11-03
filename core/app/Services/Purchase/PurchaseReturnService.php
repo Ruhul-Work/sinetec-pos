@@ -11,6 +11,7 @@ use App\Exceptions\Purchase\InvalidPurchaseReturnException;
 use App\Models\Purchase\PurchaseReceipt;
 use App\Models\Purchase\PurchaseReceiptItem;
 use App\Models\Purchase\PurchaseReturn;
+use App\Services\Finance\PurchaseJournalService;
 use App\Services\Inventory\PartStockPostingService;
 use App\Services\Inventory\RawMaterialStockPostingService;
 use Illuminate\Support\Facades\DB;
@@ -21,6 +22,7 @@ final class PurchaseReturnService
     public function __construct(
         private readonly RawMaterialStockPostingService $rawMaterialStock,
         private readonly PartStockPostingService $partStock,
+        private readonly PurchaseJournalService $purchaseJournal,
     ) {}
 
     /** @param array<string, mixed> $header @param array<int, array<string, mixed>> $lines */
@@ -78,6 +80,8 @@ final class PurchaseReturnService
         return DB::transaction(function () use ($return, $userId) {
             $return = $this->lock($return);
             if ($return->status === PurchaseReturnStatus::Posted) {
+                $this->purchaseJournal->createReturnDraft($return, $userId);
+
                 return $this->load($return);
             }
             $this->assertDraft($return);
@@ -135,6 +139,8 @@ final class PurchaseReturnService
 
                 ($domain === 'raw_material' ? $this->rawMaterialStock : $this->partStock)->post($posting);
             }
+
+            $this->purchaseJournal->createReturnDraft($return, $userId);
 
             $return->update([
                 'status' => PurchaseReturnStatus::Posted,

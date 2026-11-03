@@ -2,12 +2,15 @@
 
 namespace Tests\Feature;
 
+use App\Enums\Finance\FinanceMappingKey;
 use App\Enums\Purchase\PurchaseReturnStatus;
 use App\Exceptions\Inventory\InsufficientStockException;
 use App\Exceptions\Purchase\InvalidPurchaseReturnException;
 use App\Http\Controllers\backend\PurchaseReturnController;
 use App\Http\Controllers\backend\StockLedgerController;
+use App\Models\backend\Account;
 use App\Models\backend\Branch;
+use App\Models\backend\FiscalYear;
 use App\Models\backend\Part;
 use App\Models\backend\PartCategory;
 use App\Models\backend\RawMaterial;
@@ -16,9 +19,11 @@ use App\Models\backend\Supplier;
 use App\Models\backend\Unit;
 use App\Models\backend\Warehouse;
 use App\Models\Purchase\PurchaseReceipt;
+use App\Services\Finance\FinanceAccountMappingService;
 use App\Services\Purchase\PurchaseReceiptService;
 use App\Services\Purchase\PurchaseReturnService;
 use Database\Seeders\CorePermissionSeeder;
+use Database\Seeders\FinanceFoundationSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -57,6 +62,12 @@ class PurchaseReturnServiceTest extends TestCase
         $this->assertDatabaseHas('part_stock_movements', ['source_type' => 'purchase_return', 'source_id' => $draft->id, 'direction' => 'OUT', 'movement_at' => '2026-11-01 10:26:30']);
         $this->assertDatabaseCount('raw_material_stock_movements', 2);
         $this->assertDatabaseCount('part_stock_movements', 2);
+        $this->assertDatabaseCount('journal_entries', 2);
+        $journalId = DB::table('journal_entries')->where('source_type', 'purchase_return')->where('source_id', $draft->id)->value('id');
+        $this->assertNotNull($journalId);
+        $this->assertJournalLine($journalId, '2000', '75.0000', '0.0000');
+        $this->assertJournalLine($journalId, '1100', '0.0000', '25.0000');
+        $this->assertJournalLine($journalId, '1110', '0.0000', '50.0000');
         $ledger = app(StockLedgerController::class)->listAjax(Request::create('/inventory/stock-ledger/list', 'POST', [
             'draw' => 1,
             'start' => 0,
@@ -246,6 +257,34 @@ class PurchaseReturnServiceTest extends TestCase
         $raw = RawMaterial::create(['material_code' => 'RM-001', 'name' => 'Copper', 'raw_material_category_id' => $rawCategory->id, 'base_unit_id' => $piece->id, 'material_kind' => 'MATERIAL', 'is_active' => true]);
         $part = Part::create(['part_code' => 'PT-001', 'name' => 'Transformer', 'part_category_id' => $partCategory->id, 'base_unit_id' => $piece->id, 'procurement_mode' => 'BOTH', 'is_active' => true]);
 
+        $this->configureFinance();
+
         return [$raw, $part, $supplier, $warehouse, $piece];
+    }
+
+    private function configureFinance(): void
+    {
+        FiscalYear::query()->create([
+            'name' => 'FY 2026', 'start_date' => '2026-01-01', 'end_date' => '2026-12-31', 'is_active' => true,
+        ]);
+        $this->seed(FinanceFoundationSeeder::class);
+        $accounts = Account::query()->pluck('id', 'code');
+        app(FinanceAccountMappingService::class)->saveCompanyMappings([
+            FinanceMappingKey::RawMaterialInventory->value => $accounts['1100'],
+            FinanceMappingKey::PartInventory->value => $accounts['1110'],
+            FinanceMappingKey::InputTax->value => $accounts['1200'],
+            FinanceMappingKey::SupplierPayable->value => $accounts['2000'],
+            FinanceMappingKey::PurchaseDiscount->value => $accounts['4100'],
+        ]);
+    }
+
+    private function assertJournalLine(int $journalId, string $accountCode, string $debit, string $credit): void
+    {
+        $this->assertDatabaseHas('journal_entry_lines', [
+            'journal_entry_id' => $journalId,
+            'account_id' => Account::query()->where('code', $accountCode)->value('id'),
+            'debit' => $debit,
+            'credit' => $credit,
+        ]);
     }
 }
