@@ -235,9 +235,9 @@
                 </li>
             @endpermgroup
 
-            @permgroup(['core.fiscal_years', 'core.account_types', 'core.accounts', 'core.branch_accounts', 'finance.account_mappings', 'finance.journals', 'finance.account_ledger'])
+            @permgroup(['core.fiscal_years', 'core.account_types', 'core.accounts', 'core.branch_accounts', 'finance.account_mappings', 'finance.opening_balances', 'finance.journals', 'finance.account_ledger'])
                 <li class="sidebar-menu-group-title">Finance</li>
-                <li class="dropdown {{ Route::is('fiscal-years.*') || Route::is('account-types.*') || Route::is('accounts.*') || Route::is('branch-accounts.*') || Route::is('finance.account-mappings.*') || Route::is('finance.journals.*') || Route::is('finance.account-ledger.*') ? 'active' : '' }}">
+                <li class="dropdown {{ Route::is('fiscal-years.*') || Route::is('account-types.*') || Route::is('accounts.*') || Route::is('branch-accounts.*') || Route::is('finance.account-mappings.*') || Route::is('finance.opening-balances.*') || Route::is('finance.journals.*') || Route::is('finance.account-ledger.*') ? 'active' : '' }}">
                     <a href="javascript:void(0)">
                         <iconify-icon icon="mdi:bank-outline" class="menu-icon"></iconify-icon>
                         <span>Finance Management</span>
@@ -257,6 +257,9 @@
                         @endperm
                         @perm('finance.account-mappings.index')
                             <li><a class="{{ Route::is('finance.account-mappings.*') ? 'active' : '' }}" href="{{ route('finance.account-mappings.index') }}"><iconify-icon icon="mdi:shape-outline" class="menu-icon"></iconify-icon><span>Account Mapping</span></a></li>
+                        @endperm
+                        @perm('finance.opening-balances.index')
+                            <li><a class="{{ Route::is('finance.opening-balances.*') ? 'active' : '' }}" href="{{ route('finance.opening-balances.index') }}"><iconify-icon icon="mdi:book-arrow-right-outline" class="menu-icon"></iconify-icon><span>Opening Balance</span></a></li>
                         @endperm
                         @perm('finance.journals.index')
                             <li><a class="{{ Route::is('finance.journals.*') ? 'active' : '' }}" href="{{ route('finance.journals.index') }}"><iconify-icon icon="mdi:notebook-outline" class="menu-icon"></iconify-icon><span>Journal Entries</span></a></li>

@@ -12,6 +12,7 @@ use App\Http\Controllers\backend\DistrictController;
 use App\Http\Controllers\backend\DivisionController;
 use App\Http\Controllers\backend\DomainUnitMappingController;
 use App\Http\Controllers\backend\FinanceAccountMappingController;
+use App\Http\Controllers\backend\FinanceOpeningBalanceController;
 use App\Http\Controllers\backend\FinishedProductCategoryController;
 use App\Http\Controllers\backend\FinishedProductController;
 use App\Http\Controllers\backend\FinishedProductReorderLevelController;
@@ -451,6 +452,17 @@ Route::middleware(['web', 'auth', 'perm', 'branchscope'])->group(function () {
         Route::get('branches/{branch}', [FinanceAccountMappingController::class, 'branchData'])->whereNumber('branch')->name('branch-data');
         Route::put('company', [FinanceAccountMappingController::class, 'updateCompany'])->name('company.update');
         Route::put('branches/{branch}', [FinanceAccountMappingController::class, 'updateBranch'])->whereNumber('branch')->name('branch.update');
+    });
+
+    Route::prefix('finance/opening-balances')->name('finance.opening-balances.')->group(function () {
+        Route::get('/', [FinanceOpeningBalanceController::class, 'index'])->name('index');
+        Route::post('list', [FinanceOpeningBalanceController::class, 'listAjax'])->name('list.ajax');
+        Route::get('create', [FinanceOpeningBalanceController::class, 'create'])->name('create');
+        Route::post('/', [FinanceOpeningBalanceController::class, 'store'])->name('store');
+        Route::get('fiscal-years/{fiscalYear}/branches/{branch}', [FinanceOpeningBalanceController::class, 'show'])->whereNumber(['fiscalYear', 'branch'])->name('show');
+        Route::get('fiscal-years/{fiscalYear}/branches/{branch}/edit', [FinanceOpeningBalanceController::class, 'edit'])->whereNumber(['fiscalYear', 'branch'])->name('edit');
+        Route::put('fiscal-years/{fiscalYear}/branches/{branch}', [FinanceOpeningBalanceController::class, 'update'])->whereNumber(['fiscalYear', 'branch'])->name('update');
+        Route::patch('fiscal-years/{fiscalYear}/branches/{branch}/post', [FinanceOpeningBalanceController::class, 'post'])->whereNumber(['fiscalYear', 'branch'])->name('post');
     });
 
     Route::prefix('finance/journals')->name('finance.journals.')->group(function () {

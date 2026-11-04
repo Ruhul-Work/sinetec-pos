@@ -92,6 +92,7 @@ Old permission data points to removed routes. Permissions must be created from t
 - Opening Stock CSV import is optional and deferred; add it later if go-live volume makes manual entry impractical.
 - Supplier Payment supports receipt-specific partial payment, a selected branch-assigned Cash/Bank asset account and a Draft payment journal. Payment posting reduces operational supplier due; only accountant-posted journals affect the Account Ledger. Payment correction is audit-safe: Draft payment may be voided with a reason; Posted payment becomes `REVERSED`, restores supplier due and either voids its unposted journal or creates one linked journal reversal Draft. Journal list/detail now recognises Supplier Payment as a navigable source.
 - Supplier Due Summary is independently permissioned and branch-scoped. It calculates each supplier's current position from Posted receipts minus Posted returns and Posted payments; Void/Reversed payments do not reduce due. Purchase Price History exposes original Posted receipt-line rates for Raw Materials and Parts.
+- Finance Opening Balance is independently permissioned and branch-scoped. One balanced opening set is stored per active Fiscal Year + Branch using the existing `account_opening_balances` account rows. Only active, BDT, branch-assigned accounts are accepted; every line has exactly one Debit or Credit and totals must equal. A Draft can be replaced as one controlled set; posting atomically locks it, makes it immutable and exposes the rows in Account Ledger from the fiscal-year start date.
 - The draft generator never posts a journal automatically. BOM/manufacturing follows the remaining purchase-finance work.
 - Test retained Supplier/Customer CSV imports against the clean schema.
 - Review public registration before production; unrestricted role selection must not be exposed.
@@ -123,7 +124,8 @@ Old permission data points to removed routes. Permissions must be created from t
 23. **Complete:** Add accountant-controlled journal approval, posting, Draft-only void and linked reversal-Draft workflow with complete actor/time/reason audit.
 24. **Complete:** Build Account Ledger from Posted journal/opening-balance data with true account/branch running balances.
 25. **Complete:** Build Supplier Payment/Due, audit-safe payment correction, Supplier Due Summary and Purchase Price History.
-26. **Next:** Configure Capital/Loan Chart of Accounts and build balanced Finance Opening Balance before Cash/Bank Book, owner/partner funding, withdrawal and cash-bank transfer workflows.
+26. **Complete:** Build balanced Finance Opening Balance with branch/fiscal scope, active BDT branch-account validation, exact debit-credit validation, Draft editing and immutable posting to Account Ledger.
+27. **Next:** Configure business-specific Capital/Loan accounts and build Cash/Bank Book before owner/partner funding, withdrawal and cash-bank transfer workflows.
 
 ## 5. Implementation decision trace
 
@@ -164,6 +166,7 @@ Old permission data points to removed routes. Permissions must be created from t
 | 3 Nov 2026 | Account Ledger | One branch-scoped, account-wise read-only ledger derives movement from only Posted journal lines and Posted opening balances. It exposes debit, credit, source journal and true chronological Dr/Cr running balance; date filters do not discard the earlier balance brought forward. | Supplier Payment/Due will create further Posted journal movement in this same ledger without a separate ledger table. |
 | 4 Nov 2026 | Supplier Payment closing | Receipt-specific partial payment uses a branch-assigned Asset account and creates a balanced payment Journal Draft. A Draft payment can be voided with a required reason. A Posted payment cannot be deleted: reversal restores operational due and either voids its unposted journal or creates one linked finance reversal Draft if the original journal is already Posted. | Supplier advance/unallocated payment and allocation remain deferred; this release is strictly receipt-specific. |
 | 4 Nov 2026 | Supplier Due Summary & Price History | Supplier Due Summary derives branch-scoped payable from Posted receipt, return and payment documents; it does not create a balance table. Purchase Price History derives original rate snapshots from Posted receipt lines. | Full supplier statement/aging may add date ageing and document drill-down later. Finance Opening Balance is next before Cash/Bank Book. |
+| 4 Nov 2026 | Finance Opening Balance | Existing `account_opening_balances` remains the physical store; one Fiscal Year + Branch scope is treated as one balanced opening set. Draft save replaces all unposted scope rows atomically; posting validates active fiscal year/branch, active assigned BDT accounts and exact Debit/Credit equality, then makes all rows immutable. | Capital/Partner Capital/Director Loan accounts are business-specific Chart of Accounts setup, not automatic starter accounts. Cash/Bank Book follows. |
 
 When a decision changes, add a new dated row; do not overwrite the old decision without recording what superseded it and why.
 
