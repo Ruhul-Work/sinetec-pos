@@ -36,6 +36,7 @@ use App\Http\Controllers\backend\StockAdjustmentController;
 use App\Http\Controllers\backend\StockLedgerController;
 use App\Http\Controllers\backend\StockTransferController;
 use App\Http\Controllers\backend\SupplierController;
+use App\Http\Controllers\backend\SupplierDueSummaryController;
 use App\Http\Controllers\backend\UnitController;
 use App\Http\Controllers\backend\UnitConversionController;
 use App\Http\Controllers\backend\UpazilaController;
@@ -476,7 +477,13 @@ Route::middleware(['web', 'auth', 'perm', 'branchscope'])->group(function () {
         Route::post('/', [PurchasePaymentController::class, 'store'])->name('store');
         Route::get('receipt/{receipt}/due', [PurchasePaymentController::class, 'due'])->whereNumber('receipt')->name('due');
         Route::patch('{payment}/post', [PurchasePaymentController::class, 'post'])->whereNumber('payment')->name('post');
+        Route::patch('{payment}/void', [PurchasePaymentController::class, 'void'])->whereNumber('payment')->name('void');
+        Route::post('{payment}/reversal', [PurchasePaymentController::class, 'reverse'])->whereNumber('payment')->name('reverse');
         Route::get('{payment}', [PurchasePaymentController::class, 'show'])->whereNumber('payment')->name('show');
+    });
+    Route::prefix('purchase/supplier-dues')->name('purchase.supplier-dues.')->group(function () {
+        Route::get('/', [SupplierDueSummaryController::class, 'index'])->name('index');
+        Route::post('list', [SupplierDueSummaryController::class, 'listAjax'])->name('list.ajax');
     });
     Route::prefix('purchase/price-history')->name('purchase.price-history.')->group(function () {
         Route::get('/', [PurchasePriceHistoryController::class, 'index'])->name('index');

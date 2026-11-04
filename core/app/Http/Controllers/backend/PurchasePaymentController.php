@@ -5,8 +5,10 @@ namespace App\Http\Controllers\backend;
 use App\Enums\Purchase\PurchasePaymentStatus;
 use App\Exceptions\Finance\FinanceConfigurationException;
 use App\Exceptions\Finance\InvalidJournalDraftException;
+use App\Exceptions\Finance\JournalWorkflowException;
 use App\Exceptions\Purchase\InvalidPurchasePaymentException;
 use App\Http\Controllers\Controller;
+use App\Models\backend\JournalEntry;
 use App\Models\Purchase\PurchasePayment;
 use App\Models\Purchase\PurchaseReceipt;
 use App\Services\Purchase\PurchasePaymentService;
@@ -36,7 +38,13 @@ class PurchasePaymentController extends Controller
         $rows = $query->orderByDesc('pp.id')->get()->map(function (object $row): array {
             $status = PurchasePaymentStatus::from($row->status);
 
-            return [$row->id, '<a class="fw-semibold text-primary-600" href="'.e(route('purchase.payments.show', $row->id)).'">'.e($row->payment_no).'</a>', e(date('d M Y', strtotime($row->payment_date))), e($row->supplier_name), e($row->receipt_no), '<span class="fw-semibold">'.number_format((float) $row->amount, 2).'</span>', '<span class="badge bg-'.($status === PurchasePaymentStatus::Posted ? 'dark-success-gradient' : 'dark-warning-gradient').' text-white">'.e($status->label()).'</span>'];
+            $badge = match ($status) {
+                PurchasePaymentStatus::Posted => 'bg-dark-success-gradient',
+                PurchasePaymentStatus::Draft => 'bg-dark-warning-gradient',
+                default => 'bg-secondary',
+            };
+
+            return [$row->id, '<a class="fw-semibold text-primary-600" href="'.e(route('purchase.payments.show', $row->id)).'">'.e($row->payment_no).'</a>', e(date('d M Y', strtotime($row->payment_date))), e($row->supplier_name), e($row->receipt_no), '<span class="fw-semibold">'.number_format((float) $row->amount, 2).'</span>', '<span class="badge '.$badge.' text-white">'.e($status->label()).'</span>'];
         });
 
         return response()->json(['draw' => (int) $request->input('draw'), 'iTotalRecords' => $rows->count(), 'iTotalDisplayRecords' => $rows->count(), 'aaData' => $rows->all()]);
@@ -72,9 +80,20 @@ class PurchasePaymentController extends Controller
 
     public function show(int $payment): View
     {
-        $payment = PurchasePayment::query()->with(['receipt', 'supplier', 'account', 'paymentType', 'createdBy', 'postedBy'])->when(current_branch_id(), fn ($q, int $id) => $q->where('branch_id', $id))->findOrFail($payment);
+        $payment = PurchasePayment::query()->with(['receipt', 'supplier', 'account', 'paymentType', 'createdBy', 'postedBy', 'voidedBy', 'reversedBy', 'reversalJournal'])
+            ->when(current_branch_id(), fn ($q, int $id) => $q->where('branch_id', $id))
+            ->findOrFail($payment);
+        $paymentJournal = JournalEntry::query()
+            ->where('source_type', 'purchase_payment')
+            ->where('source_id', $payment->id)
+            ->first();
 
-        return view('backend.modules.purchase_payment.show', ['payment' => $payment, 'due' => $this->due->receiptDue($payment->receipt, $payment->id)]);
+        return view('backend.modules.purchase_payment.show', [
+            'payment' => $payment,
+            'paymentJournal' => $paymentJournal,
+            'dueBeforePayment' => $this->due->receiptDue($payment->receipt, $payment->id),
+            'remainingDue' => $this->due->receiptDue($payment->receipt),
+        ]);
     }
 
     public function post(int $payment, Request $request): RedirectResponse
@@ -85,7 +104,39 @@ class PurchasePaymentController extends Controller
             return back()->with('error', $e->getMessage());
         }
 
-        return back()->with('success', 'Payment posted as Paid. A finance journal Draft was created for accountant approval.');
+        return back()->with('success', 'Payment posted. A finance journal Draft was created for accountant approval.');
+    }
+
+    public function void(int $payment, Request $request): RedirectResponse
+    {
+        $data = $request->validate(['void_reason' => ['required', 'string', 'max:1000']]);
+        try {
+            $this->payments->voidDraft($this->record($payment), $data['void_reason'], (int) $request->user()->id);
+        } catch (InvalidPurchasePaymentException $e) {
+            return back()->withInput()->with('error', $e->getMessage());
+        }
+
+        return back()->with('success', 'Draft payment voided. It did not affect supplier due or account balances.');
+    }
+
+    public function reverse(int $payment, Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'reversal_date' => ['required', 'date'],
+            'reversal_reason' => ['required', 'string', 'max:1000'],
+        ]);
+        try {
+            $payment = $this->payments->reverse($this->record($payment), $data['reversal_date'], $data['reversal_reason'], (int) $request->user()->id);
+        } catch (InvalidPurchasePaymentException|JournalWorkflowException|FinanceConfigurationException|InvalidJournalDraftException $e) {
+            return back()->withInput()->with('error', $e->getMessage());
+        }
+
+        if ($payment->reversal_journal_id) {
+            return redirect()->route('finance.journals.show', $payment->reversal_journal_id)
+                ->with('success', 'Payment reversed. Approve and post the linked reversal journal to reverse the Cash/Bank ledger movement.');
+        }
+
+        return back()->with('success', 'Payment reversed and its unposted finance journal was voided. Supplier due has been restored.');
     }
 
     private function record(int $id): PurchasePayment

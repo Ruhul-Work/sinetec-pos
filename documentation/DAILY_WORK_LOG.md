@@ -144,3 +144,19 @@
 
 **Total:** 8.5 hours
 
+---
+
+## Date: 2026-11-03
+
+**ID:** BFT4
+
+1. Journal approval, posting, Draft void and immutable posted-journal reversal workflow with audit fields, role-controlled actions and finance journal UI completion — 2 hours
+2. Account Ledger implementation with Posted journal/opening-balance history, account/branch/date filters, Dr/Cr running balance, source navigation and independent permission — 1.5 hours
+3. Account Ledger compact summary cards, carried-forward Opening/Closing Balance calculation, alignment and subtle finance-gradient UI polish — 1 hour
+4. Supplier Payment/Due foundation: receipt-specific partial-payment validation, due calculation after posted returns/payments, Cash/Bank account control and generated payment-journal Draft logic — 1.5 hours
+5. Supplier Payment list, entry modal, live receipt-due preview, Draft-to-Paid posting flow, menu/permission integration and UI alignment/polish — 1.5 hours
+6. Purchase Price History automatic Posted Receipt rate report, Raw Material/Part filter, query error fixes and sidebar/RBAC integration — 1 hour
+7. Laravel cache/route/view refresh, targeted finance/purchase regression verification and production-style error fixes — 45 min
+
+**Total:** 9.25 hours
+

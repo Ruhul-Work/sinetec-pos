@@ -2,18 +2,25 @@
 
 namespace App\Services\Purchase;
 
+use App\Enums\Finance\JournalStatus;
 use App\Enums\Purchase\PurchasePaymentStatus;
 use App\Enums\Purchase\PurchaseReceiptStatus;
 use App\Exceptions\Purchase\InvalidPurchasePaymentException;
 use App\Models\backend\Account;
+use App\Models\backend\JournalEntry;
 use App\Models\Purchase\PurchasePayment;
 use App\Models\Purchase\PurchaseReceipt;
+use App\Services\Finance\JournalWorkflowService;
 use App\Services\Finance\PurchaseJournalService;
 use Illuminate\Support\Facades\DB;
 
 final class PurchasePaymentService
 {
-    public function __construct(private readonly SupplierDueService $due, private readonly PurchaseJournalService $journals) {}
+    public function __construct(
+        private readonly SupplierDueService $due,
+        private readonly PurchaseJournalService $journals,
+        private readonly JournalWorkflowService $journalWorkflow,
+    ) {}
 
     /** @param array{purchase_receipt_id:int, payment_type_id:int, account_id:int, payment_date:string, amount:string|float|int, reference_no?:string|null, note?:string|null} $data */
     public function create(array $data, int $userId): PurchasePayment
@@ -57,6 +64,71 @@ final class PurchasePaymentService
         }, 3);
     }
 
+    public function voidDraft(PurchasePayment $payment, string $reason, int $userId): PurchasePayment
+    {
+        return DB::transaction(function () use ($payment, $reason, $userId): PurchasePayment {
+            $payment = PurchasePayment::query()->whereKey($payment->id)->lockForUpdate()->firstOrFail();
+            $reason = $this->reason($reason);
+
+            if ($payment->status === PurchasePaymentStatus::Void) {
+                return $payment;
+            }
+            if ($payment->status !== PurchasePaymentStatus::Draft) {
+                throw new InvalidPurchasePaymentException('Only a Draft payment can be voided. Reverse a posted payment instead.');
+            }
+
+            $payment->update([
+                'status' => PurchasePaymentStatus::Void,
+                'voided_by' => $userId,
+                'voided_at' => now(),
+                'void_reason' => $reason,
+            ]);
+
+            return $payment->fresh();
+        }, 3);
+    }
+
+    public function reverse(PurchasePayment $payment, string $reversalDate, string $reason, int $userId): PurchasePayment
+    {
+        return DB::transaction(function () use ($payment, $reversalDate, $reason, $userId): PurchasePayment {
+            $payment = PurchasePayment::query()->whereKey($payment->id)->lockForUpdate()->firstOrFail();
+            $reason = $this->reason($reason);
+
+            if ($payment->status === PurchasePaymentStatus::Reversed) {
+                return $payment;
+            }
+            if ($payment->status !== PurchasePaymentStatus::Posted) {
+                throw new InvalidPurchasePaymentException('Only a posted payment can be reversed.');
+            }
+
+            $journal = JournalEntry::query()
+                ->where('source_type', 'purchase_payment')
+                ->where('source_id', $payment->id)
+                ->lockForUpdate()
+                ->first();
+            if (! $journal) {
+                throw new InvalidPurchasePaymentException('The payment journal is missing. Reconcile the payment journal before reversing this payment.');
+            }
+
+            $reversalJournalId = null;
+            if ($journal->status === JournalStatus::Posted) {
+                $reversalJournalId = $this->journalWorkflow->createReversalDraft($journal, $reversalDate, $reason, $userId)->id;
+            } elseif ($journal->status !== JournalStatus::Void) {
+                $this->journalWorkflow->void($journal, 'Payment reversed: '.$reason, $userId);
+            }
+
+            $payment->update([
+                'status' => PurchasePaymentStatus::Reversed,
+                'reversed_by' => $userId,
+                'reversed_at' => now(),
+                'reversal_reason' => $reason,
+                'reversal_journal_id' => $reversalJournalId,
+            ]);
+
+            return $payment->fresh();
+        }, 3);
+    }
+
     private function receipt(int $id): PurchaseReceipt
     {
         return PurchaseReceipt::query()->whereKey($id)->where('status', PurchaseReceiptStatus::Posted)->lockForUpdate()->first()
@@ -80,5 +152,15 @@ final class PurchasePaymentService
         }
 
         return round((float) $amount, 4);
+    }
+
+    private function reason(string $reason): string
+    {
+        $reason = trim($reason);
+        if ($reason === '' || mb_strlen($reason) > 1000) {
+            throw new InvalidPurchasePaymentException('A correction reason is required and may not exceed 1000 characters.');
+        }
+
+        return $reason;
     }
 }

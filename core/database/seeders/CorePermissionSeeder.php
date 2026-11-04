@@ -44,6 +44,7 @@ class CorePermissionSeeder extends Seeder
             ['key' => 'purchase.receipts', 'name' => 'Purchase Receipts', 'module' => 'Purchasing', 'prefixes' => ['purchase.receipts.']],
             ['key' => 'purchase.returns', 'name' => 'Purchase Returns', 'module' => 'Purchasing', 'prefixes' => ['purchase.returns.']],
             ['key' => 'purchase.payments', 'name' => 'Supplier Payments', 'module' => 'Purchasing', 'prefixes' => ['purchase.payments.']],
+            ['key' => 'purchase.supplier_dues', 'name' => 'Supplier Due Summary', 'module' => 'Purchasing', 'prefixes' => ['purchase.supplier-dues.']],
             ['key' => 'purchase.price_history', 'name' => 'Purchase Price History', 'module' => 'Purchasing', 'prefixes' => ['purchase.price-history.']],
             ['key' => 'core.warehouses', 'name' => 'Warehouses', 'module' => 'Inventory', 'prefixes' => ['inventory.warehouses.']],
             ['key' => 'core.suppliers', 'name' => 'Suppliers', 'module' => 'Master Data', 'prefixes' => ['supplier.']],

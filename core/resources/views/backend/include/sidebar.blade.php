@@ -205,7 +205,7 @@
                 </li>
             @endpermgroup
 
-            @permgroup(['purchase.orders', 'purchase.receipts', 'purchase.returns', 'purchase.payments', 'purchase.price_history'])
+            @permgroup(['purchase.orders', 'purchase.receipts', 'purchase.returns', 'purchase.payments', 'purchase.supplier_dues', 'purchase.price_history'])
                 <li class="sidebar-menu-group-title">Purchasing</li>
                 <li class="dropdown {{ Route::is('purchase.*') ? 'active' : '' }}">
                     <a href="javascript:void(0)">
@@ -224,6 +224,9 @@
                         @endperm
                         @perm('purchase.payments.index')
                             <li><a class="{{ Route::is('purchase.payments.*') ? 'active' : '' }}" href="{{ route('purchase.payments.index') }}"><iconify-icon icon="mdi:cash-check" class="menu-icon"></iconify-icon><span>Supplier Payments</span></a></li>
+                        @endperm
+                        @perm('purchase.supplier-dues.index')
+                            <li><a class="{{ Route::is('purchase.supplier-dues.*') ? 'active' : '' }}" href="{{ route('purchase.supplier-dues.index') }}"><iconify-icon icon="mdi:account-cash-outline" class="menu-icon"></iconify-icon><span>Supplier Due Summary</span></a></li>
                         @endperm
                         @perm('purchase.price-history.index')
                             <li><a class="{{ Route::is('purchase.price-history.*') ? 'active' : '' }}" href="{{ route('purchase.price-history.index') }}"><iconify-icon icon="mdi:chart-line" class="menu-icon"></iconify-icon><span>Purchase Price History</span></a></li>

@@ -396,7 +396,8 @@ Receipt      Adjustment      Production   Stock Count
 27. **Complete:** Add a branch-scoped Journal List/Details UI with independent permission, status/source filters, source-document navigation and account-wise debit/credit verification.
 28. **Complete:** Implement the controlled Journal workflow: balanced Draft approval, revalidation and posting, Draft-only void with audit reason, and one linked debit/credit-swapped reversal Draft for every posted correction.
 29. **Complete:** Build Account Ledger with branch/account/date filters, Posted journal plus Posted opening-balance history, source-journal navigation and chronological Dr/Cr running balance.
-30. **Next implementation:** Build Supplier Payment/Due and Purchase Price History, then move to Part BOM and Production. Opening Stock CSV import remains deferred.
+30. **Complete:** Build receipt-specific Supplier Payment/Due, payment correction/reversal control, Supplier Due Summary and Purchase Price History. Opening Stock CSV import remains deferred.
+31. **Next implementation:** Configure required Equity/Liability accounts and build balanced Finance Opening Balance. Then build Cash/Bank Book, owner/partner funding, withdrawal and Cash-to-Bank transfer workflows before moving to Part BOM and Production.
 
 Finance account mapping, the generic Draft Journal engine and the authorised accountant workflow are complete. Purchase integration creates reviewable drafts; only approved, successfully revalidated journals can be posted.
 

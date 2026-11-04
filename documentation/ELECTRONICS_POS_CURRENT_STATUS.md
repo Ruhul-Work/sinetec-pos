@@ -1,7 +1,7 @@
 # Electronics POS — Current Status and Next Actions
 
-**Status:** Purchasing, Finance Foundation/Account Mapping, Purchase Draft Journal integration and read-only Journal UI complete
-**Updated:** 2 November 2026
+**Status:** Purchasing through supplier payment/price history, Finance Foundation/Account Mapping and controlled Journal workflow complete; finance opening work is next
+**Updated:** 4 November 2026
 
 ## 1. Current result
 
@@ -90,7 +90,8 @@ Old permission data points to removed routes. Permissions must be created from t
 - Account Ledger is independently permissioned and branch-scoped. It displays only POSTED journal lines and POSTED account opening balances, with account/branch/date filters, Dr/Cr debit-credit columns, source-journal navigation and a true chronological running balance per account/branch. A date filter hides older rows but preserves their balance brought forward.
 - A reusable Sinetec Image Picker now progressively enhances a standard `<input type="file" class="js-image-picker">` with compact dashed upload, preview, filename/size, replace/remove, drag-and-drop and configurable single/multiple modes on both full pages and AJAX modals. Raw Material, Part, Finished Product, Payment Type, Brand, Supplier and Customer now use it; no active retained screen executes Spartan.
 - Opening Stock CSV import is optional and deferred; add it later if go-live volume makes manual entry impractical.
-- User-test Journal approval, posting, draft void, posted-journal reversal and Account Ledger using the generated Receipt/Return journals, then continue to Supplier Payment/Due and Purchase Price History.
+- Supplier Payment supports receipt-specific partial payment, a selected branch-assigned Cash/Bank asset account and a Draft payment journal. Payment posting reduces operational supplier due; only accountant-posted journals affect the Account Ledger. Payment correction is audit-safe: Draft payment may be voided with a reason; Posted payment becomes `REVERSED`, restores supplier due and either voids its unposted journal or creates one linked journal reversal Draft. Journal list/detail now recognises Supplier Payment as a navigable source.
+- Supplier Due Summary is independently permissioned and branch-scoped. It calculates each supplier's current position from Posted receipts minus Posted returns and Posted payments; Void/Reversed payments do not reduce due. Purchase Price History exposes original Posted receipt-line rates for Raw Materials and Parts.
 - The draft generator never posts a journal automatically. BOM/manufacturing follows the remaining purchase-finance work.
 - Test retained Supplier/Customer CSV imports against the clean schema.
 - Review public registration before production; unrestricted role selection must not be exposed.
@@ -121,7 +122,8 @@ Old permission data points to removed routes. Permissions must be created from t
 22. **Complete:** Add branch-scoped Journal List/Details UI with independent permission, source navigation, filters and debit/credit verification.
 23. **Complete:** Add accountant-controlled journal approval, posting, Draft-only void and linked reversal-Draft workflow with complete actor/time/reason audit.
 24. **Complete:** Build Account Ledger from Posted journal/opening-balance data with true account/branch running balances.
-25. **Next:** Build Supplier Payment/Due and Purchase Price History, then continue to Part BOM/production.
+25. **Complete:** Build Supplier Payment/Due, audit-safe payment correction, Supplier Due Summary and Purchase Price History.
+26. **Next:** Configure Capital/Loan Chart of Accounts and build balanced Finance Opening Balance before Cash/Bank Book, owner/partner funding, withdrawal and cash-bank transfer workflows.
 
 ## 5. Implementation decision trace
 
@@ -160,6 +162,8 @@ Old permission data points to removed routes. Permissions must be created from t
 | 2 Nov 2026 | Read-only Journal UI | Finance menu now exposes a separately permissioned, branch-scoped Journal List and Details view. Users can filter Draft/Posted/Void and purchase source, follow the source document, and verify account-wise debit/credit totals. | No mutation action is present. Approval, post and void controls remain a later controlled workflow. |
 | 3 Nov 2026 | Journal workflow | A balanced Draft may be approved, then revalidated and posted by an authorised user. Posting records actor/time and is the only stage that affects account balances. A Draft can instead be voided with a reason. A Posted journal is immutable; its only correction path is one linked reversal Draft with debit/credit lines swapped, which goes through the same approval/post process. | Receipt/Return still create Drafts automatically; Supplier Payment/Due and Purchase Price History are next. |
 | 3 Nov 2026 | Account Ledger | One branch-scoped, account-wise read-only ledger derives movement from only Posted journal lines and Posted opening balances. It exposes debit, credit, source journal and true chronological Dr/Cr running balance; date filters do not discard the earlier balance brought forward. | Supplier Payment/Due will create further Posted journal movement in this same ledger without a separate ledger table. |
+| 4 Nov 2026 | Supplier Payment closing | Receipt-specific partial payment uses a branch-assigned Asset account and creates a balanced payment Journal Draft. A Draft payment can be voided with a required reason. A Posted payment cannot be deleted: reversal restores operational due and either voids its unposted journal or creates one linked finance reversal Draft if the original journal is already Posted. | Supplier advance/unallocated payment and allocation remain deferred; this release is strictly receipt-specific. |
+| 4 Nov 2026 | Supplier Due Summary & Price History | Supplier Due Summary derives branch-scoped payable from Posted receipt, return and payment documents; it does not create a balance table. Purchase Price History derives original rate snapshots from Posted receipt lines. | Full supplier statement/aging may add date ageing and document drill-down later. Finance Opening Balance is next before Cash/Bank Book. |
 
 When a decision changes, add a new dated row; do not overwrite the old decision without recording what superseded it and why.
 
