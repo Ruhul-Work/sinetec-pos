@@ -13,13 +13,14 @@ class Account extends Model
 
     protected $fillable = [
         'account_type_id', 'parent_id', 'name', 'code', 'description', 'currency',
-        'bank_name', 'bank_account_no', 'bank_details', 'allow_negative', 'is_active', 'is_system',
+        'bank_name', 'bank_account_no', 'bank_details', 'is_cash_bank_account', 'allow_negative', 'is_active', 'is_system',
     ];
 
     protected function casts(): array
     {
         return [
             'allow_negative' => 'boolean',
+            'is_cash_bank_account' => 'boolean',
             'is_active' => 'boolean',
             'is_system' => 'boolean',
         ];

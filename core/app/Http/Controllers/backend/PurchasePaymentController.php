@@ -53,7 +53,7 @@ class PurchasePaymentController extends Controller
     public function create(): View
     {
         $receipts = PurchaseReceipt::query()->with('supplier:id,name')->where('status', 'POSTED')->when(current_branch_id(), fn ($q, int $id) => $q->where('branch_id', $id))->orderByDesc('receipt_date')->get();
-        $accounts = DB::table('accounts as a')->join('account_types as t', 't.id', '=', 'a.account_type_id')->join('branch_accounts as ba', 'ba.account_id', '=', 'a.id')->where('a.is_active', true)->where('ba.is_active', true)->where('t.code', 'ASSET')->when(current_branch_id(), fn (Builder $q, int $id) => $q->where('ba.branch_id', $id))->distinct()->orderBy('a.code')->get(['a.id', 'a.code', 'a.name']);
+        $accounts = DB::table('accounts as a')->join('account_types as t', 't.id', '=', 'a.account_type_id')->join('branch_accounts as ba', 'ba.account_id', '=', 'a.id')->where('a.is_active', true)->where('a.is_cash_bank_account', true)->where('ba.is_active', true)->where('t.code', 'ASSET')->when(current_branch_id(), fn (Builder $q, int $id) => $q->where('ba.branch_id', $id))->distinct()->orderBy('a.code')->get(['a.id', 'a.code', 'a.name']);
         $types = DB::table('payment_types')->where('is_active', true)->orderBy('name')->get();
 
         return view('backend.modules.purchase_payment.modal', compact('receipts', 'accounts', 'types'));

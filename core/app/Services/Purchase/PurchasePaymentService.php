@@ -138,8 +138,8 @@ final class PurchasePaymentService
     private function cashAccount(int $id, int $branchId): Account
     {
         $account = Account::query()->with('type')->whereKey($id)->where('is_active', true)->first();
-        if (! $account || $account->type?->code !== 'ASSET' || ! DB::table('branch_accounts')->where('branch_id', $branchId)->where('account_id', $id)->where('is_active', true)->exists()) {
-            throw new InvalidPurchasePaymentException('Choose an active Asset account assigned to the receipt branch.');
+        if (! $account || ! $account->is_cash_bank_account || $account->type?->code !== 'ASSET' || ! DB::table('branch_accounts')->where('branch_id', $branchId)->where('account_id', $id)->where('is_active', true)->exists()) {
+            throw new InvalidPurchasePaymentException('Choose an active Cash / Bank account assigned to the receipt branch.');
         }
 
         return $account;

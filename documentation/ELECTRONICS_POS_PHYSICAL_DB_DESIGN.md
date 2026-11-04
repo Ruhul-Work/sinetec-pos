@@ -278,6 +278,7 @@ Retain finance master tables, but transaction posting must be rebuilt around:
 Implemented finance-foundation rules:
 
 - account types have mandatory codes and `DEBIT`/`CREDIT` normal balances; starter types/accounts are idempotent system records;
+- `accounts.is_cash_bank_account` marks liquid Asset accounts eligible for Supplier Payment and Cash/Bank Book; starter `1000` Cash in Hand and `1010` Bank Account are marked automatically;
 - account codes are mandatory and unique, hierarchy cycles are rejected, and mapped accounts cannot be disabled;
 - fiscal-year date ranges cannot overlap and only one fiscal year is active;
 - `finance_account_mappings` uses explicit `COMPANY` or `BRANCH` scope plus a unique `scope_key + mapping_key` pair, avoiding nullable-branch uniqueness ambiguity;
@@ -289,6 +290,7 @@ Implemented finance-foundation rules:
 - A Draft must be balanced and approved before posting. Posting revalidates active branch, covering active fiscal year and every active BDT branch-assigned account, then records `posted_by` and `posted_at`; only `POSTED` journals affect balances.
 - A Draft may be voided with `voided_by`, `voided_at` and a required reason. A posted journal cannot be voided or changed; one linked reversal Draft (`reversal_of_id` is unique) swaps every debit/credit line and itself requires approval and posting.
 - Account Ledger is a read-only derived view over `POSTED` `journal_entry_lines` plus `POSTED` `account_opening_balances`. It partitions chronological running balance by `account_id` and `branch_id`; date filters hide rows but do not reset the true balance brought forward.
+- Cash/Bank Book is a narrower read-only derived view over those same Posted sources, filtered to `accounts.is_cash_bank_account = true`; no duplicate cash ledger table is stored.
 
 ## 11. Future inactive tables
 

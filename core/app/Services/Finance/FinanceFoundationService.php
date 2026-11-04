@@ -21,8 +21,8 @@ final class FinanceFoundationService
     ];
 
     private const ACCOUNTS = [
-        ['code' => '1000', 'name' => 'Cash in Hand', 'type' => 'ASSET'],
-        ['code' => '1010', 'name' => 'Bank Account', 'type' => 'ASSET'],
+        ['code' => '1000', 'name' => 'Cash in Hand', 'type' => 'ASSET', 'is_cash_bank_account' => true],
+        ['code' => '1010', 'name' => 'Bank Account', 'type' => 'ASSET', 'is_cash_bank_account' => true],
         ['code' => '1100', 'name' => 'Raw Material Inventory', 'type' => 'ASSET'],
         ['code' => '1110', 'name' => 'Part Inventory', 'type' => 'ASSET'],
         ['code' => '1200', 'name' => 'Input Tax Receivable', 'type' => 'ASSET'],
@@ -59,6 +59,7 @@ final class FinanceFoundationService
                         'name' => $definition['name'],
                         'description' => 'Standard starter account for Sinetek POS.',
                         'currency' => 'BDT',
+                        'is_cash_bank_account' => $definition['is_cash_bank_account'] ?? false,
                         'allow_negative' => false,
                         'is_active' => true,
                         'is_system' => true,

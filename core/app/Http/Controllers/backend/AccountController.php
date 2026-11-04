@@ -44,7 +44,7 @@ class AccountController extends Controller
             return [
                 $account->id,
                 '<code>'.e($account->code).'</code>',
-                '<strong>'.e($account->name).'</strong>'.($account->is_system ? '<br><small class="text-info-main">Starter account</small>' : ''),
+                '<strong>'.e($account->name).'</strong>'.($account->is_cash_bank_account ? '<br><span class="badge bg-info-focus text-info-main">Cash / Bank</span>' : '').($account->is_system ? '<br><small class="text-info-main">Starter account</small>' : ''),
                 e($account->type?->name ?? '-').'<br><small class="text-muted">'.e($account->type?->normal_balance?->label() ?? '').'</small>',
                 $account->parent ? e($account->parent->code.' - '.$account->parent->name) : '<span class="text-muted">Root</span>',
                 '<span class="account-balance" data-id="'.$account->id.'">--</span>',
@@ -64,6 +64,7 @@ class AccountController extends Controller
     public function store(Request $request): JsonResponse
     {
         $data = $this->validated($request);
+        $this->validateCashBankType($data);
         Account::query()->create([...$data, 'currency' => 'BDT', 'is_system' => false]);
 
         return response()->json(['success' => true, 'msg' => 'Account created.']);
@@ -82,6 +83,7 @@ class AccountController extends Controller
             $data['account_type_id'] = $account->account_type_id;
             $data['parent_id'] = $account->parent_id;
         }
+        $this->validateCashBankType($data);
         if ($this->wouldCreateCycle($account, $data['parent_id'])) {
             return response()->json(['success' => false, 'message' => 'An account cannot be placed below itself or one of its descendants.'], 422);
         }
@@ -153,16 +155,26 @@ class AccountController extends Controller
             'bank_name' => ['nullable', 'string', 'max:100'],
             'bank_account_no' => ['nullable', 'string', 'max:100'],
             'bank_details' => ['nullable', 'string', 'max:5000'],
+            'is_cash_bank_account' => ['nullable', 'boolean'],
             'allow_negative' => ['nullable', 'boolean'],
             'is_active' => ['nullable', 'boolean'],
         ]);
         $data['name'] = trim($data['name']);
         $data['code'] = strtoupper(trim($data['code']));
         $data['parent_id'] = $data['parent_id'] ?? null;
+        $data['is_cash_bank_account'] = $request->boolean('is_cash_bank_account');
         $data['allow_negative'] = $request->boolean('allow_negative');
         $data['is_active'] = $request->has('is_active') ? $request->boolean('is_active') : true;
 
         return $data;
+    }
+
+    /** @param array<string, mixed> $data */
+    private function validateCashBankType(array $data): void
+    {
+        if (! empty($data['is_cash_bank_account']) && AccountType::query()->whereKey($data['account_type_id'])->value('code') !== 'ASSET') {
+            abort(422, 'Only an Asset account can be used as a Cash / Bank account.');
+        }
     }
 
     private function wouldCreateCycle(Account $account, ?int $parentId): bool

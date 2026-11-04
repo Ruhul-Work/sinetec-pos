@@ -4,6 +4,7 @@ use App\Http\Controllers\backend\AccountController;
 use App\Http\Controllers\backend\AccountLedgerController;
 use App\Http\Controllers\backend\AccountTypeController;
 use App\Http\Controllers\backend\BranchAccountController;
+use App\Http\Controllers\backend\CashBankBookController;
 use App\Http\Controllers\backend\BrandController;
 use App\Http\Controllers\backend\CompanySettingController;
 use App\Http\Controllers\backend\CountryController;
@@ -463,6 +464,13 @@ Route::middleware(['web', 'auth', 'perm', 'branchscope'])->group(function () {
         Route::get('fiscal-years/{fiscalYear}/branches/{branch}/edit', [FinanceOpeningBalanceController::class, 'edit'])->whereNumber(['fiscalYear', 'branch'])->name('edit');
         Route::put('fiscal-years/{fiscalYear}/branches/{branch}', [FinanceOpeningBalanceController::class, 'update'])->whereNumber(['fiscalYear', 'branch'])->name('update');
         Route::patch('fiscal-years/{fiscalYear}/branches/{branch}/post', [FinanceOpeningBalanceController::class, 'post'])->whereNumber(['fiscalYear', 'branch'])->name('post');
+    });
+
+    Route::prefix('finance/cash-bank-book')->name('finance.cash-bank-book.')->group(function () {
+        Route::get('/', [CashBankBookController::class, 'index'])->name('index');
+        Route::post('list', [CashBankBookController::class, 'listAjax'])->name('list.ajax');
+        Route::post('summary', [CashBankBookController::class, 'summary'])->name('summary');
+        Route::get('accounts/select2', [CashBankBookController::class, 'accountSelect2'])->name('accounts.select2');
     });
 
     Route::prefix('finance/journals')->name('finance.journals.')->group(function () {
