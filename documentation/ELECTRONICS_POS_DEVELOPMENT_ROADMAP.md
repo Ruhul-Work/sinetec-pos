@@ -399,7 +399,9 @@ Receipt      Adjustment      Production   Stock Count
 30. **Complete:** Build receipt-specific Supplier Payment/Due, payment correction/reversal control, Supplier Due Summary and Purchase Price History. Opening Stock CSV import remains deferred.
 31. **Complete:** Build balanced Finance Opening Balance over existing account-opening rows with one Fiscal Year + Branch scope, active assigned-BDT account guard, exact Debit/Credit check, editable Draft and immutable Posted ledger effect.
 32. **Complete:** Add explicit Cash/Bank account eligibility, restrict Supplier Payment sources accordingly and build a read-only Cash/Bank Book from Posted opening/journal movements with running balance.
-33. **Next implementation:** Configure business-specific Equity/Liability accounts, then build owner/partner funding, withdrawal and Cash-to-Bank transfer workflows before moving to Part BOM and Production.
+33. **Complete:** Add idempotent starter Owner/Partner Capital accounts and controlled branch-scoped Owner/Partner Capital Investment documents. Posting creates a reviewable Receipt Voucher Draft (Debit Cash/Bank, Credit Equity); journal posting remains accountant-controlled.
+34. **Complete:** Add idempotent Director / Partner Loan Liability account and controlled branch-scoped Loan Receipt document. Posting creates a reviewable Receipt Voucher Draft (Debit Cash/Bank, Credit Liability).
+35. **Next implementation:** Build Capital Withdrawal and Cash-to-Bank Transfer, then Loan Repayment against an outstanding received loan before moving to Part BOM and Production.
 
 Finance account mapping, the generic Draft Journal engine and the authorised accountant workflow are complete. Purchase integration creates reviewable drafts; only approved, successfully revalidated journals can be posted.
 

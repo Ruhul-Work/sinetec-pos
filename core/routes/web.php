@@ -5,6 +5,7 @@ use App\Http\Controllers\backend\AccountLedgerController;
 use App\Http\Controllers\backend\AccountTypeController;
 use App\Http\Controllers\backend\BranchAccountController;
 use App\Http\Controllers\backend\CashBankBookController;
+use App\Http\Controllers\backend\CapitalInvestmentController;
 use App\Http\Controllers\backend\BrandController;
 use App\Http\Controllers\backend\CompanySettingController;
 use App\Http\Controllers\backend\CountryController;
@@ -19,6 +20,7 @@ use App\Http\Controllers\backend\FinishedProductController;
 use App\Http\Controllers\backend\FinishedProductReorderLevelController;
 use App\Http\Controllers\backend\FiscalYearController;
 use App\Http\Controllers\backend\JournalController;
+use App\Http\Controllers\backend\LoanReceiptController;
 use App\Http\Controllers\backend\OpeningStockController;
 use App\Http\Controllers\backend\PartCategoryController;
 use App\Http\Controllers\backend\PartController;
@@ -471,6 +473,28 @@ Route::middleware(['web', 'auth', 'perm', 'branchscope'])->group(function () {
         Route::post('list', [CashBankBookController::class, 'listAjax'])->name('list.ajax');
         Route::post('summary', [CashBankBookController::class, 'summary'])->name('summary');
         Route::get('accounts/select2', [CashBankBookController::class, 'accountSelect2'])->name('accounts.select2');
+    });
+
+    Route::prefix('finance/capital-investments')->name('finance.capital-investments.')->group(function () {
+        Route::get('/', [CapitalInvestmentController::class, 'index'])->name('index');
+        Route::post('list', [CapitalInvestmentController::class, 'listAjax'])->name('list.ajax');
+        Route::get('create', [CapitalInvestmentController::class, 'create'])->name('create');
+        Route::get('branches/{branch}/accounts', [CapitalInvestmentController::class, 'branchAccounts'])->whereNumber('branch')->name('branch-accounts');
+        Route::post('/', [CapitalInvestmentController::class, 'store'])->name('store');
+        Route::patch('{investment}/post', [CapitalInvestmentController::class, 'post'])->whereNumber('investment')->name('post');
+        Route::patch('{investment}/void', [CapitalInvestmentController::class, 'void'])->whereNumber('investment')->name('void');
+        Route::get('{investment}', [CapitalInvestmentController::class, 'show'])->whereNumber('investment')->name('show');
+    });
+
+    Route::prefix('finance/loan-receipts')->name('finance.loan-receipts.')->group(function () {
+        Route::get('/', [LoanReceiptController::class, 'index'])->name('index');
+        Route::post('list', [LoanReceiptController::class, 'listAjax'])->name('list.ajax');
+        Route::get('create', [LoanReceiptController::class, 'create'])->name('create');
+        Route::get('branches/{branch}/accounts', [LoanReceiptController::class, 'branchAccounts'])->whereNumber('branch')->name('branch-accounts');
+        Route::post('/', [LoanReceiptController::class, 'store'])->name('store');
+        Route::patch('{loan}/post', [LoanReceiptController::class, 'post'])->whereNumber('loan')->name('post');
+        Route::patch('{loan}/void', [LoanReceiptController::class, 'void'])->whereNumber('loan')->name('void');
+        Route::get('{loan}', [LoanReceiptController::class, 'show'])->whereNumber('loan')->name('show');
     });
 
     Route::prefix('finance/journals')->name('finance.journals.')->group(function () {

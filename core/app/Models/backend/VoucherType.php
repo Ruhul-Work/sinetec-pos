@@ -38,6 +38,7 @@ class VoucherType extends Model
     public const REFUND = 'REFUND';
     public const ADJUST = 'ADJUST';
     public const PAYMENT = 'PAYMENT';
+    public const RECEIPT = 'RECEIPT';
     public const PURCHASE = 'PURCHASE';
     public const EXPENSE = 'EXPENSE';
     public const TRANSFER = 'TRANSFER';

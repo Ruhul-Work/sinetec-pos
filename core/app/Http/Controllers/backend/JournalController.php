@@ -8,6 +8,8 @@ use App\Exceptions\Finance\InvalidJournalDraftException;
 use App\Exceptions\Finance\JournalWorkflowException;
 use App\Http\Controllers\Controller;
 use App\Models\backend\JournalEntry;
+use App\Models\Finance\CapitalInvestment;
+use App\Models\Finance\LoanReceipt;
 use App\Models\Purchase\PurchasePayment;
 use App\Models\Purchase\PurchaseReceipt;
 use App\Models\Purchase\PurchaseReturn;
@@ -61,7 +63,7 @@ class JournalController extends Controller
         if (JournalStatus::tryFrom($status)) {
             $query->where('je.status', $status);
         }
-        if (in_array($sourceType, ['purchase_receipt', 'purchase_return', 'purchase_payment', 'journal_reversal'], true)) {
+        if (in_array($sourceType, ['purchase_receipt', 'purchase_return', 'purchase_payment', 'capital_investment', 'loan_receipt', 'journal_reversal'], true)) {
             $query->where('je.source_type', $sourceType);
         }
         if ($search !== '') {
@@ -182,11 +184,15 @@ class JournalController extends Controller
         $receiptIds = collect($rows)->where('source_type', 'purchase_receipt')->pluck('source_id')->filter()->unique();
         $returnIds = collect($rows)->where('source_type', 'purchase_return')->pluck('source_id')->filter()->unique();
         $paymentIds = collect($rows)->where('source_type', 'purchase_payment')->pluck('source_id')->filter()->unique();
+        $investmentIds = collect($rows)->where('source_type', 'capital_investment')->pluck('source_id')->filter()->unique();
+        $loanIds = collect($rows)->where('source_type', 'loan_receipt')->pluck('source_id')->filter()->unique();
 
         return [
             'purchase_receipt' => PurchaseReceipt::query()->whereIn('id', $receiptIds)->get(['id', 'receipt_no'])->keyBy('id')->all(),
             'purchase_return' => PurchaseReturn::query()->whereIn('id', $returnIds)->get(['id', 'return_no'])->keyBy('id')->all(),
             'purchase_payment' => PurchasePayment::query()->whereIn('id', $paymentIds)->get(['id', 'payment_no'])->keyBy('id')->all(),
+            'capital_investment' => CapitalInvestment::query()->whereIn('id', $investmentIds)->get(['id', 'investment_no'])->keyBy('id')->all(),
+            'loan_receipt' => LoanReceipt::query()->whereIn('id', $loanIds)->get(['id', 'loan_no'])->keyBy('id')->all(),
             'journal_reversal' => JournalEntry::query()->whereIn('id', collect($rows)->where('source_type', 'journal_reversal')->pluck('source_id')->filter()->unique())->get(['id', 'voucher_no'])->keyBy('id')->all(),
         ];
     }
@@ -199,6 +205,8 @@ class JournalController extends Controller
             'purchase_receipt' => ['Purchase Receipt', $record?->receipt_no ?? '#'.$id, $record ? route('purchase.receipts.show', $id) : null],
             'purchase_return' => ['Purchase Return', $record?->return_no ?? '#'.$id, $record ? route('purchase.returns.show', $id) : null],
             'purchase_payment' => ['Supplier Payment', $record?->payment_no ?? '#'.$id, $record ? route('purchase.payments.show', $id) : null],
+            'capital_investment' => ['Capital Investment', $record?->investment_no ?? '#'.$id, $record ? route('finance.capital-investments.show', $id) : null],
+            'loan_receipt' => ['Loan Receipt', $record?->loan_no ?? '#'.$id, $record ? route('finance.loan-receipts.show', $id) : null],
             'journal_reversal' => ['Journal Reversal', $record?->voucher_no ?? '#'.$id, $record ? route('finance.journals.show', $id) : null],
             default => [str($type ?: 'Manual')->replace('_', ' ')->title()->toString(), '#'.$id, null],
         };

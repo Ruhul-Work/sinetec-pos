@@ -291,6 +291,8 @@ Implemented finance-foundation rules:
 - A Draft may be voided with `voided_by`, `voided_at` and a required reason. A posted journal cannot be voided or changed; one linked reversal Draft (`reversal_of_id` is unique) swaps every debit/credit line and itself requires approval and posting.
 - Account Ledger is a read-only derived view over `POSTED` `journal_entry_lines` plus `POSTED` `account_opening_balances`. It partitions chronological running balance by `account_id` and `branch_id`; date filters hide rows but do not reset the true balance brought forward.
 - Cash/Bank Book is a narrower read-only derived view over those same Posted sources, filtered to `accounts.is_cash_bank_account = true`; no duplicate cash ledger table is stored.
+- `finance_capital_investments` stores controlled Owner/Partner capital documents: branch, selected Cash/Bank Asset account, selected Equity account, date, amount, reference/note and Draft/Posted/Void audit fields. Its generated Receipt Voucher journal uses `source_type = capital_investment`; no duplicate ledger balance is stored.
+- `finance_loan_receipts` stores controlled temporary Director/Partner funding: branch, selected Cash/Bank Asset account, selected Liability account, date, amount, reference/note and Draft/Posted/Void audit fields. Its generated Receipt Voucher journal uses `source_type = loan_receipt`; repayment will use a linked future source document.
 
 ## 11. Future inactive tables
 

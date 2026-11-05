@@ -30,6 +30,10 @@ class VoucherTypeSeeder extends Seeder
                 'code' => 'PAYMENT',
             ],
             [
+                'name' => 'Receipt Voucher',
+                'code' => 'RECEIPT',
+            ],
+            [
                 'name' => 'Purchase Voucher',
                 'code' => 'PURCHASE',
             ],

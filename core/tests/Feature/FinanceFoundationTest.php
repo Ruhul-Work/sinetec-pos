@@ -38,8 +38,8 @@ class FinanceFoundationTest extends TestCase
         $this->seed(FinanceFoundationSeeder::class);
 
         $this->assertSame(5, AccountType::query()->count());
-        $this->assertSame(7, Account::query()->count());
-        $this->assertSame(7, BranchAccount::query()->where('branch_id', $branch->id)->count());
+        $this->assertSame(10, Account::query()->count());
+        $this->assertSame(10, BranchAccount::query()->where('branch_id', $branch->id)->count());
         $this->assertDatabaseHas('account_types', ['code' => 'ASSET', 'normal_balance' => 'DEBIT', 'is_system' => true]);
         $this->assertDatabaseHas('account_types', ['code' => 'LIABILITY', 'normal_balance' => 'CREDIT', 'is_system' => true]);
         $this->assertDatabaseHas('accounts', ['code' => '1100', 'name' => 'Raw Material Inventory', 'is_system' => true]);
@@ -137,7 +137,7 @@ class FinanceFoundationTest extends TestCase
         ]));
         $branchId = (int) $response->getData(true)['id'];
 
-        $this->assertSame(8, BranchAccount::query()->where('branch_id', $branchId)->count());
+        $this->assertSame(11, BranchAccount::query()->where('branch_id', $branchId)->count());
         $this->assertDatabaseHas('branch_accounts', [
             'branch_id' => $branchId,
             'account_id' => $customInventory->id,

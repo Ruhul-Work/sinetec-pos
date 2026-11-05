@@ -58,6 +58,8 @@ class CorePermissionSeeder extends Seeder
             ['key' => 'finance.account_mappings', 'name' => 'Finance Account Mappings', 'module' => 'Finance', 'prefixes' => ['finance.account-mappings.']],
             ['key' => 'finance.opening_balances', 'name' => 'Finance Opening Balance', 'module' => 'Finance', 'prefixes' => ['finance.opening-balances.']],
             ['key' => 'finance.cash_bank_book', 'name' => 'Cash / Bank Book', 'module' => 'Finance', 'prefixes' => ['finance.cash-bank-book.']],
+            ['key' => 'finance.capital_investments', 'name' => 'Capital Investments', 'module' => 'Finance', 'prefixes' => ['finance.capital-investments.']],
+            ['key' => 'finance.loan_receipts', 'name' => 'Owner / Partner Loans', 'module' => 'Finance', 'prefixes' => ['finance.loan-receipts.']],
             ['key' => 'finance.journals', 'name' => 'Journal Entries', 'module' => 'Finance', 'prefixes' => ['finance.journals.']],
             ['key' => 'finance.account_ledger', 'name' => 'Account Ledger', 'module' => 'Finance', 'prefixes' => ['finance.account-ledger.']],
         ];

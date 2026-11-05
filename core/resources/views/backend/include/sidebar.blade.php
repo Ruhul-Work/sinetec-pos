@@ -235,9 +235,9 @@
                 </li>
             @endpermgroup
 
-            @permgroup(['core.fiscal_years', 'core.account_types', 'core.accounts', 'core.branch_accounts', 'finance.account_mappings', 'finance.opening_balances', 'finance.cash_bank_book', 'finance.journals', 'finance.account_ledger'])
+            @permgroup(['core.fiscal_years', 'core.account_types', 'core.accounts', 'core.branch_accounts', 'finance.account_mappings', 'finance.opening_balances', 'finance.cash_bank_book', 'finance.capital_investments', 'finance.loan_receipts', 'finance.journals', 'finance.account_ledger'])
                 <li class="sidebar-menu-group-title">Finance</li>
-                <li class="dropdown {{ Route::is('fiscal-years.*') || Route::is('account-types.*') || Route::is('accounts.*') || Route::is('branch-accounts.*') || Route::is('finance.account-mappings.*') || Route::is('finance.opening-balances.*') || Route::is('finance.cash-bank-book.*') || Route::is('finance.journals.*') || Route::is('finance.account-ledger.*') ? 'active' : '' }}">
+                <li class="dropdown {{ Route::is('fiscal-years.*') || Route::is('account-types.*') || Route::is('accounts.*') || Route::is('branch-accounts.*') || Route::is('finance.account-mappings.*') || Route::is('finance.opening-balances.*') || Route::is('finance.cash-bank-book.*') || Route::is('finance.capital-investments.*') || Route::is('finance.loan-receipts.*') || Route::is('finance.journals.*') || Route::is('finance.account-ledger.*') ? 'active' : '' }}">
                     <a href="javascript:void(0)">
                         <iconify-icon icon="mdi:bank-outline" class="menu-icon"></iconify-icon>
                         <span>Finance Management</span>
@@ -263,6 +263,12 @@
                         @endperm
                         @perm('finance.cash-bank-book.index')
                             <li><a class="{{ Route::is('finance.cash-bank-book.*') ? 'active' : '' }}" href="{{ route('finance.cash-bank-book.index') }}"><iconify-icon icon="mdi:bank-transfer" class="menu-icon"></iconify-icon><span>Cash / Bank Book</span></a></li>
+                        @endperm
+                        @perm('finance.capital-investments.index')
+                            <li><a class="{{ Route::is('finance.capital-investments.*') ? 'active' : '' }}" href="{{ route('finance.capital-investments.index') }}"><iconify-icon icon="mdi:cash-plus" class="menu-icon"></iconify-icon><span>Capital Investments</span></a></li>
+                        @endperm
+                        @perm('finance.loan-receipts.index')
+                            <li><a class="{{ Route::is('finance.loan-receipts.*') ? 'active' : '' }}" href="{{ route('finance.loan-receipts.index') }}"><iconify-icon icon="mdi:hand-coin-outline" class="menu-icon"></iconify-icon><span>Owner / Partner Loans</span></a></li>
                         @endperm
                         @perm('finance.journals.index')
                             <li><a class="{{ Route::is('finance.journals.*') ? 'active' : '' }}" href="{{ route('finance.journals.index') }}"><iconify-icon icon="mdi:notebook-outline" class="menu-icon"></iconify-icon><span>Journal Entries</span></a></li>

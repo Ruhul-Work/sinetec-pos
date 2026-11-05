@@ -160,3 +160,19 @@
 
 **Total:** 9.25 hours
 
+---
+
+## Date: 2026-11-04
+
+**ID:** BFT4
+
+1. Supplier Payment correction workflow: Draft void, Posted payment reversal, due restoration and reversal-journal audit safety - 1 hours
+2. Finance Opening Balance module with branch/fiscal-year scope, balanced account lines, Draft  Post workflow and immutable posted records - 1.25 hours
+3. Opening Balance interface, status/action polish, validation, permission/sidebar integration and operational setup guidance - 45 min
+4. Cash/Bank account control: `is_cash_bank_account` database flag, starter-account setup, Chart of Accounts configuration and safe Purchase Payment source filtering - 1 hours
+5. Read-only Cash / Bank Book with posted opening/journal movements, account/branch/date filters, money-in/out totals, running balance and source-journal navigation - 1 hours
+6. Finance menu, independent permissions, routes, branch-assignment safeguards and Cash/Bank UI integration - 45 min
+7. Finance/Purchase regression tests, migration/seed verification, cache refresh and roadmap/current-status/physical-design documentation update - 45 min
+
+**Total:** 8.75 hours
+

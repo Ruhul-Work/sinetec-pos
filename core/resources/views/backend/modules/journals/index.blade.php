@@ -26,6 +26,8 @@
           <option value="purchase_receipt">Purchase Receipt</option>
           <option value="purchase_return">Purchase Return</option>
           <option value="purchase_payment">Supplier Payment</option>
+          <option value="capital_investment">Capital Investment</option>
+          <option value="loan_receipt">Loan Receipt</option>
           <option value="journal_reversal">Journal Reversal</option>
         </select>
         <select id="journalStatusFilter" class="form-select form-select-sm w-auto">
