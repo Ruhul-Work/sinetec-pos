@@ -30,6 +30,8 @@ final class FinanceFoundationService
         ['code' => '2100', 'name' => 'Director / Partner Loan', 'type' => 'LIABILITY'],
         ['code' => '3000', 'name' => 'Owner Capital', 'type' => 'EQUITY'],
         ['code' => '3010', 'name' => 'Partner Capital', 'type' => 'EQUITY'],
+        ['code' => '3020', 'name' => 'Owner Drawings', 'type' => 'EQUITY'],
+        ['code' => '3030', 'name' => 'Partner Drawings', 'type' => 'EQUITY'],
         ['code' => '4100', 'name' => 'Purchase Discount', 'type' => 'INCOME'],
     ];
 

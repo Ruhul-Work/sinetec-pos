@@ -27,6 +27,7 @@
           <option value="purchase_return">Purchase Return</option>
           <option value="purchase_payment">Supplier Payment</option>
           <option value="capital_investment">Capital Investment</option>
+          <option value="capital_withdrawal">Capital Withdrawal</option>
           <option value="loan_receipt">Loan Receipt</option>
           <option value="journal_reversal">Journal Reversal</option>
         </select>

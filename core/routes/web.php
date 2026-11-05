@@ -6,6 +6,7 @@ use App\Http\Controllers\backend\AccountTypeController;
 use App\Http\Controllers\backend\BranchAccountController;
 use App\Http\Controllers\backend\CashBankBookController;
 use App\Http\Controllers\backend\CapitalInvestmentController;
+use App\Http\Controllers\backend\CapitalWithdrawalController;
 use App\Http\Controllers\backend\BrandController;
 use App\Http\Controllers\backend\CompanySettingController;
 use App\Http\Controllers\backend\CountryController;
@@ -485,6 +486,7 @@ Route::middleware(['web', 'auth', 'perm', 'branchscope'])->group(function () {
         Route::patch('{investment}/void', [CapitalInvestmentController::class, 'void'])->whereNumber('investment')->name('void');
         Route::get('{investment}', [CapitalInvestmentController::class, 'show'])->whereNumber('investment')->name('show');
     });
+    Route::prefix('finance/capital-withdrawals')->name('finance.capital-withdrawals.')->group(function () { Route::get('/',[CapitalWithdrawalController::class,'index'])->name('index');Route::post('list',[CapitalWithdrawalController::class,'listAjax'])->name('list.ajax');Route::get('create',[CapitalWithdrawalController::class,'create'])->name('create');Route::get('branches/{branch}/accounts',[CapitalWithdrawalController::class,'branchAccounts'])->whereNumber('branch')->name('branch-accounts');Route::post('/',[CapitalWithdrawalController::class,'store'])->name('store');Route::patch('{withdrawal}/post',[CapitalWithdrawalController::class,'post'])->whereNumber('withdrawal')->name('post');Route::patch('{withdrawal}/void',[CapitalWithdrawalController::class,'void'])->whereNumber('withdrawal')->name('void');Route::get('{withdrawal}',[CapitalWithdrawalController::class,'show'])->whereNumber('withdrawal')->name('show'); });
 
     Route::prefix('finance/loan-receipts')->name('finance.loan-receipts.')->group(function () {
         Route::get('/', [LoanReceiptController::class, 'index'])->name('index');
