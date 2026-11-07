@@ -401,7 +401,12 @@ Receipt      Adjustment      Production   Stock Count
 32. **Complete:** Add explicit Cash/Bank account eligibility, restrict Supplier Payment sources accordingly and build a read-only Cash/Bank Book from Posted opening/journal movements with running balance.
 33. **Complete:** Add idempotent starter Owner/Partner Capital accounts and controlled branch-scoped Owner/Partner Capital Investment documents. Posting creates a reviewable Receipt Voucher Draft (Debit Cash/Bank, Credit Equity); journal posting remains accountant-controlled.
 34. **Complete:** Add idempotent Director / Partner Loan Liability account and controlled branch-scoped Loan Receipt document. Posting creates a reviewable Receipt Voucher Draft (Debit Cash/Bank, Credit Liability).
-35. **Next implementation:** Build Capital Withdrawal and Cash-to-Bank Transfer, then Loan Repayment against an outstanding received loan before moving to Part BOM and Production.
+35. **Complete:** Add Capital Withdrawal (Debit Drawings, Credit Cash/Bank) and same-branch Cash/Bank Transfer (Debit destination, Credit source), each with a reviewable Draft Journal.
+36. **Complete:** Build Loan Repayment against a posted received loan with outstanding-principal validation, Cash/Bank source eligibility and a reviewable Draft Journal (Debit Loan Liability, Credit Cash/Bank).
+37. **Complete:** Build branch-scoped Trial Balance from Posted opening balances and Posted journal lines, with as-of date filter, debit/credit totals, closing Dr/Cr positions and explicit balanced status.
+38. **Complete:** Build controlled Fiscal Year Closing for a branch Drawings-to-Capital adjustment. It server-calculates the Posted balance at the active fiscal-year end, creates a reviewable balanced Closing Journal Draft and blocks next-year activation until that Journal is posted.
+39. **Complete:** Finance hardening audit—fix All Branches report filtering, enforce Loan Repayment branch isolation, preserve exact Cash/Bank transfer decimals, protect source-generated journals from detached voids, and block fiscal-year switching while Draft journals remain.
+40. **Next implementation:** Move to Part BOM and Production.
 
 Finance account mapping, the generic Draft Journal engine and the authorised accountant workflow are complete. Purchase integration creates reviewable drafts; only approved, successfully revalidated journals can be posted.
 

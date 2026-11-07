@@ -58,11 +58,15 @@ class CorePermissionSeeder extends Seeder
             ['key' => 'finance.account_mappings', 'name' => 'Finance Account Mappings', 'module' => 'Finance', 'prefixes' => ['finance.account-mappings.']],
             ['key' => 'finance.opening_balances', 'name' => 'Finance Opening Balance', 'module' => 'Finance', 'prefixes' => ['finance.opening-balances.']],
             ['key' => 'finance.cash_bank_book', 'name' => 'Cash / Bank Book', 'module' => 'Finance', 'prefixes' => ['finance.cash-bank-book.']],
+            ['key' => 'finance.cash_bank_transfers', 'name' => 'Cash / Bank Transfer', 'module' => 'Finance', 'prefixes' => ['finance.cash-bank-transfers.']],
             ['key' => 'finance.capital_investments', 'name' => 'Capital Investments', 'module' => 'Finance', 'prefixes' => ['finance.capital-investments.']],
             ['key' => 'finance.capital_withdrawals', 'name' => 'Capital Withdrawals', 'module' => 'Finance', 'prefixes' => ['finance.capital-withdrawals.']],
             ['key' => 'finance.loan_receipts', 'name' => 'Owner / Partner Loans', 'module' => 'Finance', 'prefixes' => ['finance.loan-receipts.']],
+            ['key' => 'finance.loan_repayments', 'name' => 'Loan Repayments', 'module' => 'Finance', 'prefixes' => ['finance.loan-repayments.']],
+            ['key' => 'finance.fiscal_year_closings', 'name' => 'Fiscal Year Closings', 'module' => 'Finance', 'prefixes' => ['finance.fiscal-year-closings.']],
             ['key' => 'finance.journals', 'name' => 'Journal Entries', 'module' => 'Finance', 'prefixes' => ['finance.journals.']],
             ['key' => 'finance.account_ledger', 'name' => 'Account Ledger', 'module' => 'Finance', 'prefixes' => ['finance.account-ledger.']],
+            ['key' => 'finance.trial_balance', 'name' => 'Trial Balance', 'module' => 'Finance', 'prefixes' => ['finance.trial-balance.']],
         ];
 
         $protectedRoutes = collect(Route::getRoutes())

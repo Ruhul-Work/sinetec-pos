@@ -183,6 +183,43 @@ class FinanceFoundationTest extends TestCase
         ]));
     }
 
+    public function test_another_fiscal_year_cannot_be_activated_while_current_year_has_a_draft_journal(): void
+    {
+        $branch = $this->branch();
+        $this->seed(FinanceFoundationSeeder::class);
+        $year = FiscalYear::query()->create([
+            'name' => 'FY 2026',
+            'start_date' => '2026-01-01',
+            'end_date' => '2026-12-31',
+            'is_active' => true,
+        ]);
+        DB::table('journal_entries')->insert([
+            'voucher_no' => 'DRAFT-2026-000001',
+            'posting_key' => 'journal:test:fiscal-switch',
+            'voucher_type_id' => VoucherType::query()->where('code', 'PURCHASE')->value('id'),
+            'branch_id' => $branch->id,
+            'fiscal_year_id' => $year->id,
+            'source_type' => 'test_source',
+            'source_id' => 1,
+            'entry_date' => '2026-12-31',
+            'status' => 'DRAFT',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        try {
+            app(FiscalYearController::class)->store(Request::create('/fiscal-years', 'POST', [
+                'name' => 'FY 2027',
+                'start_date' => '2027-01-01',
+                'end_date' => '2027-12-31',
+                'is_active' => 1,
+            ]));
+            $this->fail('A fiscal year switch must be blocked while a Draft journal exists.');
+        } catch (ValidationException $exception) {
+            $this->assertStringContainsString('Draft journal', $exception->errors()['is_active'][0]);
+        }
+    }
+
     public function test_account_balance_uses_only_posted_rows_and_normal_balance(): void
     {
         $branch = $this->branch();

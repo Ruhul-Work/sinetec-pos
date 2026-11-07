@@ -176,3 +176,21 @@
 
 **Total:** 8.75 hours
 
+---
+
+## Date: 2026-11-05
+
+**ID:** BFT4
+
+project:Sinetec Pos
+
+1. Owner/Partner Capital Investment module: controlled Draft/Post workflow, Cash/Bank-to-Equity journal generation, permission, menu and modal interface — 1.25 hours
+2. Director/Partner Loan Receipt module with Liability account control, Draft journal flow, source navigation and UI integration — 1 hour
+3. Capital Withdrawal module using Owner/Partner Drawings, Cash/Bank source validation and accounting workflow clarification — 1 hours
+4. Same-branch Cash / Bank Transfer module, transfer voucher Draft journal, migrations, service/controller fixes and responsive UI polish — 1.2 hours
+5. Loan Repayment module with linked-loan outstanding validation, Cash/Bank payment source, Draft journal and interface alignment — 1.25 hours
+6. Branch-scoped Trial Balance report with posted opening/journal source, as-of-date filter, debit/credit totals, Dr/Cr closing columns and balanced-status cards — 1.25 hours
+7. Trial Balance SQL alias/runtime fix, DataTable/UI standardisation, cache refresh  — 45 min
+
+**Total:** 8.25 hours
+

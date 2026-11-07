@@ -10,7 +10,10 @@ use App\Http\Controllers\Controller;
 use App\Models\backend\JournalEntry;
 use App\Models\Finance\CapitalInvestment;
 use App\Models\Finance\CapitalWithdrawal;
+use App\Models\Finance\CashBankTransfer;
+use App\Models\Finance\FiscalYearClosing;
 use App\Models\Finance\LoanReceipt;
+use App\Models\Finance\LoanRepayment;
 use App\Models\Purchase\PurchasePayment;
 use App\Models\Purchase\PurchaseReceipt;
 use App\Models\Purchase\PurchaseReturn;
@@ -64,7 +67,7 @@ class JournalController extends Controller
         if (JournalStatus::tryFrom($status)) {
             $query->where('je.status', $status);
         }
-        if (in_array($sourceType, ['purchase_receipt', 'purchase_return', 'purchase_payment', 'capital_investment', 'capital_withdrawal', 'loan_receipt', 'journal_reversal'], true)) {
+        if (in_array($sourceType, ['purchase_receipt', 'purchase_return', 'purchase_payment', 'capital_investment', 'capital_withdrawal', 'loan_receipt', 'loan_repayment', 'cash_bank_transfer', 'fiscal_year_closing', 'journal_reversal'], true)) {
             $query->where('je.source_type', $sourceType);
         }
         if ($search !== '') {
@@ -119,10 +122,11 @@ class JournalController extends Controller
             ])
             ->findOrFail($journal);
         $source = $this->sourceForJournal($journal);
+        $canVoid = $this->workflow->canVoid($journal);
         $totalDebit = $journal->lines->reduce(fn (float $total, $line): float => $total + (float) $line->debit, 0.0);
         $totalCredit = $journal->lines->reduce(fn (float $total, $line): float => $total + (float) $line->credit, 0.0);
 
-        return view('backend.modules.journals.show', compact('journal', 'source', 'totalDebit', 'totalCredit'));
+        return view('backend.modules.journals.show', compact('journal', 'source', 'canVoid', 'totalDebit', 'totalCredit'));
     }
 
     public function approve(int $journal, Request $request): RedirectResponse
@@ -188,6 +192,9 @@ class JournalController extends Controller
         $investmentIds = collect($rows)->where('source_type', 'capital_investment')->pluck('source_id')->filter()->unique();
         $withdrawalIds = collect($rows)->where('source_type', 'capital_withdrawal')->pluck('source_id')->filter()->unique();
         $loanIds = collect($rows)->where('source_type', 'loan_receipt')->pluck('source_id')->filter()->unique();
+        $repaymentIds = collect($rows)->where('source_type', 'loan_repayment')->pluck('source_id')->filter()->unique();
+        $transferIds = collect($rows)->where('source_type', 'cash_bank_transfer')->pluck('source_id')->filter()->unique();
+        $closingIds = collect($rows)->where('source_type', 'fiscal_year_closing')->pluck('source_id')->filter()->unique();
 
         return [
             'purchase_receipt' => PurchaseReceipt::query()->whereIn('id', $receiptIds)->get(['id', 'receipt_no'])->keyBy('id')->all(),
@@ -196,6 +203,9 @@ class JournalController extends Controller
             'capital_investment' => CapitalInvestment::query()->whereIn('id', $investmentIds)->get(['id', 'investment_no'])->keyBy('id')->all(),
             'capital_withdrawal' => CapitalWithdrawal::query()->whereIn('id', $withdrawalIds)->get(['id', 'withdrawal_no'])->keyBy('id')->all(),
             'loan_receipt' => LoanReceipt::query()->whereIn('id', $loanIds)->get(['id', 'loan_no'])->keyBy('id')->all(),
+            'loan_repayment' => LoanRepayment::query()->whereIn('id', $repaymentIds)->get(['id', 'repayment_no'])->keyBy('id')->all(),
+            'cash_bank_transfer' => CashBankTransfer::query()->whereIn('id', $transferIds)->get(['id', 'transfer_no'])->keyBy('id')->all(),
+            'fiscal_year_closing' => FiscalYearClosing::query()->whereIn('id', $closingIds)->get(['id', 'closing_no'])->keyBy('id')->all(),
             'journal_reversal' => JournalEntry::query()->whereIn('id', collect($rows)->where('source_type', 'journal_reversal')->pluck('source_id')->filter()->unique())->get(['id', 'voucher_no'])->keyBy('id')->all(),
         ];
     }
@@ -211,6 +221,9 @@ class JournalController extends Controller
             'capital_investment' => ['Capital Investment', $record?->investment_no ?? '#'.$id, $record ? route('finance.capital-investments.show', $id) : null],
             'capital_withdrawal' => ['Capital Withdrawal', $record?->withdrawal_no ?? '#'.$id, $record ? route('finance.capital-withdrawals.show', $id) : null],
             'loan_receipt' => ['Loan Receipt', $record?->loan_no ?? '#'.$id, $record ? route('finance.loan-receipts.show', $id) : null],
+            'loan_repayment' => ['Loan Repayment', $record?->repayment_no ?? '#'.$id, $record ? route('finance.loan-repayments.show', $id) : null],
+            'cash_bank_transfer' => ['Cash / Bank Transfer', $record?->transfer_no ?? '#'.$id, $record ? route('finance.cash-bank-transfers.show', $id) : null],
+            'fiscal_year_closing' => ['Fiscal Year Closing', $record?->closing_no ?? '#'.$id, $record ? route('finance.fiscal-year-closings.show', $id) : null],
             'journal_reversal' => ['Journal Reversal', $record?->voucher_no ?? '#'.$id, $record ? route('finance.journals.show', $id) : null],
             default => [str($type ?: 'Manual')->replace('_', ' ')->title()->toString(), '#'.$id, null],
         };

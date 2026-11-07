@@ -55,6 +55,7 @@ class FiscalYearController extends Controller
         $this->assertNoOverlap($data['start_date'], $data['end_date']);
         $year = DB::transaction(function () use ($data): FiscalYear {
             if ($data['is_active']) {
+                $this->assertActiveFiscalYearCanBeChanged();
                 FiscalYear::query()->where('is_active', true)->update(['is_active' => false]);
             }
 
@@ -75,6 +76,7 @@ class FiscalYearController extends Controller
         $this->assertNoOverlap($data['start_date'], $data['end_date'], $fiscalYear->id);
         DB::transaction(function () use ($data, $fiscalYear): void {
             if ($data['is_active']) {
+                $this->assertActiveFiscalYearCanBeChanged($fiscalYear->id);
                 FiscalYear::query()->whereKeyNot($fiscalYear->id)->where('is_active', true)->update(['is_active' => false]);
             } elseif ($fiscalYear->is_active && ! FiscalYear::query()->whereKeyNot($fiscalYear->id)->where('is_active', true)->exists()) {
                 throw ValidationException::withMessages(['is_active' => 'Activate another fiscal year before deactivating the current one.']);
@@ -91,7 +93,8 @@ class FiscalYearController extends Controller
             return response()->json(['ok' => false, 'msg' => 'The active fiscal year cannot be deleted.'], 422);
         }
         if (DB::table('journal_entries')->where('fiscal_year_id', $fiscalYear->id)->exists()
-            || DB::table('account_opening_balances')->where('fiscal_year_id', $fiscalYear->id)->exists()) {
+            || DB::table('account_opening_balances')->where('fiscal_year_id', $fiscalYear->id)->exists()
+            || DB::table('finance_fiscal_year_closings')->where('fiscal_year_id', $fiscalYear->id)->exists()) {
             return response()->json(['ok' => false, 'msg' => 'This fiscal year is referenced by finance records.'], 422);
         }
         $fiscalYear->delete();
@@ -128,6 +131,56 @@ class FiscalYearController extends Controller
             ->where('start_date', '<=', $endDate)->where('end_date', '>=', $startDate)->exists();
         if ($overlap) {
             throw ValidationException::withMessages(['start_date' => 'Fiscal-year date ranges cannot overlap.']);
+        }
+    }
+
+    private function assertActiveFiscalYearCanBeChanged(?int $nextActiveYearId = null): void
+    {
+        $activeYearIds = DB::table('fiscal_years')
+            ->where('is_active', true)
+            ->when($nextActiveYearId, fn ($query, int $id) => $query->where('id', '!=', $id))
+            ->pluck('id');
+
+        if ($activeYearIds->isEmpty()) {
+            return;
+        }
+
+        $hasUnpostedJournal = DB::table('journal_entries')
+            ->whereIn('fiscal_year_id', $activeYearIds)
+            ->where('status', 'DRAFT')
+            ->exists();
+        if ($hasUnpostedJournal) {
+            throw ValidationException::withMessages([
+                'is_active' => 'Post or void every Draft journal in the current fiscal year before activating another fiscal year.',
+            ]);
+        }
+
+        $hasDraftClosing = DB::table('finance_fiscal_year_closings')
+            ->whereIn('fiscal_year_id', $activeYearIds)
+            ->where('status', 'DRAFT')
+            ->exists();
+        if ($hasDraftClosing) {
+            throw ValidationException::withMessages([
+                'is_active' => 'Prepare and post, or void, every Draft Fiscal Year Closing before activating another fiscal year.',
+            ]);
+        }
+
+        $hasUnpostedClosing = DB::table('finance_fiscal_year_closings as closing')
+            ->leftJoin('journal_entries as journal', function ($join): void {
+                $join->on('journal.source_id', '=', 'closing.id')
+                    ->where('journal.source_type', '=', 'fiscal_year_closing');
+            })
+            ->whereIn('closing.fiscal_year_id', $activeYearIds)
+            ->where('closing.status', 'POSTED')
+            ->where(function ($query): void {
+                $query->whereNull('journal.id')->orWhere('journal.status', '!=', 'POSTED');
+            })
+            ->exists();
+
+        if ($hasUnpostedClosing) {
+            throw ValidationException::withMessages([
+                'is_active' => 'Approve and post every prepared Fiscal Year Closing journal before activating the next fiscal year.',
+            ]);
         }
     }
 }

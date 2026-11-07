@@ -29,6 +29,9 @@
           <option value="capital_investment">Capital Investment</option>
           <option value="capital_withdrawal">Capital Withdrawal</option>
           <option value="loan_receipt">Loan Receipt</option>
+          <option value="loan_repayment">Loan Repayment</option>
+          <option value="cash_bank_transfer">Cash / Bank Transfer</option>
+          <option value="fiscal_year_closing">Fiscal Year Closing</option>
           <option value="journal_reversal">Journal Reversal</option>
         </select>
         <select id="journalStatusFilter" class="form-select form-select-sm w-auto">

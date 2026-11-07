@@ -4,102 +4,66 @@ namespace App\Http\Controllers\admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\backend\Branch;
-use App\Support\BranchScope;
 use App\Models\backend\Warehouse;
+use App\Support\BranchScope;
 use App\Support\WarehouseScope;
-
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-
 
 class BranchSwitchController extends Controller
 {
-    //  public function switch(Request $req)
-    // {
-    //     $user = $req->user();
-
-    //     $data = $req->validate([
-    //         'mode'      => 'required|in:all,one',
-    //         'branch_id' => 'nullable|integer',
-    //     ]);
-
-    //     // super হলে যেকোনো ব্রাঞ্চ/All
-    //     if ($user?->isSuper()) {
-    //         if ($data['mode'] === 'all') {
-    //             BranchScope::setAll();
-    //         } else {
-    //             $bid = (int) ($data['branch_id'] ?? 0);
-    //             abort_unless(Branch::where('is_active',1)->whereKey($bid)->exists(), 422, 'Invalid branch');
-    //             BranchScope::setBranch($bid);
-    //         }
-    //         return response()->json(['ok'=>true, 'scope'=>session('branch_scope')]);
-    //     }
-
-    //     // normal user: সবসময় নিজের ব্রাঞ্চ
-    //     BranchScope::setBranch((int) $user->branch_id);
-    //     return response()->json(['ok'=>true, 'scope'=>session('branch_scope')]);
-    // }
-
-     public function switch(Request $req)
+    public function switch(Request $request): JsonResponse
     {
-        $user = $req->user();
-
-        $data = $req->validate([
-            'mode'      => 'required|in:all,one',
-            'branch_id' => 'nullable|integer',
+        $user = $request->user();
+        $data = $request->validate([
+            'mode' => ['required', 'in:all,one'],
+            'branch_id' => ['nullable', 'integer'],
         ]);
 
-        // =========================
-        // SUPER ADMIN
-        // =========================
         if ($user?->isSuper()) {
-
             if ($data['mode'] === 'all') {
                 BranchScope::setAll();
-                WarehouseScope::clear(); // 🔥 all branch → warehouse irrelevant
-            } else {
-                $bid = (int) ($data['branch_id'] ?? 0);
+                WarehouseScope::clear();
 
-                abort_unless(
-                    Branch::where('is_active', 1)->whereKey($bid)->exists(),
-                    422,
-                    'Invalid branch'
-                );
-
-                BranchScope::setBranch($bid);
-
-                // 🔥 AUTO-BIND WAREHOUSE
-                $warehouseId = Warehouse::where('branch_id', $bid)
-                    ->where('is_default', 1)
-                    ->value('id')
-                    ?? Warehouse::where('branch_id', $bid)->value('id');
-
-                abort_unless($warehouseId, 422, 'No warehouse for this branch');
-
-                WarehouseScope::set($warehouseId);
+                return $this->scopeResponse();
             }
 
-            return response()->json([
-                'ok' => true,
-                'branch' => BranchScope::get(),
-                'warehouse' => WarehouseScope::get(),
-            ]);
+            $branchId = (int) ($data['branch_id'] ?? 0);
+            abort_unless(
+                Branch::query()->whereKey($branchId)->where('is_active', true)->exists(),
+                422,
+                'Invalid branch.',
+            );
+
+            $this->selectBranch($branchId, 'No warehouse is configured for this branch.');
+
+            return $this->scopeResponse();
         }
 
-        // =========================
-        // NORMAL USER
-        // =========================
-        $bid = (int) $user->branch_id;
-        BranchScope::setBranch($bid);
+        $branchId = (int) $user?->branch_id;
+        abort_if($branchId < 1, 422, 'Your user account is not assigned to a branch.');
+        $this->selectBranch($branchId, 'No warehouse is configured for your branch.');
 
-        $warehouseId = Warehouse::where('branch_id', $bid)
-            ->where('is_default', 1)
-            ->value('id')
-            ?? Warehouse::where('branch_id', $bid)->value('id');
+        return $this->scopeResponse();
+    }
 
-        abort_unless($warehouseId, 422, 'No warehouse for your branch');
+    private function selectBranch(int $branchId, string $missingWarehouseMessage): void
+    {
+        $warehouseId = Warehouse::query()
+            ->where('branch_id', $branchId)
+            ->where('is_active', true)
+            ->orderByDesc('is_default')
+            ->orderBy('id')
+            ->value('id');
 
-        WarehouseScope::set($warehouseId);
+        abort_unless($warehouseId, 422, $missingWarehouseMessage);
 
+        BranchScope::setBranch($branchId);
+        WarehouseScope::set((int) $warehouseId);
+    }
+
+    private function scopeResponse(): JsonResponse
+    {
         return response()->json([
             'ok' => true,
             'branch' => BranchScope::get(),

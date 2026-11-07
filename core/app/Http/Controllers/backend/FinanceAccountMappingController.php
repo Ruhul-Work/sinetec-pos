@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers\backend;
 
 use App\Enums\Finance\FinanceMappingKey;
@@ -16,31 +17,30 @@ use Illuminate\View\View;
 
 class FinanceAccountMappingController extends Controller
 {
-    public function __construct(private readonly FinanceAccountMappingService $mappingService)
-    {}
+    public function __construct(private readonly FinanceAccountMappingService $mappingService) {}
 
     public function index(Request $request): View
     {
         $canManageCompany = (bool) $request->user()?->isSuper();
-        $branches         = Branch::query()
+        $branches = Branch::query()
             ->where('is_active', true)
-            ->when(! $canManageCompany, fn($query) => $query->whereKey((int) $request->user()?->branch_id))
+            ->when(! $canManageCompany, fn ($query) => $query->whereKey((int) $request->user()?->branch_id))
             ->orderBy('name')
             ->get(['id', 'name', 'code']);
         $company = $this->mappingService->mappingsForScope(FinanceMappingScope::Company)
-            ->keyBy(fn($mapping) => $mapping->mapping_key->value);
+            ->keyBy(fn ($mapping) => $mapping->mapping_key->value);
         $branchStatuses = $branches->mapWithKeys(function (Branch $branch): array {
             $effective = $this->mappingService->effectiveMappings($branch->id);
 
-            return [$branch->id => collect($effective)->filter(fn($row) => $row['account'])->count()];
+            return [$branch->id => collect($effective)->filter(fn ($row) => $row['account'])->count()];
         });
 
         return view('backend.modules.finance_account_mapping.index', [
-            'definitions'      => $this->mappingService->definitions(),
-            'branches'         => $branches,
-            'companyMappings'  => $company,
-            'companyAccounts'  => $this->compatibleAccounts(),
-            'branchStatuses'   => $branchStatuses,
+            'definitions' => $this->mappingService->definitions(),
+            'branches' => $branches,
+            'companyMappings' => $company,
+            'companyAccounts' => $this->compatibleAccounts(),
+            'branchStatuses' => $branchStatuses,
             'canManageCompany' => $canManageCompany,
         ]);
     }
@@ -50,20 +50,20 @@ class FinanceAccountMappingController extends Controller
         $this->ensureBranchAccess($request, $branch);
 
         $overrides = $this->mappingService->mappingsForScope(FinanceMappingScope::Branch, $branch->id)
-            ->keyBy(fn($mapping) => $mapping->mapping_key->value);
-        $effective   = $this->mappingService->effectiveMappings($branch->id);
+            ->keyBy(fn ($mapping) => $mapping->mapping_key->value);
+        $effective = $this->mappingService->effectiveMappings($branch->id);
         $assignedIds = BranchAccount::query()->where('branch_id', $branch->id)->where('is_active', true)->pluck('account_id');
 
         return response()->json([
-            'overrides' => collect(FinanceMappingKey::cases())->mapWithKeys(fn(FinanceMappingKey $key) => [
+            'overrides' => collect(FinanceMappingKey::cases())->mapWithKeys(fn (FinanceMappingKey $key) => [
                 $key->value => $overrides->get($key->value)?->account_id,
             ]),
-            'effective' => collect($effective)->map(fn(array $row) => [
+            'effective' => collect($effective)->map(fn (array $row) => [
                 'account_id' => $row['account']?->id,
-                'account'    => $row['account'] ? $row['account']->code . ' - ' . $row['account']->name : null,
-                'source'     => $row['source'],
+                'account' => $row['account'] ? $row['account']->code.' - '.$row['account']->name : null,
+                'source' => $row['source'],
             ]),
-            'accounts'  => $this->compatibleAccounts($assignedIds->all()),
+            'accounts' => $this->compatibleAccounts($assignedIds->all()),
         ]);
     }
 
@@ -97,7 +97,7 @@ class FinanceAccountMappingController extends Controller
     private function mappingInput(Request $request): array
     {
         $request->validate(['mappings' => ['nullable', 'array']]);
-        $input    = (array) $request->input('mappings', []);
+        $input = (array) $request->input('mappings', []);
         $mappings = [];
         foreach (FinanceMappingKey::cases() as $key) {
             $value = $input[$key->value] ?? null;
@@ -114,12 +114,12 @@ class FinanceAccountMappingController extends Controller
     private function compatibleAccounts(?array $accountIds = null): array
     {
         $accounts = Account::query()->with('type')->where('is_active', true)
-            ->when($accountIds !== null, fn($query) => $query->whereKey($accountIds))
+            ->when($accountIds !== null, fn ($query) => $query->whereKey($accountIds))
             ->orderBy('code')->get();
         $result = [];
         foreach (FinanceMappingKey::cases() as $key) {
-            $result[$key->value] = $accounts->filter(fn(Account $account) => $this->mappingService->isCompatible($key, $account))
-                ->map(fn(Account $account) => ['id' => $account->id, 'text' => $account->code . ' - ' . $account->name])->values()->all();
+            $result[$key->value] = $accounts->filter(fn (Account $account) => $this->mappingService->isCompatible($key, $account))
+                ->map(fn (Account $account) => ['id' => $account->id, 'text' => $account->code.' - '.$account->name])->values()->all();
         }
 
         return $result;

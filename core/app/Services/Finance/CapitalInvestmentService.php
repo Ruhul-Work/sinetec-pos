@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Services\Finance;
 
 use App\Data\Finance\JournalDraftData;
@@ -17,30 +18,29 @@ use Throwable;
 
 final class CapitalInvestmentService
 {
-    public function __construct(private readonly JournalDraftService $journals)
-    {}
+    public function __construct(private readonly JournalDraftService $journals) {}
 
     /** @param array<string, mixed> $data */
     public function create(array $data, int $userId): CapitalInvestment
     {
         return DB::transaction(function () use ($data, $userId): CapitalInvestment {
             $branchId = (int) $data['branch_id'];
-            $date     = $this->date($data['investment_date'] ?? null);
-            $year     = $this->activeYearFor($date);
+            $date = $this->date($data['investment_date'] ?? null);
+            $year = $this->activeYearFor($date);
             $this->assertAccounts($branchId, (int) $data['cash_bank_account_id'], (int) $data['capital_account_id']);
 
             return CapitalInvestment::query()->create([
-                'investment_no'        => $this->nextNumber($branchId, $year->id, $date),
-                'branch_id'            => $branchId,
-                'investment_type'      => $this->type($data['investment_type'] ?? ''),
+                'investment_no' => $this->nextNumber($branchId, $year->id, $date),
+                'branch_id' => $branchId,
+                'investment_type' => $this->type($data['investment_type'] ?? ''),
                 'cash_bank_account_id' => (int) $data['cash_bank_account_id'],
-                'capital_account_id'   => (int) $data['capital_account_id'],
-                'investment_date'      => $date,
-                'amount'               => $this->amount($data['amount'] ?? null),
-                'reference_no'         => $this->nullableText($data['reference_no'] ?? null, 100),
-                'note'                 => $this->nullableText($data['note'] ?? null, 5000),
-                'status'               => CapitalInvestmentStatus::Draft,
-                'created_by'           => $userId,
+                'capital_account_id' => (int) $data['capital_account_id'],
+                'investment_date' => $date,
+                'amount' => $this->amount($data['amount'] ?? null),
+                'reference_no' => $this->nullableText($data['reference_no'] ?? null, 100),
+                'note' => $this->nullableText($data['note'] ?? null, 5000),
+                'status' => CapitalInvestmentStatus::Draft,
+                'created_by' => $userId,
             ]);
         }, 3);
     }
@@ -64,12 +64,12 @@ final class CapitalInvestmentService
                 entryDate: $investment->investment_date,
                 sourceType: 'capital_investment',
                 sourceId: (int) $investment->id,
-                postingKey: 'journal:capital_investment:' . $investment->id,
+                postingKey: 'journal:capital_investment:'.$investment->id,
                 lines: [
                     new JournalLineData(accountId: (int) $investment->cash_bank_account_id, debit: (string) $investment->amount, memo: 'Investment received in Cash / Bank'),
-                    new JournalLineData(accountId: (int) $investment->capital_account_id, credit: (string) $investment->amount, memo: $this->typeLabel($investment->investment_type) . ' credited'),
+                    new JournalLineData(accountId: (int) $investment->capital_account_id, credit: (string) $investment->amount, memo: $this->typeLabel($investment->investment_type).' credited'),
                 ],
-                narration: $this->typeLabel($investment->investment_type) . ' ' . $investment->investment_no,
+                narration: $this->typeLabel($investment->investment_type).' '.$investment->investment_no,
                 createdBy: $userId,
             ));
             $investment->update(['status' => CapitalInvestmentStatus::Posted, 'posted_by' => $userId, 'posted_at' => now()]);
@@ -108,8 +108,8 @@ final class CapitalInvestmentService
             throw new InvalidCapitalInvestmentException('Cash / Bank and Capital accounts must be different.');
         }
         $accounts = Account::query()->with('type')->whereIn('id', [$cashBankAccountId, $capitalAccountId])->get()->keyBy('id');
-        $cash     = $accounts->get($cashBankAccountId);
-        $capital  = $accounts->get($capitalAccountId);
+        $cash = $accounts->get($cashBankAccountId);
+        $capital = $accounts->get($capitalAccountId);
         if (! $cash || ! $cash->is_active || ! $cash->is_cash_bank_account || $cash->type?->code !== 'ASSET') {
             throw new InvalidCapitalInvestmentException('Choose an active Cash / Bank Asset account.');
         }
@@ -117,7 +117,7 @@ final class CapitalInvestmentService
             throw new InvalidCapitalInvestmentException('Choose an active Equity account for Owner / Partner Capital.');
         }
         $assigned = BranchAccount::query()->where('branch_id', $branchId)->where('is_active', true)
-            ->whereIn('account_id', [$cashBankAccountId, $capitalAccountId])->pluck('account_id')->map(fn($id): int => (int) $id)->all();
+            ->whereIn('account_id', [$cashBankAccountId, $capitalAccountId])->pluck('account_id')->map(fn ($id): int => (int) $id)->all();
         if (! in_array($cashBankAccountId, $assigned, true) || ! in_array($capitalAccountId, $assigned, true)) {
             throw new FinanceConfigurationException('Cash / Bank and Capital accounts must both be assigned to the selected branch.');
         }
@@ -179,7 +179,7 @@ final class CapitalInvestmentService
         }
         [$integer, $fraction] = array_pad(explode('.', $value, 2), 2, '');
 
-        return (ltrim($integer, '0') ?: '0') . '.' . str_pad($fraction, 4, '0');
+        return (ltrim($integer, '0') ?: '0').'.'.str_pad($fraction, 4, '0');
     }
 
     private function nullableText(mixed $value, int $limit): ?string

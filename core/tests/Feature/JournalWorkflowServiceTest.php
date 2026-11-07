@@ -62,6 +62,17 @@ class JournalWorkflowServiceTest extends TestCase
         $workflow->post($voided, $user->id);
     }
 
+    public function test_source_generated_draft_cannot_be_voided_separately_from_its_posted_document(): void
+    {
+        [$branch, $user, $rawInventory, $payable] = $this->foundation();
+        $journal = $this->draft($branch, $user, $rawInventory, $payable, 'journal:workflow:source-void');
+        $journal->update(['source_type' => 'purchase_receipt']);
+
+        $this->expectException(JournalWorkflowException::class);
+        $this->expectExceptionMessage('source document');
+        app(JournalWorkflowService::class)->void($journal, 'Do not detach accounting.', $user->id);
+    }
+
     public function test_posted_journal_creates_one_reversal_draft_with_swapped_lines(): void
     {
         [$branch, $user, $rawInventory, $payable] = $this->foundation();

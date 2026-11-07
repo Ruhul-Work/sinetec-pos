@@ -69,15 +69,13 @@
                             <label class="form-check-label">${sl}</label>
                             </div>`;
                             }
-                        },
-                        {
-                            targets: -1, // Action column 
+                        }].concat($('.AjaxDataTable').first().attr('data-has-action-column') === 'false' ? [] : [{
+                            targets: -1, // Action column
                             orderable: false,
                             searchable: false,
                             className: 'no-export text-end',
                             width: '120px'
-                        }
-                    ],
+                        }]),
 
                     buttons: [{
                             extend: 'copy',

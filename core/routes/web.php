@@ -5,6 +5,7 @@ use App\Http\Controllers\backend\AccountLedgerController;
 use App\Http\Controllers\backend\AccountTypeController;
 use App\Http\Controllers\backend\BranchAccountController;
 use App\Http\Controllers\backend\CashBankBookController;
+use App\Http\Controllers\backend\CashBankTransferController;
 use App\Http\Controllers\backend\CapitalInvestmentController;
 use App\Http\Controllers\backend\CapitalWithdrawalController;
 use App\Http\Controllers\backend\BrandController;
@@ -16,12 +17,14 @@ use App\Http\Controllers\backend\DivisionController;
 use App\Http\Controllers\backend\DomainUnitMappingController;
 use App\Http\Controllers\backend\FinanceAccountMappingController;
 use App\Http\Controllers\backend\FinanceOpeningBalanceController;
+use App\Http\Controllers\backend\FiscalYearClosingController;
 use App\Http\Controllers\backend\FinishedProductCategoryController;
 use App\Http\Controllers\backend\FinishedProductController;
 use App\Http\Controllers\backend\FinishedProductReorderLevelController;
 use App\Http\Controllers\backend\FiscalYearController;
 use App\Http\Controllers\backend\JournalController;
 use App\Http\Controllers\backend\LoanReceiptController;
+use App\Http\Controllers\backend\LoanRepaymentController;
 use App\Http\Controllers\backend\OpeningStockController;
 use App\Http\Controllers\backend\PartCategoryController;
 use App\Http\Controllers\backend\PartController;
@@ -43,6 +46,7 @@ use App\Http\Controllers\backend\StockTransferController;
 use App\Http\Controllers\backend\SupplierController;
 use App\Http\Controllers\backend\SupplierDueSummaryController;
 use App\Http\Controllers\backend\UnitController;
+use App\Http\Controllers\backend\TrialBalanceController;
 use App\Http\Controllers\backend\UnitConversionController;
 use App\Http\Controllers\backend\UpazilaController;
 use App\Http\Controllers\backend\WarehouseController;
@@ -475,6 +479,15 @@ Route::middleware(['web', 'auth', 'perm', 'branchscope'])->group(function () {
         Route::post('summary', [CashBankBookController::class, 'summary'])->name('summary');
         Route::get('accounts/select2', [CashBankBookController::class, 'accountSelect2'])->name('accounts.select2');
     });
+    Route::prefix('finance/cash-bank-transfers')->name('finance.cash-bank-transfers.')->group(function () {
+        Route::get('/', [CashBankTransferController::class, 'index'])->name('index');
+        Route::post('list', [CashBankTransferController::class, 'listAjax'])->name('list.ajax');
+        Route::get('create', [CashBankTransferController::class, 'create'])->name('create');
+        Route::get('branches/{branch}/accounts', [CashBankTransferController::class, 'accountsForBranch'])->whereNumber('branch')->name('branch-accounts');
+        Route::post('/', [CashBankTransferController::class, 'store'])->name('store');
+        Route::patch('{transfer}/post', [CashBankTransferController::class, 'post'])->whereNumber('transfer')->name('post');
+        Route::get('{transfer}', [CashBankTransferController::class, 'show'])->whereNumber('transfer')->name('show');
+    });
 
     Route::prefix('finance/capital-investments')->name('finance.capital-investments.')->group(function () {
         Route::get('/', [CapitalInvestmentController::class, 'index'])->name('index');
@@ -486,7 +499,16 @@ Route::middleware(['web', 'auth', 'perm', 'branchscope'])->group(function () {
         Route::patch('{investment}/void', [CapitalInvestmentController::class, 'void'])->whereNumber('investment')->name('void');
         Route::get('{investment}', [CapitalInvestmentController::class, 'show'])->whereNumber('investment')->name('show');
     });
-    Route::prefix('finance/capital-withdrawals')->name('finance.capital-withdrawals.')->group(function () { Route::get('/',[CapitalWithdrawalController::class,'index'])->name('index');Route::post('list',[CapitalWithdrawalController::class,'listAjax'])->name('list.ajax');Route::get('create',[CapitalWithdrawalController::class,'create'])->name('create');Route::get('branches/{branch}/accounts',[CapitalWithdrawalController::class,'branchAccounts'])->whereNumber('branch')->name('branch-accounts');Route::post('/',[CapitalWithdrawalController::class,'store'])->name('store');Route::patch('{withdrawal}/post',[CapitalWithdrawalController::class,'post'])->whereNumber('withdrawal')->name('post');Route::patch('{withdrawal}/void',[CapitalWithdrawalController::class,'void'])->whereNumber('withdrawal')->name('void');Route::get('{withdrawal}',[CapitalWithdrawalController::class,'show'])->whereNumber('withdrawal')->name('show'); });
+    Route::prefix('finance/capital-withdrawals')->name('finance.capital-withdrawals.')->group(function () {
+        Route::get('/', [CapitalWithdrawalController::class, 'index'])->name('index');
+        Route::post('list', [CapitalWithdrawalController::class, 'listAjax'])->name('list.ajax');
+        Route::get('create', [CapitalWithdrawalController::class, 'create'])->name('create');
+        Route::get('branches/{branch}/accounts', [CapitalWithdrawalController::class, 'branchAccounts'])->whereNumber('branch')->name('branch-accounts');
+        Route::post('/', [CapitalWithdrawalController::class, 'store'])->name('store');
+        Route::patch('{withdrawal}/post', [CapitalWithdrawalController::class, 'post'])->whereNumber('withdrawal')->name('post');
+        Route::patch('{withdrawal}/void', [CapitalWithdrawalController::class, 'void'])->whereNumber('withdrawal')->name('void');
+        Route::get('{withdrawal}', [CapitalWithdrawalController::class, 'show'])->whereNumber('withdrawal')->name('show');
+    });
 
     Route::prefix('finance/loan-receipts')->name('finance.loan-receipts.')->group(function () {
         Route::get('/', [LoanReceiptController::class, 'index'])->name('index');
@@ -497,6 +519,15 @@ Route::middleware(['web', 'auth', 'perm', 'branchscope'])->group(function () {
         Route::patch('{loan}/post', [LoanReceiptController::class, 'post'])->whereNumber('loan')->name('post');
         Route::patch('{loan}/void', [LoanReceiptController::class, 'void'])->whereNumber('loan')->name('void');
         Route::get('{loan}', [LoanReceiptController::class, 'show'])->whereNumber('loan')->name('show');
+    });
+    Route::prefix('finance/loan-repayments')->name('finance.loan-repayments.')->group(function () {
+        Route::get('/', [LoanRepaymentController::class, 'index'])->name('index');
+        Route::post('list', [LoanRepaymentController::class, 'listAjax'])->name('list.ajax');
+        Route::get('create', [LoanRepaymentController::class, 'create'])->name('create');
+        Route::get('receipt/{receipt}/due', [LoanRepaymentController::class, 'due'])->whereNumber('receipt')->name('due');
+        Route::post('/', [LoanRepaymentController::class, 'store'])->name('store');
+        Route::patch('{repayment}/post', [LoanRepaymentController::class, 'post'])->whereNumber('repayment')->name('post');
+        Route::get('{repayment}', [LoanRepaymentController::class, 'show'])->whereNumber('repayment')->name('show');
     });
 
     Route::prefix('finance/journals')->name('finance.journals.')->group(function () {
@@ -514,6 +545,22 @@ Route::middleware(['web', 'auth', 'perm', 'branchscope'])->group(function () {
         Route::post('list', [AccountLedgerController::class, 'listAjax'])->name('list.ajax');
         Route::post('summary', [AccountLedgerController::class, 'summary'])->name('summary');
         Route::get('accounts/select2', [AccountLedgerController::class, 'accountSelect2'])->name('accounts.select2');
+    });
+    Route::prefix('finance/trial-balance')->name('finance.trial-balance.')->group(function () {
+        Route::get('/', [TrialBalanceController::class, 'index'])->name('index');
+        Route::post('list', [TrialBalanceController::class, 'listAjax'])->name('list.ajax');
+        Route::post('summary', [TrialBalanceController::class, 'summary'])->name('summary');
+    });
+    Route::prefix('finance/fiscal-year-closings')->name('finance.fiscal-year-closings.')->group(function () {
+        Route::get('/', [FiscalYearClosingController::class, 'index'])->name('index');
+        Route::post('list', [FiscalYearClosingController::class, 'listAjax'])->name('list.ajax');
+        Route::get('create', [FiscalYearClosingController::class, 'create'])->name('create');
+        Route::get('branches/{branch}/accounts', [FiscalYearClosingController::class, 'branchAccounts'])->whereNumber('branch')->name('branch-accounts');
+        Route::get('fiscal-years/{fiscalYear}/branches/{branch}/drawings/{drawingsAccount}/balance', [FiscalYearClosingController::class, 'balance'])->whereNumber(['fiscalYear', 'branch', 'drawingsAccount'])->name('balance');
+        Route::post('/', [FiscalYearClosingController::class, 'store'])->name('store');
+        Route::patch('{closing}/post', [FiscalYearClosingController::class, 'post'])->whereNumber('closing')->name('post');
+        Route::patch('{closing}/void', [FiscalYearClosingController::class, 'void'])->whereNumber('closing')->name('void');
+        Route::get('{closing}', [FiscalYearClosingController::class, 'show'])->whereNumber('closing')->name('show');
     });
 
     Route::prefix('purchase/payments')->name('purchase.payments.')->group(function () {

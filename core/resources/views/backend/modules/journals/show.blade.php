@@ -19,7 +19,7 @@
         <span class="badge text-sm fw-semibold {{ $journal->status->badgeClass() }} px-12 py-7 radius-4 text-white">{{ $journal->status->label() }}</span>
         @if($isApproved)<span class="badge bg-info-focus text-info-main px-12 py-7 radius-4">Approved · Ready to Post</span>@endif
         <x-backend.page-note title="Journal workflow" label="View workflow rules" align="start">
-          A balanced Draft must be approved before posting. Posted journals affect account balances and cannot be voided; create a reversal draft instead. Void is available only while a journal remains Draft.
+          A balanced Draft must be approved before posting. Posted journals affect account balances and require a reversal for correction. A source-generated journal cannot be voided separately from its posted business document.
         </x-backend.page-note>
       </div>
       <p class="text-muted m-0">Account-wise debit and credit details</p>
@@ -41,9 +41,11 @@
             </form>
           @endperm
         @endif
-        @perm('finance.journals.void', 'edit')
-          <button type="button" class="btn btn-outline-danger btn-sm px-14 py-8 radius-8 app-action-button" data-bs-toggle="modal" data-bs-target="#voidJournalModal"><iconify-icon icon="mdi:cancel"></iconify-icon><span>Void Draft</span></button>
-        @endperm
+        @if($canVoid)
+          @perm('finance.journals.void', 'edit')
+            <button type="button" class="btn btn-outline-danger btn-sm px-14 py-8 radius-8 app-action-button" data-bs-toggle="modal" data-bs-target="#voidJournalModal"><iconify-icon icon="mdi:cancel"></iconify-icon><span>Void Draft</span></button>
+          @endperm
+        @endif
       @elseif($isPosted)
         @if($journal->reversal)
           <a href="{{ route('finance.journals.show', $journal->reversal) }}" class="btn btn-outline-warning btn-sm px-14 py-8 radius-8 app-action-button"><iconify-icon icon="mdi:source-branch-sync"></iconify-icon><span>View Reversal</span></a>
@@ -140,7 +142,7 @@
     </div>
   </div>
 
-  @if($isDraft)
+  @if($canVoid)
     <div class="modal fade" id="voidJournalModal" tabindex="-1" aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered"><form method="POST" action="{{ route('finance.journals.void', $journal) }}" class="modal-content">
         @csrf @method('PATCH')

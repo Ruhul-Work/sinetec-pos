@@ -73,7 +73,7 @@ class CapitalWithdrawalController extends Controller
             return $request->expectsJson() ? response()->json(['message' => $e->getMessage(), 'msg' => $e->getMessage()], 422) : back()->withInput()->with('error', $e->getMessage());
         }
 
-return $request->expectsJson() ? response()->json(['success' => true, 'msg' => 'Capital withdrawal saved as Draft.', 'redirect_url' => route('finance.capital-withdrawals.show', $w)]) : redirect()->route('finance.capital-withdrawals.show', $w)->with('success', 'Capital withdrawal saved as Draft.');
+        return $request->expectsJson() ? response()->json(['success' => true, 'msg' => 'Capital withdrawal saved as Draft.', 'redirect_url' => route('finance.capital-withdrawals.show', $w)]) : redirect()->route('finance.capital-withdrawals.show', $w)->with('success', 'Capital withdrawal saved as Draft.');
     }
 
     public function show(int $withdrawal): View
@@ -92,7 +92,7 @@ return $request->expectsJson() ? response()->json(['success' => true, 'msg' => '
             return back()->with('error', $e->getMessage());
         }
 
-return redirect()->route('finance.capital-withdrawals.show', $w)->with('success', 'Capital withdrawal posted. A finance journal Draft is ready for accountant approval.');
+        return redirect()->route('finance.capital-withdrawals.show', $w)->with('success', 'Capital withdrawal posted. A finance journal Draft is ready for accountant approval.');
     }
 
     public function void(int $withdrawal, Request $request): RedirectResponse
@@ -104,7 +104,7 @@ return redirect()->route('finance.capital-withdrawals.show', $w)->with('success'
             return back()->withInput()->with('error', $e->getMessage());
         }
 
-return back()->with('success', 'Draft capital withdrawal voided.');
+        return back()->with('success', 'Draft capital withdrawal voided.');
     }
 
     private function validated(Request $r): array
@@ -134,6 +134,6 @@ return back()->with('success', 'Draft capital withdrawal voided.');
 
     private function drawingsAccounts(int $branch)
     {
-        return DB::table('branch_accounts as a')->join('accounts as x', 'x.id', '=', 'a.account_id')->join('account_types as t','t.id','=','x.account_type_id')->where('a.branch_id',$branch)->where('a.is_active',true)->where('x.is_active',true)->where('t.code','EQUITY')->orderBy('x.code')->get(['x.id', 'x.code', 'x.name']);
+        return DB::table('branch_accounts as a')->join('accounts as x', 'x.id', '=', 'a.account_id')->join('account_types as t', 't.id', '=', 'x.account_type_id')->where('a.branch_id', $branch)->where('a.is_active', true)->where('x.is_active', true)->where('t.code', 'EQUITY')->orderBy('x.code')->get(['x.id', 'x.code', 'x.name']);
     }
 }
