@@ -657,6 +657,104 @@ html[data-theme="dark"] .page-note__body code {
   vertical-align: middle;
 }
 
+/* ================================================================
+   Part BOM / Recipe form
+   Keeps page-level Select2 controls, line fields and actions on a
+   consistent compact baseline without altering theme source CSS.
+   ================================================================ */
+.part-bom-meta-grid .form-label {
+  margin-bottom: 0.375rem;
+}
+
+.part-bom-meta-grid .select2-container,
+.part-bom-lines-table .select2-container {
+  width: 100% !important;
+}
+
+.part-bom-meta-grid .select2-selection--single,
+.part-bom-lines-table .select2-selection--single {
+  min-height: 34px;
+  border-color: #d1d9e6;
+  border-radius: 0.5rem;
+}
+
+.part-bom-meta-grid .select2-selection__rendered,
+.part-bom-lines-table .select2-selection__rendered {
+  line-height: 32px !important;
+  padding-left: 0.75rem !important;
+  color: #344054;
+}
+
+.part-bom-meta-grid .select2-selection__arrow,
+.part-bom-lines-table .select2-selection__arrow {
+  height: 32px !important;
+}
+
+.part-bom-lines-table .form-control-sm {
+  min-height: 36px;
+  height: 36px;
+}
+
+.part-bom-lines-table .form-select-sm {
+  min-height: 36px;
+  height: auto;
+  padding-top: 0.375rem;
+  padding-bottom: 0.375rem;
+  line-height: 1.25;
+}
+
+.part-bom-lines-table > :not(caption) > * > * {
+  vertical-align: top;
+}
+
+.part-bom-lines-table td {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+
+.part-bom-lines-table .bom-line-control {
+  min-height: 54px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.part-bom-lines-table .bom-line-control--single {
+  padding-top: 0;
+}
+
+.part-bom-lines-table .bom-base-unit {
+  min-height: 18px;
+  line-height: 18px;
+}
+
+.part-bom-lines-table .bom-line-control > .select2-container {
+  margin-top: 5px;
+}
+
+.part-bom-lines-table .remove-bom-line {
+  margin-top: 0;
+}
+
+.part-bom-lines-table .bom-remove-cell {
+  /* Align the 32px remove control with the center of a component row. */
+  padding-top: 27px !important;
+  vertical-align: top !important;
+}
+
+.part-bom-lines-table .bom-remove-cell .remove-bom-line {
+  display: inline-flex !important;
+}
+
+.part-bom-index-actions .form-select {
+  flex: 0 0 118px;
+  width: 118px;
+}
+
+.part-bom-index-actions {
+  justify-content: flex-end;
+}
+
 .field-note .field-note__toggle {
   width: 18px;
   height: 18px;

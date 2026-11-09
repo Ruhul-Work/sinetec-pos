@@ -332,12 +332,12 @@ final class JournalDraftService
         ])->values()->all();
 
         $matches = (int) $existing->branch_id === $draft['branch_id']
-            && $existing->voucherType?->code === $draft['voucher_type_code']
-            && $existing->entry_date->toDateString() === $draft['entry_date']
-            && $existing->source_type === $draft['source_type']
-            && (int) $existing->source_id === $draft['source_id']
-            && $existing->posting_key === $draft['posting_key']
-            && $this->nullableText($existing->narration) === $draft['narration']
+        && $existing->voucherType?->code === $draft['voucher_type_code']
+        && $existing->entry_date->toDateString() === $draft['entry_date']
+        && $existing->source_type === $draft['source_type']
+        && (int) $existing->source_id === $draft['source_id']
+        && $existing->posting_key === $draft['posting_key']
+        && $this->nullableText($existing->narration) === $draft['narration']
             && $existingLines === $draft['lines'];
 
         if (! $matches) {

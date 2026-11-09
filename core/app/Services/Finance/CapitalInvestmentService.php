@@ -66,8 +66,16 @@ final class CapitalInvestmentService
                 sourceId: (int) $investment->id,
                 postingKey: 'journal:capital_investment:'.$investment->id,
                 lines: [
-                    new JournalLineData(accountId: (int) $investment->cash_bank_account_id, debit: (string) $investment->amount, memo: 'Investment received in Cash / Bank'),
-                    new JournalLineData(accountId: (int) $investment->capital_account_id, credit: (string) $investment->amount, memo: $this->typeLabel($investment->investment_type).' credited'),
+                    new JournalLineData(
+                        accountId: (int) $investment->cash_bank_account_id,
+                        debit: (string) $investment->amount,
+                        memo: 'Investment received in Cash / Bank',
+                    ),
+                    new JournalLineData(
+                        accountId: (int) $investment->capital_account_id,
+                        credit: (string) $investment->amount,
+                        memo: $this->typeLabel($investment->investment_type).' credited',
+                    ),
                 ],
                 narration: $this->typeLabel($investment->investment_type).' '.$investment->investment_no,
                 createdBy: $userId,
@@ -86,7 +94,10 @@ final class CapitalInvestmentService
                 return $investment;
             }
             if ($investment->status !== CapitalInvestmentStatus::Draft) {
-                throw new InvalidCapitalInvestmentException('Only a Draft investment can be voided. A posted investment must be corrected through a reversal in the next finance phase.');
+                throw new InvalidCapitalInvestmentException(
+                    'Only a Draft investment can be voided. '
+                    .'A posted investment must be corrected through a reversal in the next finance phase.',
+                );
             }
             $reason = $this->nullableText($reason, 1000);
             if ($reason === null) {
@@ -136,8 +147,21 @@ final class CapitalInvestmentService
     private function nextNumber(int $branchId, int $yearId, string $date): string
     {
         $timestamp = now();
-        DB::table('number_sequences')->insertOrIgnore(['key_name' => 'CAPITAL_INVESTMENT', 'branch_id' => $branchId, 'fiscal_year_id' => $yearId, 'current_number' => 0, 'created_at' => $timestamp, 'updated_at' => $timestamp]);
-        $sequence = DB::table('number_sequences')->where('key_name', 'CAPITAL_INVESTMENT')->where('branch_id', $branchId)->where('fiscal_year_id', $yearId)->lockForUpdate()->first();
+        DB::table('number_sequences')->insertOrIgnore([
+            'key_name' => 'CAPITAL_INVESTMENT',
+            'branch_id' => $branchId,
+            'fiscal_year_id' => $yearId,
+            'current_number' => 0,
+            'created_at' => $timestamp,
+            'updated_at' => $timestamp,
+        ]);
+
+        $sequence = DB::table('number_sequences')
+            ->where('key_name', 'CAPITAL_INVESTMENT')
+            ->where('branch_id', $branchId)
+            ->where('fiscal_year_id', $yearId)
+            ->lockForUpdate()
+            ->first();
         if (! $sequence) {
             throw new FinanceConfigurationException('Unable to prepare the capital investment number sequence.');
         }

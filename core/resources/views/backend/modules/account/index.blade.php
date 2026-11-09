@@ -1,12 +1,137 @@
 @extends('backend.layouts.master')
-@section('meta')<title>Chart of Accounts</title>@endsection
-@section('content')
-<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24"><div><div class="d-flex align-items-center gap-2"><h6 class="fw-semibold mb-0">Chart of Accounts</h6><x-backend.page-note title="Posted account balance" label="View balance rule" align="start">Balance includes only POSTED journals and POSTED account opening balances. Draft and void finance documents are excluded.</x-backend.page-note></div><p class="text-muted m-0">Company-wide account master with branch-dimensional balances</p></div></div>
-<div class="card basic-data-table"><div class="card-header d-flex align-items-center justify-content-between gap-3 flex-wrap"><h5 class="card-title mb-0">Accounts</h5><div class="actions-bar d-flex align-items-center gap-2 flex-wrap"><div class="search-set me-2"><div id="tableSearch" class="search-input"></div></div><ul class="table-top-head list-unstyled d-flex align-items-center gap-2 mb-0">@include('backend.include.buttons')</ul>@perm('accounts.store')<button class="btn btn-primary btn-sm px-12 py-8 radius-8 app-action-button AjaxModal" data-ajax-modal="{{ route('accounts.createModal') }}" data-size="lg" data-onsuccess="AccountsIndex.onSaved"><iconify-icon icon="ic:baseline-plus"></iconify-icon><span>Add Account</span></button>@endperm</div></div>
-<div class="card-body"><table class="table bordered-table table-scroll mb-0 AjaxDataTable" id="accountsTable" style="width:100%"><thead><tr><th>S.L</th><th>Code</th><th>Account</th><th>Type</th><th>Parent</th><th>Posted Balance</th><th>Status</th><th>Action</th></tr></thead><tbody></tbody></table></div></div>
+
+@section('meta')
+    <title>Chart of Accounts</title>
 @endsection
-@section('script')<script>
-var DATATABLE_URL=@json(route('accounts.list.ajax'));window.AccountsIndex={onSaved:function(){$('#accountsTable').DataTable().ajax.reload(null,false);}};window.ACCOUNT_BALANCE_URL=@json(route('accounts.balance',':id'));
-$(document).on('click','.btn-load-balance',function(){const id=$(this).data('account-id'),$target=$(`.account-balance[data-id="${id}"]`);$target.text('Loading...');$.get(window.ACCOUNT_BALANCE_URL.replace(':id',id),r=>$target.text(r.balance)).fail(()=>$target.text('ERR'));});
-$(document).on('click','.btn-account-del',function(e){e.preventDefault();const url=$(this).data('url');Swal.fire({icon:'warning',title:'Disable this account?',text:'Historical finance records will remain unchanged.',showCancelButton:true,confirmButtonText:'Yes, disable',confirmButtonColor:'#dc3545'}).then(r=>{if(!r.isConfirmed)return;$.ajax({type:'DELETE',url,headers:{'X-CSRF-TOKEN':@json(csrf_token())}}).done(x=>{$('#accountsTable').DataTable().ajax.reload(null,false);Swal.fire({icon:'success',title:x.message,timer:1200,showConfirmButton:false});}).fail(x=>Swal.fire({icon:'error',title:'Disable blocked',text:x.responseJSON?.message||'Could not disable account.'}));});});
-</script>@endsection
+
+@section('content')
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
+        <div>
+            <div class="d-flex align-items-center gap-2">
+                <h6 class="fw-semibold mb-0">Chart of Accounts</h6>
+                <x-backend.page-note title="Posted account balance" label="View balance rule" align="start">
+                    Balance includes only POSTED journals and POSTED account opening balances.
+                    Draft and void finance documents are excluded.
+                </x-backend.page-note>
+            </div>
+            <p class="text-muted m-0">Company-wide account master with branch-dimensional balances</p>
+        </div>
+    </div>
+
+    <div class="card basic-data-table">
+        <div class="card-header d-flex align-items-center justify-content-between gap-3 flex-wrap">
+            <h5 class="card-title mb-0">Accounts</h5>
+            <div class="actions-bar d-flex align-items-center gap-2 flex-wrap">
+                <div class="search-set me-2">
+                    <div id="tableSearch" class="search-input"></div>
+                </div>
+                <ul class="table-top-head list-unstyled d-flex align-items-center gap-2 mb-0">
+                    @include('backend.include.buttons')
+                </ul>
+                @perm('accounts.store')
+                    <button
+                        type="button"
+                        class="btn btn-primary btn-sm px-12 py-8 radius-8 app-action-button AjaxModal"
+                        data-ajax-modal="{{ route('accounts.createModal') }}"
+                        data-size="lg"
+                        data-onsuccess="AccountsIndex.onSaved"
+                    >
+                        <iconify-icon icon="ic:baseline-plus"></iconify-icon>
+                        <span>Add Account</span>
+                    </button>
+                @endperm
+            </div>
+        </div>
+
+        <div class="card-body">
+            <table
+                class="table bordered-table table-scroll mb-0 AjaxDataTable"
+                id="accountsTable"
+                style="width: 100%"
+            >
+                <thead>
+                    <tr>
+                        <th>S.L</th>
+                        <th>Code</th>
+                        <th>Account</th>
+                        <th>Type</th>
+                        <th>Parent</th>
+                        <th>Posted Balance</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+@endsection
+
+@section('script')
+    <script>
+        var DATATABLE_URL = @json(route('accounts.list.ajax'));
+
+        window.AccountsIndex = {
+            onSaved: function () {
+                $('#accountsTable').DataTable().ajax.reload(null, false);
+            },
+        };
+
+        window.ACCOUNT_BALANCE_URL = @json(route('accounts.balance', ':id'));
+
+        $(document).on('click', '.btn-load-balance', function () {
+            const accountId = $(this).data('account-id');
+            const balanceUrl = window.ACCOUNT_BALANCE_URL.replace(':id', accountId);
+            const $balance = $(`.account-balance[data-id="${accountId}"]`);
+
+            $balance.text('Loading...');
+
+            $.get(balanceUrl, function (response) {
+                $balance.text(response.balance);
+            }).fail(function () {
+                $balance.text('ERR');
+            });
+        });
+
+        $(document).on('click', '.btn-account-del', function (event) {
+            event.preventDefault();
+
+            const deleteUrl = $(this).data('url');
+
+            Swal.fire({
+                icon: 'warning',
+                title: 'Disable this account?',
+                text: 'Historical finance records will remain unchanged.',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, disable',
+                confirmButtonColor: '#dc3545',
+            }).then(function (result) {
+                if (!result.isConfirmed) {
+                    return;
+                }
+
+                $.ajax({
+                    type: 'DELETE',
+                    url: deleteUrl,
+                    headers: {
+                        'X-CSRF-TOKEN': @json(csrf_token()),
+                    },
+                }).done(function (response) {
+                    $('#accountsTable').DataTable().ajax.reload(null, false);
+                    Swal.fire({
+                        icon: 'success',
+                        title: response.message,
+                        timer: 1200,
+                        showConfirmButton: false,
+                    });
+                }).fail(function (xhr) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Disable blocked',
+                        text: xhr.responseJSON?.message || 'Could not disable account.',
+                    });
+                });
+            });
+        });
+    </script>
+@endsection

@@ -1,7 +1,7 @@
 # Electronics POS — Current Status and Next Actions
 
-**Status:** Purchasing and the Phase 1 operational Finance foundation—including controlled Fiscal Year Closing—are complete and audited for the next module. Part BOM/Production is the next implementation phase. Expense, sales accounting, Profit & Loss and Balance Sheet remain later Finance/reporting scope.
-**Updated:** 7 November 2026
+**Status:** Purchasing, the Phase 1 operational Finance foundation—including controlled Fiscal Year Closing—and Part BOM / Recipe setup are complete. Internal Part Production is the next implementation phase. Expense, sales accounting, Profit & Loss and Balance Sheet remain later Finance/reporting scope.
+**Updated:** 8 November 2026
 
 ## 1. Current result
 
@@ -138,7 +138,9 @@ Old permission data points to removed routes. Permissions must be created from t
 31. **Complete:** Add Loan Repayment against a posted received loan, with outstanding-due validation, Cash/Bank source control and a balanced Draft repayment journal.
 32. **Complete:** Add branch-scoped Trial Balance over Posted opening balances and Posted journals, with as-of date, debit/credit totals and balanced-status validation.
 33. **Complete:** Add controlled Fiscal Year Closing for Drawings-to-Capital adjustment at active fiscal-year end, with Posted-balance calculation, Draft/Prepared/Void controls and mandatory accountant journal approval/posting before next-year activation.
-34. **Next:** Move to Part BOM and Production.
+34. **Complete:** Refactor Finance routes, models, controllers, services and Blade screens to readable, developer-friendly code; remove compressed structural markup and add an automated Finance code-quality guard.
+35. **Complete:** Build Part BOM / Recipe Master for Make/Both Parts with Draft/Active version control, raw-material production-unit validation and base-quantity snapshot.
+36. **Next:** Build Internal Part Production Batch from the active Part BOM.
 
 ## 5. Implementation decision trace
 
@@ -185,6 +187,7 @@ Old permission data points to removed routes. Permissions must be created from t
 | 5 Nov 2026 | Withdrawal, transfer and loan repayment | Owner/Partner withdrawal uses a Drawings account; same-branch Cash/Bank transfer moves funds between two eligible liquid accounts; repayment is linked to one posted loan receipt and cannot exceed its outstanding principal. Each source document creates a balanced Draft Journal and only journal posting affects the ledger/book. | Cross-branch transfer requires future inter-branch clearing accounts. Interest, schedule/amortisation and unallocated repayments remain out of scope. |
 | 5 Nov 2026 | Trial Balance | Trial Balance is a read-only, branch-scoped/as-of-date report derived from only Posted opening balances and Posted journals. It provides debit/credit movement, closing Dr/Cr columns, total cards and an explicit balanced/not-balanced result. | Year-end Drawings-to-Capital closing will be a separate controlled workflow; the report does not create a duplicate balance table. |
 | 7 Nov 2026 | Fiscal Year Closing | One Fiscal Year Closing document handles one Drawings account to one Capital account for a branch. Amount is server-calculated from only Posted opening/journal movement at the active fiscal-year end; the prepared document creates a balanced Draft Journal: Debit Capital and Credit Drawings. | The Journal must be approved and posted before the next fiscal year can be activated. Profit/loss closing, retained earnings and statutory final accounts remain separate future scope. |
+| 8 Nov 2026 | Finance code quality | Finance routes, models, controllers, services and Blade screens use readable multiline structures, descriptive variables and reusable form/summary partials. Automated tests reject long source lines and minified structural Blade markup in Finance scope. | Apply the same readability gate to every new module before it is considered complete. |
 | 4 Nov 2026 | Cash/Bank account control & Book | `accounts.is_cash_bank_account` explicitly marks liquid Asset accounts. Starter Cash in Hand and Bank Account are marked automatically; the marker controls Supplier Payment eligibility and Cash/Bank Book selection. The Book is a read-only derived view over Posted opening and journal movement, with branch/account/date filters and a true running balance. | Owner investment, loan, withdrawal and transfer source documents remain next; they will create journals consumed by this Book. |
 
 When a decision changes, add a new dated row; do not overwrite the old decision without recording what superseded it and why.

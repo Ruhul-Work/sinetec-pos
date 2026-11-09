@@ -132,7 +132,11 @@ class CashBankTransferController extends Controller
             e($row->from_code.' — '.$row->from_name),
             e($row->to_code.' — '.$row->to_name),
             '<div class="text-end fw-semibold">'.number_format((float) $row->amount, 2).'</div>',
-            '<span class="badge '.($row->status === 'POSTED' ? 'bg-dark-success-gradient' : 'bg-dark-warning-gradient').' text-white">'.e(ucfirst(strtolower($row->status))).'</span>',
+            '<span class="badge '
+                .($row->status === 'POSTED'
+                    ? 'bg-dark-success-gradient'
+                    : 'bg-dark-warning-gradient')
+                .' text-white">'.e(ucfirst(strtolower($row->status))).'</span>',
         ])->all();
 
         return response()->json([

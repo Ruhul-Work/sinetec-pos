@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Services\Inventory;
 
 use App\Data\Inventory\StockPostingData;
@@ -19,16 +18,16 @@ final class StockAdjustmentService
     public const TYPES = ['GAIN', 'LOSS', 'DAMAGE', 'WASTAGE', 'CORRECTION'];
 
     private const DOMAINS = [
-        'raw_material' => [
-            'item_table' => 'raw_materials', 'item_column' => 'raw_material_id',
+        'raw_material'     => [
+            'item_table' => 'raw_materials', 'item_column'                => 'raw_material_id',
             'unit_table' => 'raw_material_units', 'adjustment_item_table' => 'raw_material_adjustment_items',
         ],
-        'part' => [
-            'item_table' => 'parts', 'item_column' => 'part_id',
+        'part'             => [
+            'item_table' => 'parts', 'item_column'                => 'part_id',
             'unit_table' => 'part_units', 'adjustment_item_table' => 'part_adjustment_items',
         ],
         'finished_product' => [
-            'item_table' => 'finished_products', 'item_column' => 'finished_product_id',
+            'item_table' => 'finished_products', 'item_column'                => 'finished_product_id',
             'unit_table' => 'finished_product_units', 'adjustment_item_table' => 'finished_product_adjustment_items',
         ],
     ];
@@ -46,20 +45,20 @@ final class StockAdjustmentService
     public function createDraft(array $header, array $lines, ?int $userId = null): StockAdjustment
     {
         return DB::transaction(function () use ($header, $lines, $userId) {
-            $warehouse = $this->warehouse((int) $header['warehouse_id']);
-            $type = $this->type((string) $header['adjustment_type']);
+            $warehouse       = $this->warehouse((int) $header['warehouse_id']);
+            $type            = $this->type((string) $header['adjustment_type']);
             $normalizedLines = $this->normalizeLines($lines, $type);
 
             $adjustment = StockAdjustment::query()->create([
-                'adjustment_no' => $this->nextNumber(),
-                'branch_id' => $warehouse->branch_id,
-                'warehouse_id' => $warehouse->id,
-                'adjustment_at' => $header['adjustment_at'],
+                'adjustment_no'   => $this->nextNumber(),
+                'branch_id'       => $warehouse->branch_id,
+                'warehouse_id'    => $warehouse->id,
+                'adjustment_at'   => $header['adjustment_at'],
                 'adjustment_type' => $type,
-                'status' => StockAdjustmentStatus::Draft,
-                'reason' => trim((string) $header['reason']),
-                'note' => $header['note'] ?? null,
-                'created_by' => $userId,
+                'status'          => StockAdjustmentStatus::Draft,
+                'reason'          => trim((string) $header['reason']),
+                'note'            => $header['note'] ?? null,
+                'created_by'      => $userId,
             ]);
 
             $this->insertLines($adjustment, $normalizedLines);
@@ -78,17 +77,17 @@ final class StockAdjustmentService
             $adjustment = $this->lock($adjustment);
             $this->assertStatus($adjustment, StockAdjustmentStatus::Draft, 'Only a draft stock adjustment can be edited.');
 
-            $warehouse = $this->warehouse((int) $header['warehouse_id']);
-            $type = $this->type((string) $header['adjustment_type']);
+            $warehouse       = $this->warehouse((int) $header['warehouse_id']);
+            $type            = $this->type((string) $header['adjustment_type']);
             $normalizedLines = $this->normalizeLines($lines, $type);
 
             $adjustment->update([
-                'branch_id' => $warehouse->branch_id,
-                'warehouse_id' => $warehouse->id,
-                'adjustment_at' => $header['adjustment_at'],
+                'branch_id'       => $warehouse->branch_id,
+                'warehouse_id'    => $warehouse->id,
+                'adjustment_at'   => $header['adjustment_at'],
                 'adjustment_type' => $type,
-                'reason' => trim((string) $header['reason']),
-                'note' => $header['note'] ?? null,
+                'reason'          => trim((string) $header['reason']),
+                'note'            => $header['note'] ?? null,
             ]);
 
             $this->deleteLines($adjustment);
@@ -111,7 +110,7 @@ final class StockAdjustmentService
             $this->assertHasLines($adjustment);
 
             $adjustment->update([
-                'status' => StockAdjustmentStatus::Approved,
+                'status'      => StockAdjustmentStatus::Approved,
                 'approved_by' => $userId,
                 'approved_at' => now(),
             ]);
@@ -135,11 +134,11 @@ final class StockAdjustmentService
                 throw new InvalidStockAdjustmentException('At least one stock adjustment line is required.');
             }
 
-            $warehouse = $this->warehouse((int) $adjustment->warehouse_id, true);
+            $warehouse    = $this->warehouse((int) $adjustment->warehouse_id, true);
             $movementType = $this->movementType((string) $adjustment->adjustment_type);
 
             foreach ($lines as [$domain, $line]) {
-                $config = self::DOMAINS[$domain->value];
+                $config    = self::DOMAINS[$domain->value];
                 $direction = $line->direction instanceof StockDirection
                     ? $line->direction
                     : StockDirection::from((string) $line->direction);
@@ -153,7 +152,7 @@ final class StockAdjustmentService
                     quantity: $line->base_quantity,
                     sourceType: 'stock_adjustment',
                     sourceId: (int) $adjustment->id,
-                    postingKey: "stock_adjustment:{$adjustment->id}:{$domain->value}:{$line->id}:".strtolower($direction->value),
+                    postingKey: "stock_adjustment:{$adjustment->id}:{$domain->value}:{$line->id}:" . strtolower($direction->value),
                     movementAt: $adjustment->adjustment_at,
                     unitCost: $line->unit_cost,
                     sourceItemId: (int) $line->id,
@@ -163,7 +162,7 @@ final class StockAdjustmentService
             }
 
             $adjustment->update([
-                'status' => StockAdjustmentStatus::Posted,
+                'status'    => StockAdjustmentStatus::Posted,
                 'posted_by' => $userId,
                 'posted_at' => now(),
             ]);
@@ -207,19 +206,19 @@ final class StockAdjustmentService
             throw new InvalidStockAdjustmentException('At least one stock adjustment line is required.');
         }
 
-        $seen = [];
+        $seen       = [];
         $normalized = [];
 
         foreach ($lines as $index => $line) {
             $domain = StockDomain::tryFrom((string) ($line['domain'] ?? ''));
             if (! $domain) {
-                throw new InvalidStockAdjustmentException('Line '.($index + 1).' has an invalid inventory type.');
+                throw new InvalidStockAdjustmentException('Line ' . ($index + 1) . ' has an invalid inventory type.');
             }
 
             $config = self::DOMAINS[$domain->value];
             $itemId = (int) ($line['item_id'] ?? 0);
             $unitId = (int) ($line['unit_id'] ?? 0);
-            $key = $domain->value.':'.$itemId;
+            $key    = $domain->value . ':' . $itemId;
 
             if (isset($seen[$key])) {
                 throw new InvalidStockAdjustmentException('The same inventory item cannot be entered more than once in one adjustment.');
@@ -230,13 +229,13 @@ final class StockAdjustmentService
                 ->where('id', $itemId)->whereNull('deleted_at')->where('is_active', true)
                 ->first(['id', 'base_unit_id']);
             if (! $item) {
-                throw new InvalidStockAdjustmentException('Line '.($index + 1).' contains an unavailable inventory item.');
+                throw new InvalidStockAdjustmentException('Line ' . ($index + 1) . ' contains an unavailable inventory item.');
             }
 
             $unitExists = DB::table('units')->where('id', $unitId)
                 ->whereNull('deleted_at')->where('is_active', true)->exists();
             if (! $unitExists) {
-                throw new InvalidStockAdjustmentException('Line '.($index + 1).' contains an unavailable unit.');
+                throw new InvalidStockAdjustmentException('Line ' . ($index + 1) . ' contains an unavailable unit.');
             }
 
             $factor = '1.000000';
@@ -245,12 +244,12 @@ final class StockAdjustmentService
                     ->where($config['item_column'], $itemId)->where('unit_id', $unitId)
                     ->value('conversion_to_base');
                 if ($factor === null) {
-                    throw new InvalidStockAdjustmentException('Line '.($index + 1).' uses a unit that is not mapped to the selected item.');
+                    throw new InvalidStockAdjustmentException('Line ' . ($index + 1) . ' uses a unit that is not mapped to the selected item.');
                 }
             }
 
-            $direction = $this->direction($type, $line['direction'] ?? null, $index);
-            $quantity = $this->decimal($line['quantity'] ?? '', 6, 14, false, 'quantity');
+            $direction    = $this->direction($type, $line['direction'] ?? null, $index);
+            $quantity     = $this->decimal($line['quantity'] ?? '', 6, 14, false, 'quantity');
             $baseQuantity = $this->decimal(
                 $this->multiplyDecimal($quantity, (string) $factor, 6), 6, 14, false, 'base quantity'
             );
@@ -259,14 +258,14 @@ final class StockAdjustmentService
                 : $this->decimal($line['unit_cost'], 4, 16, true, 'base-unit cost');
 
             $normalized[] = [
-                'domain' => $domain->value,
-                'item_id' => $itemId,
-                'unit_id' => $unitId,
-                'direction' => $direction->value,
-                'quantity' => $quantity,
+                'domain'        => $domain->value,
+                'item_id'       => $itemId,
+                'unit_id'       => $unitId,
+                'direction'     => $direction->value,
+                'quantity'      => $quantity,
                 'base_quantity' => $baseQuantity,
-                'unit_cost' => $unitCost,
-                'note' => filled($line['note'] ?? null) ? trim((string) $line['note']) : null,
+                'unit_cost'     => $unitCost,
+                'note'          => filled($line['note'] ?? null) ? trim((string) $line['note']) : null,
             ];
         }
 
@@ -276,10 +275,9 @@ final class StockAdjustmentService
     private function direction(string $type, mixed $requested, int $index): StockDirection
     {
         return match ($type) {
-            'GAIN' => StockDirection::In,
+            'GAIN'       => StockDirection::In,
             'LOSS', 'DAMAGE', 'WASTAGE' => StockDirection::Out,
-            'CORRECTION' => StockDirection::tryFrom((string) $requested)
-                ?? throw new InvalidStockAdjustmentException('Line '.($index + 1).' requires a valid IN or OUT direction.'),
+            'CORRECTION' => StockDirection::tryFrom((string) $requested) ?? throw new InvalidStockAdjustmentException('Line ' . ($index + 1) . ' requires a valid IN or OUT direction.'),
         };
     }
 
@@ -290,16 +288,16 @@ final class StockAdjustmentService
         foreach ($lines as $line) {
             $config = self::DOMAINS[$line['domain']];
             DB::table($config['adjustment_item_table'])->insert([
-                'stock_adjustment_id' => $adjustment->id,
+                'stock_adjustment_id'  => $adjustment->id,
                 $config['item_column'] => $line['item_id'],
-                'unit_id' => $line['unit_id'],
-                'direction' => $line['direction'],
-                'quantity' => $line['quantity'],
-                'base_quantity' => $line['base_quantity'],
-                'unit_cost' => $line['unit_cost'],
-                'note' => $line['note'],
-                'created_at' => $timestamp,
-                'updated_at' => $timestamp,
+                'unit_id'              => $line['unit_id'],
+                'direction'            => $line['direction'],
+                'quantity'             => $line['quantity'],
+                'base_quantity'        => $line['base_quantity'],
+                'unit_cost'            => $line['unit_cost'],
+                'note'                 => $line['note'],
+                'created_at'           => $timestamp,
+                'updated_at'           => $timestamp,
             ]);
         }
     }
@@ -324,16 +322,16 @@ final class StockAdjustmentService
     private function movementType(string $type): StockMovementType
     {
         return match ($type) {
-            'DAMAGE' => StockMovementType::Damage,
+            'DAMAGE'  => StockMovementType::Damage,
             'WASTAGE' => StockMovementType::Wastage,
-            default => StockMovementType::Adjustment,
+            default   => StockMovementType::Adjustment,
         };
     }
 
     private function warehouse(int $warehouseId, bool $lock = false): Warehouse
     {
         $query = Warehouse::query()->whereKey($warehouseId)->where('is_active', true)
-            ->whereHas('branch', fn ($branch) => $branch->where('is_active', true));
+            ->whereHas('branch', fn($branch) => $branch->where('is_active', true));
         if ($lock) {
             $query->lockForUpdate();
         }
@@ -383,8 +381,8 @@ final class StockAdjustmentService
     private function postingService(StockDomain $domain): StockPostingService
     {
         return match ($domain) {
-            StockDomain::RawMaterial => $this->rawMaterialStock,
-            StockDomain::Part => $this->partStock,
+            StockDomain::RawMaterial     => $this->rawMaterialStock,
+            StockDomain::Part            => $this->partStock,
             StockDomain::FinishedProduct => $this->finishedProductStock,
         };
     }
@@ -392,7 +390,7 @@ final class StockAdjustmentService
     private function nextNumber(): string
     {
         do {
-            $number = 'ADJ-'.now()->format('Ymd').'-'.Str::upper(Str::random(8));
+            $number = 'ADJ-' . now()->format('Ymd') . '-' . Str::upper(Str::random(8));
         } while (StockAdjustment::query()->where('adjustment_no', $number)->exists());
 
         return $number;
@@ -405,13 +403,13 @@ final class StockAdjustmentService
             throw new InvalidStockAdjustmentException("The {$field} must be a non-negative decimal number.");
         }
         [$integer, $fraction] = array_pad(explode('.', $raw, 2), 2, '');
-        $integer = ltrim($integer, '0') ?: '0';
-        $fraction = rtrim($fraction, '0');
+        $integer              = ltrim($integer, '0') ?: '0';
+        $fraction             = rtrim($fraction, '0');
         if (strlen($integer) > $maxIntegerDigits || strlen($fraction) > $scale) {
             throw new InvalidStockAdjustmentException("The {$field} exceeds the supported precision.");
         }
-        $normalized = $integer.'.'.str_pad($fraction, $scale, '0');
-        if (! $allowZero && $normalized === '0.'.str_repeat('0', $scale)) {
+        $normalized = $integer . '.' . str_pad($fraction, $scale, '0');
+        if (! $allowZero && $normalized === '0.' . str_repeat('0', $scale)) {
             throw new InvalidStockAdjustmentException("The {$field} must be greater than zero.");
         }
 
@@ -420,24 +418,24 @@ final class StockAdjustmentService
 
     private function multiplyDecimal(string $left, string $right, int $scale): string
     {
-        [$li, $lf] = array_pad(explode('.', $left, 2), 2, '');
-        [$ri, $rf] = array_pad(explode('.', $right, 2), 2, '');
-        $product = $this->multiplyIntegers(ltrim($li.$lf, '0') ?: '0', ltrim($ri.$rf, '0') ?: '0');
+        [$li, $lf]   = array_pad(explode('.', $left, 2), 2, '');
+        [$ri, $rf]   = array_pad(explode('.', $right, 2), 2, '');
+        $product     = $this->multiplyIntegers(ltrim($li . $lf, '0') ?: '0', ltrim($ri . $rf, '0') ?: '0');
         $sourceScale = strlen($lf) + strlen($rf);
         if ($sourceScale > $scale) {
-            $cut = $sourceScale - $scale;
+            $cut        = $sourceScale - $scale;
             $roundDigit = strlen($product) > $cut ? (int) $product[strlen($product) - $cut] : 0;
-            $product = strlen($product) > $cut ? substr($product, 0, -$cut) : '0';
+            $product    = strlen($product) > $cut ? substr($product, 0, -$cut) : '0';
             if ($roundDigit >= 5) {
                 $product = $this->addOne($product);
             }
             $sourceScale = $scale;
         }
-        $product = str_pad($product, $sourceScale + 1, '0', STR_PAD_LEFT);
-        $integer = $sourceScale === 0 ? $product : substr($product, 0, -$sourceScale);
+        $product  = str_pad($product, $sourceScale + 1, '0', STR_PAD_LEFT);
+        $integer  = $sourceScale === 0 ? $product : substr($product, 0, -$sourceScale);
         $fraction = $sourceScale === 0 ? '' : substr($product, -$sourceScale);
 
-        return (ltrim($integer, '0') ?: '0').'.'.str_pad($fraction, $scale, '0');
+        return (ltrim($integer, '0') ?: '0') . '.' . str_pad($fraction, $scale, '0');
     }
 
     private function multiplyIntegers(string $left, string $right): string
@@ -445,9 +443,9 @@ final class StockAdjustmentService
         $result = array_fill(0, strlen($left) + strlen($right), 0);
         for ($i = strlen($left) - 1; $i >= 0; $i--) {
             for ($j = strlen($right) - 1; $j >= 0; $j--) {
-                $position = $i + $j + 1;
-                $sum = $result[$position] + ((int) $left[$i] * (int) $right[$j]);
-                $result[$position] = $sum % 10;
+                $position               = $i + $j + 1;
+                $sum                    = $result[$position] + ((int) $left[$i] * (int) $right[$j]);
+                $result[$position]      = $sum % 10;
                 $result[$position - 1] += intdiv($sum, 10);
             }
         }
@@ -458,13 +456,13 @@ final class StockAdjustmentService
     private function addOne(string $number): string
     {
         $digits = str_split($number);
-        $carry = 1;
+        $carry  = 1;
         for ($i = count($digits) - 1; $i >= 0 && $carry; $i--) {
-            $sum = (int) $digits[$i] + $carry;
+            $sum        = (int) $digits[$i] + $carry;
             $digits[$i] = (string) ($sum % 10);
-            $carry = intdiv($sum, 10);
+            $carry      = intdiv($sum, 10);
         }
 
-        return ($carry ? '1' : '').implode('', $digits);
+        return ($carry ? '1' : '') . implode('', $digits);
     }
 }

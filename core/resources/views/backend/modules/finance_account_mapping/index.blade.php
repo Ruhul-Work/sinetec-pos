@@ -38,7 +38,12 @@
                     </li>
                 @endif
                 <li class="nav-item">
-                    <button class="nav-link finance-mapping-tab {{ $canManageCompany ? '' : 'active' }}" data-bs-toggle="tab" data-bs-target="#branchMapping" type="button">
+                    <button
+                        class="nav-link finance-mapping-tab {{ $canManageCompany ? '' : 'active' }}"
+                        data-bs-toggle="tab"
+                        data-bs-target="#branchMapping"
+                        type="button"
+                    >
                         <iconify-icon icon="mdi:source-branch"></iconify-icon>
                         Branch Override
                     </button>
@@ -74,7 +79,12 @@
                                             <select name="mappings[{{ $definition['key'] }}]" class="form-control js-s2">
                                                 <option value="">Not configured</option>
                                                 @foreach ($companyAccounts[$definition['key']] as $account)
-                                                    <option value="{{ $account['id'] }}" @selected((int) $selected === $account['id'])>{{ $account['text'] }}</option>
+                                                    <option
+                                                        value="{{ $account['id'] }}"
+                                                        @selected((int) $selected === $account['id'])
+                                                    >
+                                                        {{ $account['text'] }}
+                                                    </option>
                                                 @endforeach
                                             </select>
                                         </div>
@@ -99,7 +109,10 @@
                             <select id="financeMappingBranch" class="form-control js-s2">
                                 <option value="">Select branch</option>
                                 @foreach ($branches as $branch)
-                                    <option value="{{ $branch->id }}">{{ $branch->name }} ({{ $branch->code }}) &middot; {{ $branchStatuses[$branch->id] }}/{{ $requiredCount }} effective</option>
+                                    <option value="{{ $branch->id }}">
+                                        {{ $branch->name }} ({{ $branch->code }})
+                                        &middot; {{ $branchStatuses[$branch->id] }}/{{ $requiredCount }} effective
+                                    </option>
                                 @endforeach
                             </select>
                         </div>
@@ -131,7 +144,11 @@
                                         <small class="js-effective-account text-muted">No effective account</small>
                                     </div>
                                     <div class="finance-mapping-select">
-                                        <select name="mappings[{{ $definition['key'] }}]" class="form-control js-branch-mapping" data-key="{{ $definition['key'] }}">
+                                        <select
+                                            name="mappings[{{ $definition['key'] }}]"
+                                            class="form-control js-branch-mapping"
+                                            data-key="{{ $definition['key'] }}"
+                                        >
                                             <option value="">Use company default</option>
                                         </select>
                                     </div>

@@ -4,11 +4,11 @@ use App\Http\Controllers\backend\AccountController;
 use App\Http\Controllers\backend\AccountLedgerController;
 use App\Http\Controllers\backend\AccountTypeController;
 use App\Http\Controllers\backend\BranchAccountController;
-use App\Http\Controllers\backend\CashBankBookController;
-use App\Http\Controllers\backend\CashBankTransferController;
+use App\Http\Controllers\backend\BrandController;
 use App\Http\Controllers\backend\CapitalInvestmentController;
 use App\Http\Controllers\backend\CapitalWithdrawalController;
-use App\Http\Controllers\backend\BrandController;
+use App\Http\Controllers\backend\CashBankBookController;
+use App\Http\Controllers\backend\CashBankTransferController;
 use App\Http\Controllers\backend\CompanySettingController;
 use App\Http\Controllers\backend\CountryController;
 use App\Http\Controllers\backend\CustomerController;
@@ -17,16 +17,17 @@ use App\Http\Controllers\backend\DivisionController;
 use App\Http\Controllers\backend\DomainUnitMappingController;
 use App\Http\Controllers\backend\FinanceAccountMappingController;
 use App\Http\Controllers\backend\FinanceOpeningBalanceController;
-use App\Http\Controllers\backend\FiscalYearClosingController;
 use App\Http\Controllers\backend\FinishedProductCategoryController;
 use App\Http\Controllers\backend\FinishedProductController;
 use App\Http\Controllers\backend\FinishedProductReorderLevelController;
+use App\Http\Controllers\backend\FiscalYearClosingController;
 use App\Http\Controllers\backend\FiscalYearController;
 use App\Http\Controllers\backend\JournalController;
 use App\Http\Controllers\backend\LoanReceiptController;
 use App\Http\Controllers\backend\LoanRepaymentController;
 use App\Http\Controllers\backend\OpeningStockController;
 use App\Http\Controllers\backend\PartCategoryController;
+use App\Http\Controllers\backend\PartBomController;
 use App\Http\Controllers\backend\PartController;
 use App\Http\Controllers\backend\PartReorderLevelController;
 use App\Http\Controllers\backend\PartSupplierController;
@@ -45,8 +46,8 @@ use App\Http\Controllers\backend\StockLedgerController;
 use App\Http\Controllers\backend\StockTransferController;
 use App\Http\Controllers\backend\SupplierController;
 use App\Http\Controllers\backend\SupplierDueSummaryController;
-use App\Http\Controllers\backend\UnitController;
 use App\Http\Controllers\backend\TrialBalanceController;
+use App\Http\Controllers\backend\UnitController;
 use App\Http\Controllers\backend\UnitConversionController;
 use App\Http\Controllers\backend\UpazilaController;
 use App\Http\Controllers\backend\WarehouseController;
@@ -227,17 +228,20 @@ Route::middleware(['web', 'auth', 'perm', 'branchscope'])->group(function () {
             Route::delete('{mapping}', 'destroy')->whereNumber('mapping')->name('destroy');
         });
 
-        Route::prefix('raw-material-reorder-levels')->name('raw-material-reorder-levels.')->controller(RawMaterialReorderLevelController::class)->group(function () {
-            Route::get('/', 'index')->name('index');
-            Route::post('list', 'listAjax')->name('list.ajax');
-            Route::get('create-modal', 'createModal')->name('createModal');
-            Route::post('/', 'store')->name('store');
-            Route::get('items/select2', 'itemSelect2')->name('items.select2');
-            Route::get('warehouses/select2', 'warehouseSelect2')->name('warehouses.select2');
-            Route::get('{level}/edit-modal', 'editModal')->whereNumber('level')->name('editModal');
-            Route::put('{level}', 'update')->whereNumber('level')->name('update');
-            Route::delete('{level}', 'destroy')->whereNumber('level')->name('destroy');
-        });
+        Route::prefix('raw-material-reorder-levels')
+            ->name('raw-material-reorder-levels.')
+            ->controller(RawMaterialReorderLevelController::class)
+            ->group(function () {
+                Route::get('/', 'index')->name('index');
+                Route::post('list', 'listAjax')->name('list.ajax');
+                Route::get('create-modal', 'createModal')->name('createModal');
+                Route::post('/', 'store')->name('store');
+                Route::get('items/select2', 'itemSelect2')->name('items.select2');
+                Route::get('warehouses/select2', 'warehouseSelect2')->name('warehouses.select2');
+                Route::get('{level}/edit-modal', 'editModal')->whereNumber('level')->name('editModal');
+                Route::put('{level}', 'update')->whereNumber('level')->name('update');
+                Route::delete('{level}', 'destroy')->whereNumber('level')->name('destroy');
+            });
 
         Route::prefix('part-reorder-levels')->name('part-reorder-levels.')->controller(PartReorderLevelController::class)->group(function () {
             Route::get('/', 'index')->name('index');
@@ -251,17 +255,20 @@ Route::middleware(['web', 'auth', 'perm', 'branchscope'])->group(function () {
             Route::delete('{level}', 'destroy')->whereNumber('level')->name('destroy');
         });
 
-        Route::prefix('finished-product-reorder-levels')->name('finished-product-reorder-levels.')->controller(FinishedProductReorderLevelController::class)->group(function () {
-            Route::get('/', 'index')->name('index');
-            Route::post('list', 'listAjax')->name('list.ajax');
-            Route::get('create-modal', 'createModal')->name('createModal');
-            Route::post('/', 'store')->name('store');
-            Route::get('items/select2', 'itemSelect2')->name('items.select2');
-            Route::get('warehouses/select2', 'warehouseSelect2')->name('warehouses.select2');
-            Route::get('{level}/edit-modal', 'editModal')->whereNumber('level')->name('editModal');
-            Route::put('{level}', 'update')->whereNumber('level')->name('update');
-            Route::delete('{level}', 'destroy')->whereNumber('level')->name('destroy');
-        });
+        Route::prefix('finished-product-reorder-levels')
+            ->name('finished-product-reorder-levels.')
+            ->controller(FinishedProductReorderLevelController::class)
+            ->group(function () {
+                Route::get('/', 'index')->name('index');
+                Route::post('list', 'listAjax')->name('list.ajax');
+                Route::get('create-modal', 'createModal')->name('createModal');
+                Route::post('/', 'store')->name('store');
+                Route::get('items/select2', 'itemSelect2')->name('items.select2');
+                Route::get('warehouses/select2', 'warehouseSelect2')->name('warehouses.select2');
+                Route::get('{level}/edit-modal', 'editModal')->whereNumber('level')->name('editModal');
+                Route::put('{level}', 'update')->whereNumber('level')->name('update');
+                Route::delete('{level}', 'destroy')->whereNumber('level')->name('destroy');
+            });
 
         Route::prefix('opening-stocks')->name('opening-stocks.')->controller(OpeningStockController::class)->group(function () {
             Route::get('/', 'index')->name('index');
@@ -367,6 +374,21 @@ Route::middleware(['web', 'auth', 'perm', 'branchscope'])->group(function () {
         });
     });
 
+    Route::prefix('production/part-boms')->name('production.part-boms.')->controller(PartBomController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('list', 'listAjax')->name('list.ajax');
+        Route::get('create', 'create')->name('create');
+        Route::post('/', 'store')->name('store');
+        Route::get('parts/select2', 'partSelect2')->name('parts.select2');
+        Route::get('raw-materials/{rawMaterial}/units', 'rawMaterialUnits')->whereNumber('rawMaterial')->name('raw-material-units');
+        Route::get('{partBom}', 'show')->whereNumber('partBom')->name('show');
+        Route::get('{partBom}/edit', 'edit')->whereNumber('partBom')->name('edit');
+        Route::put('{partBom}', 'update')->whereNumber('partBom')->name('update');
+        Route::patch('{partBom}/activate', 'activate')->whereNumber('partBom')->name('activate');
+        Route::patch('{partBom}/deactivate', 'deactivate')->whereNumber('partBom')->name('deactivate');
+        Route::delete('{partBom}', 'destroy')->whereNumber('partBom')->name('destroy');
+    });
+
     Route::prefix('supplier')->name('supplier.')->group(function () {
         Route::get('suppliers', [SupplierController::class, 'index'])->name('index');
         Route::get('suppliers/create', [SupplierController::class, 'create'])->name('create');
@@ -459,7 +481,9 @@ Route::middleware(['web', 'auth', 'perm', 'branchscope'])->group(function () {
         Route::get('/', [FinanceAccountMappingController::class, 'index'])->name('index');
         Route::get('branches/{branch}', [FinanceAccountMappingController::class, 'branchData'])->whereNumber('branch')->name('branch-data');
         Route::put('company', [FinanceAccountMappingController::class, 'updateCompany'])->name('company.update');
-        Route::put('branches/{branch}', [FinanceAccountMappingController::class, 'updateBranch'])->whereNumber('branch')->name('branch.update');
+        Route::put('branches/{branch}', [FinanceAccountMappingController::class, 'updateBranch'])
+            ->whereNumber('branch')
+            ->name('branch.update');
     });
 
     Route::prefix('finance/opening-balances')->name('finance.opening-balances.')->group(function () {
@@ -467,10 +491,18 @@ Route::middleware(['web', 'auth', 'perm', 'branchscope'])->group(function () {
         Route::post('list', [FinanceOpeningBalanceController::class, 'listAjax'])->name('list.ajax');
         Route::get('create', [FinanceOpeningBalanceController::class, 'create'])->name('create');
         Route::post('/', [FinanceOpeningBalanceController::class, 'store'])->name('store');
-        Route::get('fiscal-years/{fiscalYear}/branches/{branch}', [FinanceOpeningBalanceController::class, 'show'])->whereNumber(['fiscalYear', 'branch'])->name('show');
-        Route::get('fiscal-years/{fiscalYear}/branches/{branch}/edit', [FinanceOpeningBalanceController::class, 'edit'])->whereNumber(['fiscalYear', 'branch'])->name('edit');
-        Route::put('fiscal-years/{fiscalYear}/branches/{branch}', [FinanceOpeningBalanceController::class, 'update'])->whereNumber(['fiscalYear', 'branch'])->name('update');
-        Route::patch('fiscal-years/{fiscalYear}/branches/{branch}/post', [FinanceOpeningBalanceController::class, 'post'])->whereNumber(['fiscalYear', 'branch'])->name('post');
+        Route::get('fiscal-years/{fiscalYear}/branches/{branch}', [FinanceOpeningBalanceController::class, 'show'])
+            ->whereNumber(['fiscalYear', 'branch'])
+            ->name('show');
+        Route::get('fiscal-years/{fiscalYear}/branches/{branch}/edit', [FinanceOpeningBalanceController::class, 'edit'])
+            ->whereNumber(['fiscalYear', 'branch'])
+            ->name('edit');
+        Route::put('fiscal-years/{fiscalYear}/branches/{branch}', [FinanceOpeningBalanceController::class, 'update'])
+            ->whereNumber(['fiscalYear', 'branch'])
+            ->name('update');
+        Route::patch('fiscal-years/{fiscalYear}/branches/{branch}/post', [FinanceOpeningBalanceController::class, 'post'])
+            ->whereNumber(['fiscalYear', 'branch'])
+            ->name('post');
     });
 
     Route::prefix('finance/cash-bank-book')->name('finance.cash-bank-book.')->group(function () {
@@ -483,7 +515,9 @@ Route::middleware(['web', 'auth', 'perm', 'branchscope'])->group(function () {
         Route::get('/', [CashBankTransferController::class, 'index'])->name('index');
         Route::post('list', [CashBankTransferController::class, 'listAjax'])->name('list.ajax');
         Route::get('create', [CashBankTransferController::class, 'create'])->name('create');
-        Route::get('branches/{branch}/accounts', [CashBankTransferController::class, 'accountsForBranch'])->whereNumber('branch')->name('branch-accounts');
+        Route::get('branches/{branch}/accounts', [CashBankTransferController::class, 'accountsForBranch'])
+            ->whereNumber('branch')
+            ->name('branch-accounts');
         Route::post('/', [CashBankTransferController::class, 'store'])->name('store');
         Route::patch('{transfer}/post', [CashBankTransferController::class, 'post'])->whereNumber('transfer')->name('post');
         Route::get('{transfer}', [CashBankTransferController::class, 'show'])->whereNumber('transfer')->name('show');
@@ -493,7 +527,9 @@ Route::middleware(['web', 'auth', 'perm', 'branchscope'])->group(function () {
         Route::get('/', [CapitalInvestmentController::class, 'index'])->name('index');
         Route::post('list', [CapitalInvestmentController::class, 'listAjax'])->name('list.ajax');
         Route::get('create', [CapitalInvestmentController::class, 'create'])->name('create');
-        Route::get('branches/{branch}/accounts', [CapitalInvestmentController::class, 'branchAccounts'])->whereNumber('branch')->name('branch-accounts');
+        Route::get('branches/{branch}/accounts', [CapitalInvestmentController::class, 'branchAccounts'])
+            ->whereNumber('branch')
+            ->name('branch-accounts');
         Route::post('/', [CapitalInvestmentController::class, 'store'])->name('store');
         Route::patch('{investment}/post', [CapitalInvestmentController::class, 'post'])->whereNumber('investment')->name('post');
         Route::patch('{investment}/void', [CapitalInvestmentController::class, 'void'])->whereNumber('investment')->name('void');
@@ -503,7 +539,9 @@ Route::middleware(['web', 'auth', 'perm', 'branchscope'])->group(function () {
         Route::get('/', [CapitalWithdrawalController::class, 'index'])->name('index');
         Route::post('list', [CapitalWithdrawalController::class, 'listAjax'])->name('list.ajax');
         Route::get('create', [CapitalWithdrawalController::class, 'create'])->name('create');
-        Route::get('branches/{branch}/accounts', [CapitalWithdrawalController::class, 'branchAccounts'])->whereNumber('branch')->name('branch-accounts');
+        Route::get('branches/{branch}/accounts', [CapitalWithdrawalController::class, 'branchAccounts'])
+            ->whereNumber('branch')
+            ->name('branch-accounts');
         Route::post('/', [CapitalWithdrawalController::class, 'store'])->name('store');
         Route::patch('{withdrawal}/post', [CapitalWithdrawalController::class, 'post'])->whereNumber('withdrawal')->name('post');
         Route::patch('{withdrawal}/void', [CapitalWithdrawalController::class, 'void'])->whereNumber('withdrawal')->name('void');
@@ -514,7 +552,9 @@ Route::middleware(['web', 'auth', 'perm', 'branchscope'])->group(function () {
         Route::get('/', [LoanReceiptController::class, 'index'])->name('index');
         Route::post('list', [LoanReceiptController::class, 'listAjax'])->name('list.ajax');
         Route::get('create', [LoanReceiptController::class, 'create'])->name('create');
-        Route::get('branches/{branch}/accounts', [LoanReceiptController::class, 'branchAccounts'])->whereNumber('branch')->name('branch-accounts');
+        Route::get('branches/{branch}/accounts', [LoanReceiptController::class, 'branchAccounts'])
+            ->whereNumber('branch')
+            ->name('branch-accounts');
         Route::post('/', [LoanReceiptController::class, 'store'])->name('store');
         Route::patch('{loan}/post', [LoanReceiptController::class, 'post'])->whereNumber('loan')->name('post');
         Route::patch('{loan}/void', [LoanReceiptController::class, 'void'])->whereNumber('loan')->name('void');
@@ -555,8 +595,15 @@ Route::middleware(['web', 'auth', 'perm', 'branchscope'])->group(function () {
         Route::get('/', [FiscalYearClosingController::class, 'index'])->name('index');
         Route::post('list', [FiscalYearClosingController::class, 'listAjax'])->name('list.ajax');
         Route::get('create', [FiscalYearClosingController::class, 'create'])->name('create');
-        Route::get('branches/{branch}/accounts', [FiscalYearClosingController::class, 'branchAccounts'])->whereNumber('branch')->name('branch-accounts');
-        Route::get('fiscal-years/{fiscalYear}/branches/{branch}/drawings/{drawingsAccount}/balance', [FiscalYearClosingController::class, 'balance'])->whereNumber(['fiscalYear', 'branch', 'drawingsAccount'])->name('balance');
+        Route::get('branches/{branch}/accounts', [FiscalYearClosingController::class, 'branchAccounts'])
+            ->whereNumber('branch')
+            ->name('branch-accounts');
+        Route::get(
+            'fiscal-years/{fiscalYear}/branches/{branch}/drawings/{drawingsAccount}/balance',
+            [FiscalYearClosingController::class, 'balance'],
+        )
+            ->whereNumber(['fiscalYear', 'branch', 'drawingsAccount'])
+            ->name('balance');
         Route::post('/', [FiscalYearClosingController::class, 'store'])->name('store');
         Route::patch('{closing}/post', [FiscalYearClosingController::class, 'post'])->whereNumber('closing')->name('post');
         Route::patch('{closing}/void', [FiscalYearClosingController::class, 'void'])->whereNumber('closing')->name('void');

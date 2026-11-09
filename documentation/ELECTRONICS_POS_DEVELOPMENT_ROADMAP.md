@@ -1,11 +1,13 @@
 # Electronics POS — Development Roadmap
 
-**Status:** Active implementation roadmap; database baseline complete  
-**Version:** 1.0  
-**Updated:** 10 October 2026
+**Status:** Active implementation roadmap; Purchasing, inventory core, operational Finance foundation and Part BOM / Recipe setup complete; Internal Part Production is next
+**Version:** 1.2
+**Updated:** 8 November 2026
 **Based on:** Project Plan v1.0 and Physical Database Design v2.1
 
 > **Decision override:** Any later reference in this document to a unified `inventory_item`, `inventory_movement`, or `inventory_balance` means the corresponding separate Raw Material, Part, and Finished Product masters/ledgers/balances. The unified-table proposal is cancelled.
+
+> **Current delivery position:** Phases 0-3 are complete. The purchase-related Finance foundation and accountant workflow from Phase 6 were completed early so Purchasing can operate with controlled Draft Journals. Phase 4 is in progress: Part BOM / Recipe setup is complete and Internal Part Production is next. Assembly, Sales, monthly reporting and supply planning are not yet implemented.
 
 ## 1. Roadmap objective
 
@@ -21,6 +23,8 @@
 4. **Legacy retail product core আলাদা থাকবে।** নতুন manufacturing core-এ separate `raw_materials`, `parts`, and `finished_products` ব্যবহার হবে; নতুন flow legacy `products`/product-bound stock ledger-এ যুক্ত হবে না।
 5. **ছোট usable release।** প্রতিটি phase শেষে বাস্তব user দিয়ে test করা যাবে; সব module একসঙ্গে শেষ হওয়ার অপেক্ষা নয়।
 6. **Finance draft, not blind posting।** Business event থেকে draft journal তৈরি হবে; finance team review করে post/void করবে।
+7. **Readable code is a delivery gate.** নতুন বা refactored controller, service, model, route এবং Blade code compact/minified structural style-এ লেখা যাবে না. দায়িত্বভিত্তিক ছোট method, meaningful name, explicit validation/guard, predictable error path এবং testable transaction flow বাধ্যতামূলক।
+8. **Safe change path.** Existing migrated schema পরিবর্তনে forward migration ব্যবহার হবে; posted stock/finance document edit/delete নয়, controlled reversal/correction হবে।
 
 ## 3. Existing panel reuse boundary
 
@@ -78,18 +82,18 @@ Receipt      Adjustment      Production   Stock Count
 
 ## 5. Phase-by-phase development plan
 
-### Phase 0 — Final preparation and technical baseline
+### Phase 0 — Final preparation and technical baseline — Complete
 
 **Start here.** No manufacturing feature should be coded before this phase is complete.
 
 | Work item | Existing panel connection | Output |
 | --- | --- | --- |
-| Approve final table dictionary and naming | Documentation / DB | Signed-off migration scope |
-| Confirm legacy-data policy | Existing POS DB | List of retained masters and excluded old transactions |
-| Review migration order and fresh-database install | Laravel migrations | Reproducible empty DB setup |
-| Add module permission list | Existing RBAC | Permission keys for inventory, purchase, BOM, production, rate, planning, reports |
-| Decide finance account mapping | Existing accounts/vouchers | Approved mapping for purchase, inventory, COGS, sales, production expense, wastage |
-| Prepare seed/master import sheet | Existing branch/unit/supplier/customer data | Clean import template |
+| **Complete:** Approve final table dictionary and naming | Documentation / DB | Signed-off migration scope |
+| **Complete:** Confirm legacy-data policy | Existing POS DB | List of retained masters and excluded old transactions |
+| **Complete:** Review migration order and fresh-database install | Laravel migrations | Reproducible empty DB setup |
+| **Complete:** Add module permission list | Existing RBAC | Permission keys for inventory, purchase, BOM, production, rate, planning, reports |
+| **Complete (Purchase):** Decide finance account mapping | Existing accounts/vouchers | Purchase inventory/payable/tax/discount mapping; production/sales mapping remains a later event-specific design item |
+| **Complete:** Prepare clean foundation-data import order | Existing branch/unit/supplier/customer data | Controlled master-data setup sequence |
 
 **Exit criteria**
 
@@ -98,14 +102,14 @@ Receipt      Adjustment      Production   Stock Count
 - Finance owner confirms draft-journal account mapping or explicitly defers a mapping.
 - Roles/permissions for new routes are agreed.
 
-### Phase 1 — Administration, master data and warehouse foundation
+### Phase 1 — Administration, master data and warehouse foundation — Complete
 
 **Why first:** Every later document needs item, unit, branch and warehouse references.
 
 | Build / adapt | Reuse or new | Depends on | Connects to |
 | --- | --- | --- | --- |
-| New module permissions and menu groups | Reuse RBAC | Phase 0 | All future modules |
-| Branch/warehouse type update | Adapt `branches`, `warehouses` | Phase 0 | Inventory, purchase, production, sales |
+| **Complete:** New module permissions and menu groups | Reuse RBAC | Phase 0 | All future modules |
+| **Complete:** Branch/warehouse foundation | Adapt `branches`, `warehouses` | Phase 0 | Inventory, purchase, production, sales |
 | **Complete:** Units and universal unit conversions | Adapt `units`; add `unit_conversions` CRUD | Phase 0 | All inventory masters and item-specific unit mappings |
 | **Complete:** Domain categories | New raw-material, part and finished-product categories | None | Masters and reports |
 | **Complete:** Raw-material master | New `raw_materials`; identity/classification only | Units, category, brand | Purchase, part production, assembly |
@@ -113,7 +117,7 @@ Receipt      Adjustment      Production   Stock Count
 | **Complete:** Finished-product master | New `finished_products` | Units, category, brand | Product assembly, POS/wholesale |
 | **Complete:** Domain unit mappings | New per-domain unit mapping | Units + domain master | Purchase, BOM, production, sale |
 | **Complete:** Material/part supplier setup | New typed supplier mappings with separate routes/RBAC | Supplier + raw material/part | Purchase, supply planning |
-| Supplier/customer/brand cleanup | Retain/adapt existing masters | Phase 0 | Purchase/sales |
+| **Complete:** Supplier/customer/brand retained master foundation | Retain/adapt existing masters | Phase 0 | Purchase/sales |
 | **Complete:** Reorder-level setup | Three domain-specific tables with separate routes/RBAC | Item + warehouse | Low-stock/planning |
 
 **Screen flow**
@@ -127,7 +131,7 @@ Receipt      Adjustment      Production   Stock Count
 3. Verify a part with `BOTH` is one part record, not two records.
 4. Verify each active warehouse has correct type and branch relation.
 
-### Phase 2 — Inventory core, opening stock, transfer and adjustment
+### Phase 2 — Inventory core, opening stock, transfer and adjustment — Complete (CSV import and Physical Count deferred)
 
 **Why before purchase/production/sales:** This phase establishes the single source of stock truth.
 
@@ -159,17 +163,17 @@ Receipt      Adjustment      Production   Stock Count
 3. Post adjustment with reason and approval; verify ledger history is unchanged except new adjustment row.
 4. Simulate repeated request; verify duplicate stock movement is not created.
 
-### Phase 3 — Purchasing and supplier receipt
+### Phase 3 — Purchasing and supplier receipt — Complete
 
 **Why now:** Purchase becomes the first normal operational source of material/part stock.
 
 | Build / adapt | Reuse or new | Depends on | Connects to |
 | --- | --- | --- | --- |
 | **Complete:** Optional purchase order | New mixed raw-material/part header-line workflow | Active supplier, purchasable item, purchase unit, warehouse; supplier mapping is optional metadata | Purchase receipt |
-| Purchase receipt | New/adapt | Inventory posting service | Stock IN, finance draft, price history |
-| Purchase return | New/adapt | Receipt + inventory | Stock OUT, finance draft |
-| Purchase payment / supplier due | Reuse after finance review | Receipt + accounts | Finance |
-| Purchase price history | New report/query | Receipt lines | Rate-sheet decision support |
+| **Complete:** Purchase receipt | New/adapt | Inventory posting service | Stock IN, finance draft, price history |
+| **Complete:** Purchase return | New/adapt | Receipt + inventory | Stock OUT, finance draft |
+| **Complete:** Purchase payment / supplier due | Rebuilt after finance review | Receipt + accounts | Finance |
+| **Complete:** Purchase price history | New report/query | Receipt lines | Rate-sheet decision support |
 
 **Screen flow**
 
@@ -189,19 +193,19 @@ Receipt      Adjustment      Production   Stock Count
 3. Verify received quantity, inventory ledger, balance and draft journal.
 4. Return a posted receipt line with valid available quantity.
 
-### Phase 4 — BOM, internal part manufacture and finished-product assembly
+### Phase 4 — BOM, internal part manufacture and finished-product assembly — In progress
 
 **Why after purchase:** BOM/production requires reliable available component stock.
 
 | Build / adapt | Reuse or new | Depends on | Connects to |
 | --- | --- | --- | --- |
-| BOM header/version | New | Finished item + component item | Production, planning |
-| BOM component lines | New | Item unit conversion | Material calculation |
-| Production batch | New | BOM + source/output warehouse | Inventory, QC, finance |
-| Actual consumption | New | Inventory service | Component stock OUT |
-| Production expense allocation | New/adapt expenses | Expense category + batch | Batch cost + finance |
-| Basic QC / reject record | New fields/workflow | Production batch | Wastage reports |
-| Production completion | New action | Consumption + QC | Output stock IN + finance draft |
+| **Complete:** Part BOM header/version | New | Make/Both Part + output unit | Production, planning |
+| **Complete:** Part BOM component lines | New | Raw Material + production unit mapping | Material calculation |
+| Next: Part Production batch | New | Active BOM + source/output warehouse | Inventory, QC, finance |
+| Pending: Actual consumption | New | Inventory service | Component stock OUT |
+| Pending: Production expense allocation | New/adapt expenses | Expense category + batch | Batch cost + finance |
+| Pending: Basic QC / reject record | New fields/workflow | Production batch | Wastage reports |
+| Pending: Production completion | New action | Consumption + QC | Output stock IN + finance draft |
 
 **Screen flow**
 
@@ -222,7 +226,7 @@ Receipt      Adjustment      Production   Stock Count
 4. Verify insufficient component stock blocks completion.
 5. Verify reject/wastage is visible in production history and cost report.
 
-### Phase 5 — Finished-product sales, POS, wholesale and returns
+### Phase 5 — Finished-product sales, POS, wholesale and returns — Pending
 
 **Why after production:** Sales must read the new finished-good stock rather than legacy product stock.
 
@@ -250,17 +254,17 @@ Receipt      Adjustment      Production   Stock Count
 3. Create wholesale invoice with due amount.
 4. Return a finished item; verify return warehouse/condition and stock movement.
 
-### Phase 6 — Finance automation and reconciliation
+### Phase 6 — Finance automation and reconciliation — Partially complete
 
 **Why after core documents:** Journal automation can only be tested correctly against real document posting.
 
 | Build / adapt | Reuse or new | Depends on | Connects to |
 | --- | --- | --- | --- |
-| Journal draft generator | Adapt/verify existing journal foundation | Purchase, production, sale, expense | Finance |
-| Journal review/post/void screen | Adapt/new | Journal entries/lines | Accountant workflow |
-| Event-account mapping | New configuration or documented service map | Accounts | Automation rules |
-| Payable/receivable summaries | Adapt existing reports | Purchase/sale/payment | Finance reports |
-| Stock vs accounting reconciliation | New report | Ledger + journal | Month-end control |
+| **Complete:** Journal draft generator | Rebuilt and verified | Purchase, production, sale, expense | Finance |
+| **Complete:** Journal review/post/void/reversal screen | Rebuilt | Journal entries/lines | Accountant workflow |
+| **Complete (Purchase):** Event-account mapping | Company default + branch override mapping | Accounts | Purchase automation rules |
+| **Complete (Supplier):** Payable summary | New supplier due summary | Purchase/payment | Finance reports |
+| Pending: Receivable summary, sales mapping and stock/accounting reconciliation | New report/service | Sales + production documents | Month-end control |
 
 **Initial automated draft events**
 
@@ -280,7 +284,7 @@ Receipt      Adjustment      Production   Stock Count
 - Void does not silently alter original document/stock; it follows approved correction flow.
 - Reconciliation highlights any posted stock document lacking a draft journal.
 
-### Phase 7 — Monthly rate sheet, reports, print and supply planning
+### Phase 7 — Monthly rate sheet, reports, print and supply planning — Pending
 
 **Why after transactions:** These features depend on trustworthy purchase, production, stock and sales history.
 
@@ -307,7 +311,7 @@ Receipt      Adjustment      Production   Stock Count
 4. Demand plan expands finished-good demand through active BOM and subtracts available stock/safety level.
 5. Closed period blocks rate edit until authorised reopen.
 
-### Phase 8 — Hardening, data migration, training and go-live
+### Phase 8 — Hardening, data migration, training and go-live — Pending
 
 | Work item | Output |
 | --- | --- |
@@ -365,7 +369,7 @@ Receipt      Adjustment      Production   Stock Count
 | Accountant | Approves account mapping, journal draft, posting/void and reconciliation rules. |
 | Development team | Implements, migrates, tests permissions and maintains rollback plan. |
 
-## 9. Current gate before Phase 1 development
+## 9. Current implementation gate
 
 1. Load and verify the retained foundation data listed in Current Status.
 2. Seed the clean core permission catalogue; do not copy legacy permission mappings.
@@ -406,7 +410,9 @@ Receipt      Adjustment      Production   Stock Count
 37. **Complete:** Build branch-scoped Trial Balance from Posted opening balances and Posted journal lines, with as-of date filter, debit/credit totals, closing Dr/Cr positions and explicit balanced status.
 38. **Complete:** Build controlled Fiscal Year Closing for a branch Drawings-to-Capital adjustment. It server-calculates the Posted balance at the active fiscal-year end, creates a reviewable balanced Closing Journal Draft and blocks next-year activation until that Journal is posted.
 39. **Complete:** Finance hardening audit—fix All Branches report filtering, enforce Loan Repayment branch isolation, preserve exact Cash/Bank transfer decimals, protect source-generated journals from detached voids, and block fiscal-year switching while Draft journals remain.
-40. **Next implementation:** Move to Part BOM and Production.
+40. **Complete:** Finance code-quality pass—refactor compressed routes, models, controllers, services and Blade markup; introduce reusable view partials and an automated readability guard for the complete Finance scope.
+41. **Complete:** Build Part BOM / Recipe Master for Make/Both Parts with versioning, Draft/Active control, raw-material production-unit validation, base-quantity snapshot and one-active-version policy.
+42. **Next implementation:** Build Internal Part Production Batch using the active Part BOM.
 
 Finance account mapping, the generic Draft Journal engine and the authorised accountant workflow are complete. Purchase integration creates reviewable drafts; only approved, successfully revalidated journals can be posted.
 

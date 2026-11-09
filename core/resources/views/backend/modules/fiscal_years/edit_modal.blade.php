@@ -15,13 +15,25 @@
 
       <div class="col-md-6 mb-20">
         <label class="form-label text-sm mb-8">Start Date <span class="text-danger">*</span></label>
-        <input type="date" name="start_date" class="form-control radius-8" value="{{ $fiscalYear->start_date ? $fiscalYear->start_date->format('Y-m-d') : '' }}" required>
+        <input
+          type="date"
+          name="start_date"
+          class="form-control radius-8"
+          value="{{ $fiscalYear->start_date?->format('Y-m-d') }}"
+          required
+        >
         <div class="invalid-feedback d-block start_date-error" style="display:none"></div>
       </div>
 
       <div class="col-md-6 mb-20">
         <label class="form-label text-sm mb-8">End Date <span class="text-danger">*</span></label>
-        <input type="date" name="end_date" class="form-control radius-8" value="{{ $fiscalYear->end_date ? $fiscalYear->end_date->format('Y-m-d') : '' }}" required>
+        <input
+          type="date"
+          name="end_date"
+          class="form-control radius-8"
+          value="{{ $fiscalYear->end_date?->format('Y-m-d') }}"
+          required
+        >
         <div class="invalid-feedback d-block end_date-error" style="display:none"></div>
       </div>
 

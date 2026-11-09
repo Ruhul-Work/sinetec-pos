@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Services\Purchase;
 
 use App\Data\Inventory\StockPostingData;
@@ -23,7 +22,7 @@ final class PurchaseReceiptService
 {
     private const DOMAINS = [
         'raw_material' => ['item_table' => 'raw_materials', 'item_column' => 'raw_material_id', 'unit_table' => 'raw_material_units'],
-        'part' => ['item_table' => 'parts', 'item_column' => 'part_id', 'unit_table' => 'part_units'],
+        'part'         => ['item_table' => 'parts', 'item_column' => 'part_id', 'unit_table' => 'part_units'],
     ];
 
     public function __construct(
@@ -37,21 +36,21 @@ final class PurchaseReceiptService
     {
         return DB::transaction(function () use ($header, $lines, $userId) {
             [$supplier, $warehouse, $order] = $this->foundation($header);
-            [$normalizedLines, $totals] = $this->normalize($lines, $header, $order);
+            [$normalizedLines, $totals]     = $this->normalize($lines, $header, $order);
 
             $receipt = PurchaseReceipt::query()->create([
-                'receipt_no' => $this->nextNumber(),
-                'purchase_order_id' => $order?->id,
-                'branch_id' => $warehouse->branch_id,
-                'supplier_id' => $supplier->id,
-                'warehouse_id' => $warehouse->id,
-                'receipt_date' => $header['receipt_date'],
-                'supplier_invoice_no' => $header['supplier_invoice_no'] ?? null,
+                'receipt_no'            => $this->nextNumber(),
+                'purchase_order_id'     => $order?->id,
+                'branch_id'             => $warehouse->branch_id,
+                'supplier_id'           => $supplier->id,
+                'warehouse_id'          => $warehouse->id,
+                'receipt_date'          => $header['receipt_date'],
+                'supplier_invoice_no'   => $header['supplier_invoice_no'] ?? null,
                 'supplier_invoice_path' => $header['supplier_invoice_path'] ?? null,
-                'status' => PurchaseReceiptStatus::Draft,
+                'status'                => PurchaseReceiptStatus::Draft,
                 ...$totals,
-                'note' => $header['note'] ?? null,
-                'created_by' => $userId,
+                'note'                  => $header['note'] ?? null,
+                'created_by'            => $userId,
             ]);
 
             $this->insertLines($receipt, $normalizedLines);
@@ -73,15 +72,15 @@ final class PurchaseReceiptService
             [$normalizedLines, $totals] = $this->normalize($lines, $header, $order);
 
             $receipt->update([
-                'purchase_order_id' => $order?->id,
-                'branch_id' => $warehouse->branch_id,
-                'supplier_id' => $supplier->id,
-                'warehouse_id' => $warehouse->id,
-                'receipt_date' => $header['receipt_date'],
-                'supplier_invoice_no' => $header['supplier_invoice_no'] ?? null,
+                'purchase_order_id'     => $order?->id,
+                'branch_id'             => $warehouse->branch_id,
+                'supplier_id'           => $supplier->id,
+                'warehouse_id'          => $warehouse->id,
+                'receipt_date'          => $header['receipt_date'],
+                'supplier_invoice_no'   => $header['supplier_invoice_no'] ?? null,
                 'supplier_invoice_path' => $header['supplier_invoice_path'] ?? $receipt->supplier_invoice_path,
                 ...$totals,
-                'note' => $header['note'] ?? null,
+                'note'                  => $header['note'] ?? null,
             ]);
             $receipt->items()->delete();
             $this->insertLines($receipt, $normalizedLines);
@@ -104,7 +103,7 @@ final class PurchaseReceiptService
             if ($items->isEmpty()) {
                 throw new InvalidPurchaseReceiptException('At least one receipt line is required before posting.');
             }
-            $postedAt = now();
+            $postedAt   = now();
             $movementAt = $receipt->receipt_date->setTime(
                 $postedAt->hour,
                 $postedAt->minute,
@@ -148,12 +147,12 @@ final class PurchaseReceiptService
                     quantity: $item->base_quantity,
                     sourceType: 'purchase_receipt',
                     sourceId: (int) $receipt->id,
-                    postingKey: 'purchase_receipt:'.$receipt->id.':item:'.$item->id,
+                    postingKey: 'purchase_receipt:' . $receipt->id . ':item:' . $item->id,
                     movementAt: $movementAt,
                     unitCost: $this->divideDecimal($item->unit_rate, $item->conversion_to_base, 4),
                     sourceItemId: (int) $item->id,
                     note: $receipt->supplier_invoice_no
-                        ? 'Supplier invoice: '.$receipt->supplier_invoice_no
+                        ? 'Supplier invoice: ' . $receipt->supplier_invoice_no
                         : ($receipt->supplier_invoice_path ? 'Supplier invoice attached' : null),
                     postedBy: $userId,
                 );
@@ -170,7 +169,7 @@ final class PurchaseReceiptService
             $this->purchaseJournal->createReceiptDraft($receipt, $userId);
 
             $receipt->update([
-                'status' => PurchaseReceiptStatus::Posted,
+                'status'    => PurchaseReceiptStatus::Posted,
                 'posted_by' => $userId,
                 'posted_at' => $postedAt,
             ]);
@@ -191,9 +190,9 @@ final class PurchaseReceiptService
     /** @param array<string, mixed> $header @return array{Supplier, Warehouse, PurchaseOrder|null} */
     private function foundation(array $header): array
     {
-        $supplier = Supplier::query()->whereKey((int) $header['supplier_id'])->where('is_active', true)->first();
+        $supplier  = Supplier::query()->whereKey((int) $header['supplier_id'])->where('is_active', true)->first();
         $warehouse = Warehouse::query()->whereKey((int) $header['warehouse_id'])->where('is_active', true)
-            ->whereHas('branch', fn ($query) => $query->where('is_active', true))->first();
+            ->whereHas('branch', fn($query) => $query->where('is_active', true))->first();
         if (! $supplier || ! $warehouse) {
             throw new InvalidPurchaseReceiptException('The selected supplier or warehouse is unavailable.');
         }
@@ -219,19 +218,19 @@ final class PurchaseReceiptService
             throw new InvalidPurchaseReceiptException('At least one receipt line is required.');
         }
         $normalized = [];
-        $seen = [];
-        $subtotal = '0.0000';
+        $seen       = [];
+        $subtotal   = '0.0000';
 
         foreach ($lines as $index => $line) {
             $domain = (string) ($line['domain'] ?? '');
             if (! isset(self::DOMAINS[$domain])) {
-                throw new InvalidPurchaseReceiptException('Line '.($index + 1).' has an invalid inventory type.');
+                throw new InvalidPurchaseReceiptException('Line ' . ($index + 1) . ' has an invalid inventory type.');
             }
-            $config = self::DOMAINS[$domain];
-            $itemId = (int) ($line['item_id'] ?? 0);
-            $unitId = (int) ($line['unit_id'] ?? 0);
+            $config      = self::DOMAINS[$domain];
+            $itemId      = (int) ($line['item_id'] ?? 0);
+            $unitId      = (int) ($line['unit_id'] ?? 0);
             $orderItemId = ! empty($line['purchase_order_item_id']) ? (int) $line['purchase_order_item_id'] : null;
-            $key = $order ? 'po:'.$orderItemId : $domain.':'.$itemId;
+            $key         = $order ? 'po:' . $orderItemId : $domain . ':' . $itemId;
             if (isset($seen[$key])) {
                 throw new InvalidPurchaseReceiptException('The same inventory item cannot be entered more than once.');
             }
@@ -243,7 +242,7 @@ final class PurchaseReceiptService
             }
             $inventoryItem = $itemQuery->first(['id', 'base_unit_id']);
             if (! $inventoryItem) {
-                throw new InvalidPurchaseReceiptException('Line '.($index + 1).' contains an unavailable item.');
+                throw new InvalidPurchaseReceiptException('Line ' . ($index + 1) . ' contains an unavailable item.');
             }
 
             $factor = '1.000000';
@@ -251,37 +250,37 @@ final class PurchaseReceiptService
                 $factor = DB::table($config['unit_table'])->where($config['item_column'], $itemId)->where('unit_id', $unitId)
                     ->whereIn('usage_type', ['PURCHASE', 'ALL'])->value('conversion_to_base');
                 if ($factor === null) {
-                    throw new InvalidPurchaseReceiptException('Line '.($index + 1).' uses a unit not approved for purchase.');
+                    throw new InvalidPurchaseReceiptException('Line ' . ($index + 1) . ' uses a unit not approved for purchase.');
                 }
             }
 
             if ($order) {
                 $orderItem = PurchaseOrderItem::query()->whereKey($orderItemId)->where('purchase_order_id', $order->id)->first();
                 if (! $orderItem) {
-                    throw new InvalidPurchaseReceiptException('Line '.($index + 1).' is not part of the selected purchase order.');
+                    throw new InvalidPurchaseReceiptException('Line ' . ($index + 1) . ' is not part of the selected purchase order.');
                 }
                 if ((int) ($orderItem->raw_material_id ?: $orderItem->part_id) !== $itemId || ($orderItem->raw_material_id !== null) !== ($domain === 'raw_material')) {
-                    throw new InvalidPurchaseReceiptException('Line '.($index + 1).' does not match its purchase order item.');
+                    throw new InvalidPurchaseReceiptException('Line ' . ($index + 1) . ' does not match its purchase order item.');
                 }
             } elseif ($orderItemId !== null) {
                 throw new InvalidPurchaseReceiptException('A direct receipt cannot contain a purchase order line reference.');
             }
 
-            $quantity = $this->decimal($line['quantity'] ?? '', 6, 14, false, 'quantity');
+            $quantity     = $this->decimal($line['quantity'] ?? '', 6, 14, false, 'quantity');
             $baseQuantity = $this->decimal($this->multiplyDecimal($quantity, (string) $factor, 6), 6, 14, false, 'base quantity');
             if ($order && $this->compareDecimal($baseQuantity, $this->subtractDecimal($orderItem->base_quantity, $orderItem->received_base_quantity, 6), 6) > 0) {
-                throw new InvalidPurchaseReceiptException('Line '.($index + 1).' exceeds the currently pending order quantity.');
+                throw new InvalidPurchaseReceiptException('Line ' . ($index + 1) . ' exceeds the currently pending order quantity.');
             }
-            $unitRate = $this->decimal($line['unit_rate'] ?? '', 4, 16, false, 'unit rate');
-            $lineTotal = $this->multiplyDecimal($quantity, $unitRate, 4);
-            $subtotal = $this->addDecimal($subtotal, $lineTotal, 4);
+            $unitRate     = $this->decimal($line['unit_rate'] ?? '', 4, 16, false, 'unit rate');
+            $lineTotal    = $this->multiplyDecimal($quantity, $unitRate, 4);
+            $subtotal     = $this->addDecimal($subtotal, $lineTotal, 4);
             $normalized[] = [
                 'purchase_order_item_id' => $orderItemId,
-                'raw_material_id' => $domain === 'raw_material' ? $itemId : null,
-                'part_id' => $domain === 'part' ? $itemId : null,
-                'unit_id' => $unitId, 'conversion_to_base' => $factor,
-                'quantity' => $quantity, 'base_quantity' => $baseQuantity,
-                'unit_rate' => $unitRate, 'line_total' => $lineTotal,
+                'raw_material_id'        => $domain === 'raw_material' ? $itemId : null,
+                'part_id'                => $domain === 'part' ? $itemId : null,
+                'unit_id'                => $unitId, 'conversion_to_base' => $factor,
+                'quantity'               => $quantity, 'base_quantity'    => $baseQuantity,
+                'unit_rate'              => $unitRate, 'line_total'       => $lineTotal,
             ];
         }
 
@@ -299,16 +298,16 @@ final class PurchaseReceiptService
         if ($this->compareDecimal($discount, $subtotal, 4) > 0) {
             throw new InvalidPurchaseReceiptException('Discount cannot be greater than the subtotal.');
         }
-        $tax = $this->decimal($header['tax'] ?? 0, 4, 16, true, 'tax');
+        $tax   = $this->decimal($header['tax'] ?? 0, 4, 16, true, 'tax');
         $total = $this->addDecimal($this->subtractDecimal($subtotal, $discount, 4), $tax, 4);
 
         return [$normalized, [
-            'subtotal' => $subtotal,
-            'discount_type' => $discountType,
+            'subtotal'       => $subtotal,
+            'discount_type'  => $discountType,
             'discount_value' => $discountValue,
-            'discount' => $discount,
-            'tax' => $tax,
-            'total' => $total,
+            'discount'       => $discount,
+            'tax'            => $tax,
+            'total'          => $total,
         ]];
     }
 
@@ -322,8 +321,7 @@ final class PurchaseReceiptService
 
     private function lock(PurchaseReceipt $receipt): PurchaseReceipt
     {
-        return PurchaseReceipt::query()->whereKey($receipt->id)->lockForUpdate()->first()
-            ?? throw new InvalidPurchaseReceiptException('The purchase receipt does not exist.');
+        return PurchaseReceipt::query()->whereKey($receipt->id)->lockForUpdate()->first() ?? throw new InvalidPurchaseReceiptException('The purchase receipt does not exist.');
     }
 
     private function assertDraft(PurchaseReceipt $receipt): void
@@ -341,7 +339,7 @@ final class PurchaseReceiptService
     private function nextNumber(): string
     {
         do {
-            $number = 'PR-'.now()->format('Ymd').'-'.Str::upper(Str::random(8));
+            $number = 'PR-' . now()->format('Ymd') . '-' . Str::upper(Str::random(8));
         } while (PurchaseReceipt::query()->where('receipt_no', $number)->exists());
 
         return $number;
@@ -354,13 +352,13 @@ final class PurchaseReceiptService
             throw new InvalidPurchaseReceiptException("The {$field} must be a non-negative decimal number.");
         }
         [$integer, $fraction] = array_pad(explode('.', $raw, 2), 2, '');
-        $integer = ltrim($integer, '0') ?: '0';
-        $fraction = rtrim($fraction, '0');
+        $integer              = ltrim($integer, '0') ?: '0';
+        $fraction             = rtrim($fraction, '0');
         if (strlen($integer) > $maxIntegerDigits || strlen($fraction) > $scale) {
             throw new InvalidPurchaseReceiptException("The {$field} exceeds the supported precision.");
         }
-        $normalized = $integer.'.'.str_pad($fraction, $scale, '0');
-        if (! $allowZero && $normalized === '0.'.str_repeat('0', $scale)) {
+        $normalized = $integer . '.' . str_pad($fraction, $scale, '0');
+        if (! $allowZero && $normalized === '0.' . str_repeat('0', $scale)) {
             throw new InvalidPurchaseReceiptException("The {$field} must be greater than zero.");
         }
 
@@ -369,14 +367,14 @@ final class PurchaseReceiptService
 
     private function multiplyDecimal(string $left, string $right, int $scale): string
     {
-        [$li, $lf] = array_pad(explode('.', $left, 2), 2, '');
-        [$ri, $rf] = array_pad(explode('.', $right, 2), 2, '');
-        $product = $this->multiplyIntegers(ltrim($li.$lf, '0') ?: '0', ltrim($ri.$rf, '0') ?: '0');
+        [$li, $lf]   = array_pad(explode('.', $left, 2), 2, '');
+        [$ri, $rf]   = array_pad(explode('.', $right, 2), 2, '');
+        $product     = $this->multiplyIntegers(ltrim($li . $lf, '0') ?: '0', ltrim($ri . $rf, '0') ?: '0');
         $sourceScale = strlen($lf) + strlen($rf);
         if ($sourceScale > $scale) {
-            $cut = $sourceScale - $scale;
+            $cut        = $sourceScale - $scale;
             $roundDigit = strlen($product) > $cut ? (int) $product[strlen($product) - $cut] : 0;
-            $product = strlen($product) > $cut ? substr($product, 0, -$cut) : '0';
+            $product    = strlen($product) > $cut ? substr($product, 0, -$cut) : '0';
             if ($roundDigit >= 5) {
                 $product = $this->addIntegers($product, '1');
             }
@@ -388,10 +386,10 @@ final class PurchaseReceiptService
 
     private function divideDecimal(string $left, string $right, int $scale): string
     {
-        $left = $this->decimal($left, 4, 16, true, 'unit rate');
-        $right = $this->decimal($right, 6, 14, false, 'conversion factor');
-        $numerator = (ltrim($this->digits($left, 4), '0') ?: '0').str_repeat('0', 6 - 4 + $scale);
-        $denominator = ltrim($this->digits($right, 6), '0') ?: '0';
+        $left                   = $this->decimal($left, 4, 16, true, 'unit rate');
+        $right                  = $this->decimal($right, 6, 14, false, 'conversion factor');
+        $numerator              = (ltrim($this->digits($left, 4), '0') ?: '0') . str_repeat('0', 6 - 4 + $scale);
+        $denominator            = ltrim($this->digits($right, 6), '0') ?: '0';
         [$quotient, $remainder] = $this->divideIntegers($numerator, $denominator);
         if ($this->compareIntegers($this->multiplyIntegers($remainder, '2'), $denominator) >= 0) {
             $quotient = $this->addIntegers($quotient, '1');
@@ -419,22 +417,22 @@ final class PurchaseReceiptService
     {
         [$i, $f] = array_pad(explode('.', $decimal, 2), 2, '');
 
-        return (ltrim($i, '0') ?: '0').substr(str_pad($f, $scale, '0'), 0, $scale);
+        return (ltrim($i, '0') ?: '0') . substr(str_pad($f, $scale, '0'), 0, $scale);
     }
 
     private function integerToDecimal(string $digits, int $sourceScale, int $targetScale): string
     {
         $digits = ltrim($digits, '0') ?: '0';
         $digits = str_pad($digits, $sourceScale + 1, '0', STR_PAD_LEFT);
-        $i = $sourceScale === 0 ? $digits : substr($digits, 0, -$sourceScale);
-        $f = $sourceScale === 0 ? '' : substr($digits, -$sourceScale);
+        $i      = $sourceScale === 0 ? $digits : substr($digits, 0, -$sourceScale);
+        $f      = $sourceScale === 0 ? '' : substr($digits, -$sourceScale);
 
-        return (ltrim($i, '0') ?: '0').'.'.str_pad($f, $targetScale, '0');
+        return (ltrim($i, '0') ?: '0') . '.' . str_pad($f, $targetScale, '0');
     }
 
     private function compareIntegers(string $left, string $right): int
     {
-        $left = ltrim($left, '0') ?: '0';
+        $left  = ltrim($left, '0') ?: '0';
         $right = ltrim($right, '0') ?: '0';
 
         return strlen($left) <=> strlen($right) ?: strcmp($left, $right);
@@ -442,12 +440,12 @@ final class PurchaseReceiptService
 
     private function addIntegers(string $left, string $right): string
     {
-        $carry = 0;
+        $carry  = 0;
         $result = '';
         for ($i = strlen($left) - 1, $j = strlen($right) - 1; $i >= 0 || $j >= 0 || $carry; $i--, $j--) {
-            $sum = ($i >= 0 ? (int) $left[$i] : 0) + ($j >= 0 ? (int) $right[$j] : 0) + $carry;
-            $result = ($sum % 10).$result;
-            $carry = intdiv($sum, 10);
+            $sum    = ($i >= 0 ? (int) $left[$i] : 0) + ($j >= 0 ? (int) $right[$j] : 0) + $carry;
+            $result = ($sum % 10) . $result;
+            $carry  = intdiv($sum, 10);
         }
 
         return ltrim($result, '0') ?: '0';
@@ -455,19 +453,19 @@ final class PurchaseReceiptService
 
     private function subtractIntegers(string $left, string $right): string
     {
-        $left = str_pad($left, max(strlen($left), strlen($right)), '0', STR_PAD_LEFT);
-        $right = str_pad($right, strlen($left), '0', STR_PAD_LEFT);
+        $left   = str_pad($left, max(strlen($left), strlen($right)), '0', STR_PAD_LEFT);
+        $right  = str_pad($right, strlen($left), '0', STR_PAD_LEFT);
         $borrow = 0;
         $result = '';
         for ($i = strlen($left) - 1; $i >= 0; $i--) {
             $digit = (int) $left[$i] - $borrow - (int) $right[$i];
             if ($digit < 0) {
-                $digit += 10;
-                $borrow = 1;
+                $digit  += 10;
+                $borrow  = 1;
             } else {
                 $borrow = 0;
             }
-            $result = $digit.$result;
+            $result = $digit . $result;
         }
 
         return ltrim($result, '0') ?: '0';
@@ -478,9 +476,9 @@ final class PurchaseReceiptService
         $result = array_fill(0, strlen($left) + strlen($right), 0);
         for ($i = strlen($left) - 1; $i >= 0; $i--) {
             for ($j = strlen($right) - 1; $j >= 0; $j--) {
-                $p = $i + $j + 1;
-                $sum = $result[$p] + ((int) $left[$i] * (int) $right[$j]);
-                $result[$p] = $sum % 10;
+                $p               = $i + $j + 1;
+                $sum             = $result[$p] + ((int) $left[$i] * (int) $right[$j]);
+                $result[$p]      = $sum % 10;
                 $result[$p - 1] += intdiv($sum, 10);
             }
         }
@@ -491,11 +489,11 @@ final class PurchaseReceiptService
     /** @return array{string,string} */
     private function divideIntegers(string $numerator, string $denominator): array
     {
-        $quotient = '';
+        $quotient  = '';
         $remainder = '0';
         foreach (str_split(ltrim($numerator, '0') ?: '0') as $digit) {
-            $remainder = ltrim($remainder.$digit, '0') ?: '0';
-            $q = 0;
+            $remainder = ltrim($remainder . $digit, '0') ?: '0';
+            $q         = 0;
             for ($candidate = 9; $candidate >= 1; $candidate--) {
                 if ($this->compareIntegers($this->multiplyIntegers($denominator, (string) $candidate), $remainder) <= 0) {
                     $q = $candidate;

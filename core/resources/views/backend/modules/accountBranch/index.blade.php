@@ -133,7 +133,11 @@
 
             if ($(this).attr('data-required-mapping') === '1' && !$(this).is(':checked')) {
                 $(this).prop('checked', true);
-                Swal.fire({icon:'info', title:'Mapped account required', text:'Replace this account in Finance Account Mapping before removing it from the branch.'});
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Mapped account required',
+                    text: 'Replace this account in Finance Account Mapping before removing it from the branch.',
+                });
                 return;
             }
 

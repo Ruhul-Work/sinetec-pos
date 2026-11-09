@@ -47,16 +47,26 @@ class FinanceOpeningBalanceController extends Controller
         $data = $rows->map(function (object $row) use ($user): array {
             $status = $row->min_status === 'POSTED' && $row->max_status === 'POSTED' ? 'POSTED' : 'DRAFT';
             $view = route('finance.opening-balances.show', ['fiscalYear' => $row->fiscal_year_id, 'branch' => $row->branch_id]);
-            $actions = '<div class="d-inline-flex justify-content-end gap-1 w-100"><a href="'.e($view).'" class="w-32-px h-32-px rounded-circle d-inline-flex align-items-center justify-content-center bg-info-focus text-info-main" title="View"><iconify-icon icon="mdi:eye-outline"></iconify-icon></a>';
+            $actions = '<div class="d-inline-flex justify-content-end gap-1 w-100">'
+                .'<a href="'.e($view).'" class="w-32-px h-32-px rounded-circle '
+                .'d-inline-flex align-items-center justify-content-center bg-info-focus '
+                .'text-info-main" title="View">'
+                .'<iconify-icon icon="mdi:eye-outline"></iconify-icon></a>';
             if ($status === 'DRAFT' && ($user?->canDo('finance.opening-balances.update', 'edit') ?? false)) {
                 $edit = route('finance.opening-balances.edit', ['fiscalYear' => $row->fiscal_year_id, 'branch' => $row->branch_id]);
-                $actions .= '<a href="'.e($edit).'" class="w-32-px h-32-px rounded-circle d-inline-flex align-items-center justify-content-center bg-success-focus text-success-main" title="Edit Draft"><iconify-icon icon="lucide:edit"></iconify-icon></a>';
+                $actions .= '<a href="'.e($edit).'" class="w-32-px h-32-px rounded-circle '
+                    .'d-inline-flex align-items-center justify-content-center bg-success-focus '
+                    .'text-success-main" title="Edit Draft">'
+                    .'<iconify-icon icon="lucide:edit"></iconify-icon></a>';
             }
             $actions .= '</div>';
 
             return [
                 $row->fiscal_year_id.'-'.$row->branch_id,
-                '<strong>'.e($row->fiscal_year_name).'</strong><br><small class="text-muted">'.e(date('d M Y', strtotime($row->start_date))).' – '.e(date('d M Y', strtotime($row->end_date))).'</small>',
+                '<strong>'.e($row->fiscal_year_name).'</strong><br><small class="text-muted">'
+                    .e(date('d M Y', strtotime($row->start_date)))
+                    .' – '.e(date('d M Y', strtotime($row->end_date)))
+                    .'</small>',
                 '<strong>'.e($row->branch_name).'</strong><br><code>'.e($row->branch_code).'</code>',
                 (int) $row->line_count,
                 '<div class="text-end fw-semibold">'.number_format((float) $row->total_debit, 2).'</div>',
@@ -68,7 +78,12 @@ class FinanceOpeningBalanceController extends Controller
             ];
         });
 
-        return response()->json(['draw' => (int) $request->input('draw'), 'iTotalRecords' => $total, 'iTotalDisplayRecords' => $data->count(), 'aaData' => $data->all()]);
+        return response()->json([
+            'draw' => (int) $request->input('draw'),
+            'iTotalRecords' => $total,
+            'iTotalDisplayRecords' => $data->count(),
+            'aaData' => $data->all(),
+        ]);
     }
 
     public function create(Request $request): View
@@ -84,7 +99,13 @@ class FinanceOpeningBalanceController extends Controller
             ->where('fiscal_year_id', $data['fiscal_year_id'])
             ->where('branch_id', $data['branch_id'])
             ->exists()) {
-            return back()->withInput()->with('error', 'An opening balance set already exists for this Fiscal Year and Branch. Open that Draft from the list to edit it.');
+            return back()
+                ->withInput()
+                ->with(
+                    'error',
+                    'An opening balance set already exists for this Fiscal Year and Branch. '
+                    .'Open that Draft from the list to edit it.',
+                );
         }
         try {
             $this->openings->saveDraft((int) $data['fiscal_year_id'], (int) $data['branch_id'], $data['lines'], (int) $request->user()->id);
@@ -161,7 +182,16 @@ class FinanceOpeningBalanceController extends Controller
             ->where('assignment.branch_id', $branchId)->where('assignment.is_active', true)->where('account.is_active', true)->where('account.currency', 'BDT')
             ->orderBy('account.code')->get(['account.id', 'account.code', 'account.name', 'type.normal_balance']);
 
-        return view('backend.modules.finance_opening_balance.form', compact('fiscalYears', 'branches', 'fiscalYearId', 'branchId', 'lines', 'accounts', 'status', 'readonly'));
+        return view('backend.modules.finance_opening_balance.form', compact(
+            'fiscalYears',
+            'branches',
+            'fiscalYearId',
+            'branchId',
+            'lines',
+            'accounts',
+            'status',
+            'readonly',
+        ));
     }
 
     /** @return array{fiscal_year_id: int, branch_id: int, lines: array<int, array{account_id: mixed, debit: mixed, credit: mixed}>} */

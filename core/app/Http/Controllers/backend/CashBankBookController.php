@@ -93,7 +93,10 @@ class CashBankBookController extends Controller
                 ? '<span class="badge bg-light text-dark">Opening Balance</span><br><small class="text-muted">'.e($row->fiscal_year_name).'</small>'
                 : '<strong>'.e($row->voucher_no).'</strong><br><small class="text-muted">'.e($this->sourceLabel($row->source_type)).'</small>';
             $action = $row->journal_entry_id && $user?->canDo('finance.journals.show')
-                ? '<a href="'.e(route('finance.journals.show', $row->journal_entry_id)).'" class="w-32-px h-32-px rounded-circle d-inline-flex align-items-center justify-content-center bg-info-focus text-info-main" title="View journal"><iconify-icon icon="mdi:file-eye-outline"></iconify-icon></a>'
+                ? '<a href="'.e(route('finance.journals.show', $row->journal_entry_id)).'" '
+                    .'class="w-32-px h-32-px rounded-circle d-inline-flex align-items-center '
+                    .'justify-content-center bg-info-focus text-info-main" title="View journal">'
+                    .'<iconify-icon icon="mdi:file-eye-outline"></iconify-icon></a>'
                 : '<span class="text-muted">—</span>';
 
             return [
@@ -103,8 +106,8 @@ class CashBankBookController extends Controller
                 '<strong>'.e($row->branch_name).'</strong><br><code>'.e($row->branch_code).'</code>',
                 $source,
                 $row->memo ? e($row->memo) : '<span class="text-muted">—</span>',
-                '<div class="text-end">'.((float) $row->debit > 0 ? '<span class="text-success-main fw-semibold">'.number_format((float) $row->debit, 2).'</span>' : '—').'</div>',
-                '<div class="text-end">'.((float) $row->credit > 0 ? '<span class="text-danger-main fw-semibold">'.number_format((float) $row->credit, 2).'</span>' : '—').'</div>',
+                $this->movementHtml((float) $row->debit, 'text-success-main'),
+                $this->movementHtml((float) $row->credit, 'text-danger-main'),
                 '<div class="text-end">'.$this->balanceHtml((float) $row->running_balance).'</div>',
                 '<div class="d-inline-flex justify-content-end w-100">'.$action.'</div>',
             ];
@@ -152,9 +155,22 @@ class CashBankBookController extends Controller
             ->where('opening.status', 'POSTED')->where('account.is_cash_bank_account', true)
             ->selectRaw("'OPENING' as row_type")
             ->addSelect([
-                'opening.id as row_id', DB::raw('NULL as journal_entry_id'), 'opening.account_id', 'account.code as account_code', 'account.name as account_name',
-                'opening.branch_id', 'branch.name as branch_name', 'branch.code as branch_code', 'year.start_date as entry_date', DB::raw('0 as sort_order'),
-                DB::raw('NULL as voucher_no'), 'year.name as fiscal_year_name', DB::raw("'account_opening' as source_type"), DB::raw('NULL as memo'), 'opening.debit', 'opening.credit',
+                'opening.id as row_id',
+                DB::raw('NULL as journal_entry_id'),
+                'opening.account_id',
+                'account.code as account_code',
+                'account.name as account_name',
+                'opening.branch_id',
+                'branch.name as branch_name',
+                'branch.code as branch_code',
+                'year.start_date as entry_date',
+                DB::raw('0 as sort_order'),
+                DB::raw('NULL as voucher_no'),
+                'year.name as fiscal_year_name',
+                DB::raw("'account_opening' as source_type"),
+                DB::raw('NULL as memo'),
+                'opening.debit',
+                'opening.credit',
             ]);
         $journalRows = DB::table('journal_entry_lines as line')
             ->join('journal_entries as journal', 'journal.id', '=', 'line.journal_entry_id')
@@ -164,14 +180,32 @@ class CashBankBookController extends Controller
             ->where('journal.status', 'POSTED')->where('account.is_cash_bank_account', true)
             ->selectRaw("'JOURNAL' as row_type")
             ->addSelect([
-                'line.id as row_id', 'journal.id as journal_entry_id', 'line.account_id', 'account.code as account_code', 'account.name as account_name',
-                'line.branch_id', 'branch.name as branch_name', 'branch.code as branch_code', 'journal.entry_date', DB::raw('1 as sort_order'),
-                'journal.voucher_no', 'year.name as fiscal_year_name', 'journal.source_type', 'line.memo', 'line.debit', 'line.credit',
+                'line.id as row_id',
+                'journal.id as journal_entry_id',
+                'line.account_id',
+                'account.code as account_code',
+                'account.name as account_name',
+                'line.branch_id',
+                'branch.name as branch_name',
+                'branch.code as branch_code',
+                'journal.entry_date',
+                DB::raw('1 as sort_order'),
+                'journal.voucher_no',
+                'year.name as fiscal_year_name',
+                'journal.source_type',
+                'line.memo',
+                'line.debit',
+                'line.credit',
             ]);
         $union = $openingRows->unionAll($journalRows);
         $withBalance = DB::query()->fromSub($union, 'cash_bank_union')
             ->select('cash_bank_union.*')
-            ->selectRaw('SUM(debit - credit) OVER (PARTITION BY account_id, branch_id ORDER BY entry_date ASC, sort_order ASC, row_id ASC ROWS UNBOUNDED PRECEDING) as running_balance');
+            ->selectRaw(
+                'SUM(debit - credit) OVER ('
+                .'PARTITION BY account_id, branch_id '
+                .'ORDER BY entry_date ASC, sort_order ASC, row_id ASC '
+                .'ROWS UNBOUNDED PRECEDING) as running_balance',
+            );
 
         return DB::query()->fromSub($withBalance, 'cash_bank_rows');
     }
@@ -214,7 +248,11 @@ class CashBankBookController extends Controller
             return ['amount' => '0.00', 'side' => '', 'class' => 'text-muted'];
         }
 
-        return ['amount' => number_format(abs($balance), 2), 'side' => $balance > 0 ? 'Dr' : 'Cr', 'class' => $balance > 0 ? 'text-success-main' : 'text-danger-main'];
+        return [
+            'amount' => number_format(abs($balance), 2),
+            'side' => $balance > 0 ? 'Dr' : 'Cr',
+            'class' => $balance > 0 ? 'text-success-main' : 'text-danger-main',
+        ];
     }
 
     private function balanceHtml(float $balance): string
@@ -222,6 +260,15 @@ class CashBankBookController extends Controller
         $value = $this->balancePayload($balance);
 
         return '<span class="'.$value['class'].' fw-semibold">'.($value['side'] ? $value['side'].' ' : '').$value['amount'].'</span>';
+    }
+
+    private function movementHtml(float $amount, string $textClass): string
+    {
+        $content = $amount > 0
+            ? '<span class="'.$textClass.' fw-semibold">'.number_format($amount, 2).'</span>'
+            : '—';
+
+        return '<div class="text-end">'.$content.'</div>';
     }
 
     private function sourceLabel(?string $sourceType): string

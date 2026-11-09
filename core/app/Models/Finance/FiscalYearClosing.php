@@ -15,9 +15,22 @@ class FiscalYearClosing extends Model
     protected $table = 'finance_fiscal_year_closings';
 
     protected $fillable = [
-        'closing_no', 'fiscal_year_id', 'branch_id', 'drawings_account_id', 'capital_account_id',
-        'closing_date', 'amount', 'reference_no', 'note', 'status', 'created_by', 'posted_by',
-        'posted_at', 'voided_by', 'voided_at', 'void_reason',
+        'closing_no',
+        'fiscal_year_id',
+        'branch_id',
+        'drawings_account_id',
+        'capital_account_id',
+        'closing_date',
+        'amount',
+        'reference_no',
+        'note',
+        'status',
+        'created_by',
+        'posted_by',
+        'posted_at',
+        'voided_by',
+        'voided_at',
+        'void_reason',
     ];
 
     protected function casts(): array

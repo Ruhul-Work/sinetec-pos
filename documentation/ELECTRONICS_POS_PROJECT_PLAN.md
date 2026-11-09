@@ -1,8 +1,8 @@
 # Electronics Manufacturing, Inventory & Sales System — Project Plan
 
-**Status:** Business scope approved; phased implementation active
-**Version:** 1.1
-**Updated:** 8 October 2026  
+**Status:** Business scope approved; Purchasing, Inventory Core, operational Finance foundation and Part BOM / Recipe setup complete; Internal Part Production is next
+**Version:** 1.3
+**Updated:** 8 November 2026
 **Purpose:** This is the authoritative business-scope and decision-history document. Physical implementation details and current progress are tracked in the linked design, roadmap and status documents.
 
 ## 1. Project objective
@@ -112,6 +112,17 @@ The meeting must still confirm who may update a monthly rate and who may close/r
 
 Deferring these operational features keeps the first release understandable and usable. Foundation tables for future offers, coupons, and loyalty will be created now but remain inactive; no discount or point logic will run until the later e-commerce scope is approved. The data structure will also be planned so warranty, serial numbers, and subcontracting can be added later.
 
+### 3.3 Current implementation checkpoint — 8 November 2026
+
+The approved scope remains unchanged. The following foundation is now complete and user-testable:
+
+- Administration, branch/warehouse, master-data and unit-conversion foundation.
+- Separate Raw Material, Part and Finished Product masters with their stock ledgers, balances, opening stock, transfer, adjustment, reorder level and stock ledger.
+- Purchase Order, direct/PO-based Purchase Receipt, Purchase Return, Supplier Payment/Due and Purchase Price History.
+- Operational Finance foundation: Chart of Accounts, branch accounts, purchase mapping, Draft Journal workflow, Account Ledger, Cash/Bank Book, capital/loan controls, Trial Balance and Fiscal Year Closing.
+
+Part BOM / Recipe setup is complete. The next delivery is **Internal Part Production**, followed by Finished Product BOM and Assembly. Sales, monthly rate/reporting and supply planning remain later release work.
+
 ## 4. Simple operational flows
 
 ### 4.1 Purchase flow
@@ -161,13 +172,13 @@ This is a planning-level assessment based on the current codebase. Before implem
 | Branch and branch switching | Retain / verify | Keep for multiple branches; clarify showroom and warehouse relationships. |
 | Units and unit conversion | Retain / light adaptation | Reuse as shared measurement foundation for all three inventory domains. |
 | Warehouses | Retain / light adaptation | Keep branch-owned warehouse foundation; new stock ledgers will reference it. |
-| Stock ledger and current-stock summary | Rebuild | Create separate raw-material, part and finished-product ledgers/balances. Do not extend the legacy product stock core. |
+| Stock ledger and current-stock summary | Rebuilt / complete | Separate raw-material, part and finished-product ledgers/balances are active. Do not extend the legacy product stock core. |
 | Suppliers, customers, payment types | Retain / light adaptation | Keep master-data modules and streamline screens. |
-| Purchase order, receipt, payment, return | Rebuild on verified document patterns | Purchase lines may reference raw materials or parts only; preserve actual receipt price. |
+| Purchase order, receipt, payment, return | Rebuilt / complete | Purchase lines reference raw materials or parts only; actual receipt price, stock and supplier due remain auditable. |
 | Legacy product catalogue and variants | Replace | Create a dedicated finished-product master. Raw materials and parts have their own masters. |
 | POS, sale, payment, return | Rebuild / simplify | One sales engine for POS and wholesale; sale lines reference finished products only. |
 | Expense module | Adapt | Categorize direct production expenses separately from admin/selling expenses. |
-| Accounts, vouchers, journals, fiscal year | Retain / verify | Keep existing foundation only after validating posting rules; integrate in phases. |
+| Accounts, vouchers, journals, fiscal year | Rebuilt / operational | Controlled Draft/Approve/Post/Void/Reversal workflow is active for current purchase and cash/bank events; production/sales event mappings are later work. |
 | Reports and print views | Adapt | Build new reports on the new stock and production records; use existing print conventions where suitable. |
 | Offers, coupons, loyalty, public e-commerce modules | Data foundation now; workflow deferred | Create inactive future-use tables linked to finished items/customers; do not enable screens, automatic discounts, or points in the first release. |
 
@@ -224,9 +235,11 @@ The final accounting workflow must specify which events automatically create jou
 
 1. **Complete:** requirements, reuse boundary and database design approved.
 2. **Complete:** clean migrations created and run on the new database.
-3. **Current:** load foundation data, generate clean permissions and test retained modules.
-4. **Next:** implement in small, testable releases: master data → purchasing/inventory → production → sales/finance → reports/planning.
-5. **Before go-live:** run branch/warehouse stock, cost, finance and permission acceptance tests.
+3. **Complete:** master data, inventory core, purchasing and the purchase/cash-bank Finance foundation.
+4. **Current:** complete Finance smoke testing and correct any critical issue before the next operational module.
+5. **Complete:** Part BOM / Recipe setup with Make/Both Part eligibility, versioning, raw-material component lines and Active-version control.
+6. **Next:** Internal Part Production → Finished Product BOM / Assembly → Sales → monthly reporting and supply planning.
+7. **Before go-live:** run branch/warehouse stock, production cost, finance and permission acceptance tests.
 
 ## 11. Approved baseline checklist
 
@@ -264,3 +277,5 @@ These four documents, including this plan, are the authoritative project set. Th
 | 0.9 | 7 October 2026 | Replaced unified item design with separate raw-material, part and finished-product masters/stock ledgers; packaging classified under raw materials; recorded the current panel-cleanup boundary. |
 | 1.0 | 8 October 2026 | Confirmed the clean 113-table database baseline, consolidated documentation and moved the project into foundation-data setup and module development. |
 | 1.1 | 8 October 2026 | Recorded Phase 1 implementation decisions: separate category modules and Raw Material Master; stock, rates, alternate units and supplier mappings remain separate downstream modules. |
+| 1.2 | 8 November 2026 | Synced the plan with completed inventory, purchasing and operational Finance delivery; confirmed Part BOM / Production as the next implementation sequence. |
+| 1.3 | 8 November 2026 | Recorded completed Part BOM / Recipe Master and moved the next implementation gate to Internal Part Production. |

@@ -165,7 +165,10 @@ final class FiscalYearClosingService
             throw new InvalidFiscalYearClosingException('Fiscal Year Closing date must be the fiscal year end date.');
         }
         if ($date > now()->toDateString()) {
-            throw new InvalidFiscalYearClosingException('Fiscal Year Closing can be prepared only on or after the fiscal year end date. Use a separate test database for an early workflow test.');
+            throw new InvalidFiscalYearClosingException(
+                'Fiscal Year Closing can be prepared only on or after the fiscal year end date. '
+                .'Use a separate test database for an early workflow test.',
+            );
         }
     }
 
@@ -186,15 +189,34 @@ final class FiscalYearClosingService
         if (! $capital || ! $capital->is_active || $capital->type?->code !== 'EQUITY') {
             throw new InvalidFiscalYearClosingException('Choose an active Equity Capital account.');
         }
-        $assigned = BranchAccount::query()->where('branch_id', $branchId)->where('is_active', true)->whereIn('account_id', [$drawingsAccountId, $capitalAccountId])->pluck('account_id')->map(fn ($id): int => (int) $id)->all();
-        if (! in_array($drawingsAccountId, $assigned, true) || ! in_array($capitalAccountId, $assigned, true)) {
+        $assignedAccountIds = BranchAccount::query()
+            ->where('branch_id', $branchId)
+            ->where('is_active', true)
+            ->whereIn('account_id', [$drawingsAccountId, $capitalAccountId])
+            ->pluck('account_id')
+            ->map(fn ($accountId): int => (int) $accountId)
+            ->all();
+        if (
+            ! in_array($drawingsAccountId, $assignedAccountIds, true)
+            || ! in_array($capitalAccountId, $assignedAccountIds, true)
+        ) {
             throw new FinanceConfigurationException('Drawings and Capital accounts must both be assigned to the selected branch.');
         }
     }
 
     private function assertNoExistingOpenClosing(int $yearId, int $branchId, int $drawingsAccountId): void
     {
-        if (FiscalYearClosing::query()->where('fiscal_year_id', $yearId)->where('branch_id', $branchId)->where('drawings_account_id', $drawingsAccountId)->whereIn('status', [FiscalYearClosingStatus::Draft, FiscalYearClosingStatus::Posted])->exists()) {
+        $closingAlreadyExists = FiscalYearClosing::query()
+            ->where('fiscal_year_id', $yearId)
+            ->where('branch_id', $branchId)
+            ->where('drawings_account_id', $drawingsAccountId)
+            ->whereIn('status', [
+                FiscalYearClosingStatus::Draft,
+                FiscalYearClosingStatus::Posted,
+            ])
+            ->exists();
+
+        if ($closingAlreadyExists) {
             throw new InvalidFiscalYearClosingException('A Draft or prepared closing already exists for this Drawings account in this fiscal year and branch.');
         }
     }
@@ -209,8 +231,21 @@ final class FiscalYearClosingService
     private function nextNumber(int $branchId, int $yearId, string $date): string
     {
         $now = now();
-        DB::table('number_sequences')->insertOrIgnore(['key_name' => 'FISCAL_YEAR_CLOSING', 'branch_id' => $branchId, 'fiscal_year_id' => $yearId, 'current_number' => 0, 'created_at' => $now, 'updated_at' => $now]);
-        $sequence = DB::table('number_sequences')->where('key_name', 'FISCAL_YEAR_CLOSING')->where('branch_id', $branchId)->where('fiscal_year_id', $yearId)->lockForUpdate()->first();
+        DB::table('number_sequences')->insertOrIgnore([
+            'key_name' => 'FISCAL_YEAR_CLOSING',
+            'branch_id' => $branchId,
+            'fiscal_year_id' => $yearId,
+            'current_number' => 0,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+
+        $sequence = DB::table('number_sequences')
+            ->where('key_name', 'FISCAL_YEAR_CLOSING')
+            ->where('branch_id', $branchId)
+            ->where('fiscal_year_id', $yearId)
+            ->lockForUpdate()
+            ->first();
         if (! $sequence) {
             throw new FinanceConfigurationException('Unable to prepare the fiscal year closing number sequence.');
         }

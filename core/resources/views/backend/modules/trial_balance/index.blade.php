@@ -16,7 +16,15 @@
       <p class="text-muted m-0">Account-wise debit and credit balance as of the selected date</p>
     </div>
     <ul class="d-flex align-items-center gap-2 mb-0">
-      <li class="fw-medium"><a href="{{ route('backend.dashboard') }}" class="d-flex align-items-center gap-1 hover-text-primary"><iconify-icon icon="solar:home-smile-angle-outline" class="icon text-lg"></iconify-icon> Dashboard</a></li>
+      <li class="fw-medium">
+        <a
+          href="{{ route('backend.dashboard') }}"
+          class="d-flex align-items-center gap-1 hover-text-primary"
+        >
+          <iconify-icon icon="solar:home-smile-angle-outline" class="icon text-lg"></iconify-icon>
+          Dashboard
+        </a>
+      </li>
       <li>-</li>
       <li class="fw-medium">Trial Balance</li>
     </ul>
@@ -76,7 +84,10 @@
       <div class="card h-100 account-ledger-summary-card account-ledger-summary-card--closing">
         <div class="card-body py-16">
           <small class="text-muted d-block mb-6">Report Status</small>
-          <h6 id="tbBalanceStatus" class="mb-0 fw-bold text-muted d-flex align-items-center gap-1"><iconify-icon icon="mdi:scale-balance"></iconify-icon><span>Loading...</span></h6>
+          <h6 id="tbBalanceStatus" class="mb-0 fw-bold text-muted d-flex align-items-center gap-1">
+            <iconify-icon icon="mdi:scale-balance"></iconify-icon>
+            <span>Loading...</span>
+          </h6>
           <small id="tbBalanceNote" class="text-muted">Checking debit and credit totals</small>
         </div>
       </div>
@@ -87,7 +98,9 @@
     <div class="card-header d-flex align-items-center justify-content-between gap-3 flex-wrap">
       <h5 class="card-title mb-0">Posted Account Balances</h5>
       <div class="actions-bar d-flex align-items-center gap-2 flex-wrap">
-        <div class="search-set me-2"><div id="tableSearch" class="search-input"></div></div>
+        <div class="search-set me-2">
+          <div id="tableSearch" class="search-input"></div>
+        </div>
         <ul class="table-top-head list-unstyled d-flex align-items-center gap-2 mb-0">@include('backend.include.buttons')</ul>
       </div>
     </div>

@@ -11,11 +11,32 @@ class CashBankTransfer extends Model
 {
     protected $table = 'finance_cash_bank_transfers';
 
-    protected $fillable = ['transfer_no', 'branch_id', 'from_account_id', 'to_account_id', 'transfer_date', 'amount', 'reference_no', 'note', 'status', 'created_by', 'posted_by', 'posted_at', 'voided_by', 'voided_at', 'void_reason'];
+    protected $fillable = [
+        'transfer_no',
+        'branch_id',
+        'from_account_id',
+        'to_account_id',
+        'transfer_date',
+        'amount',
+        'reference_no',
+        'note',
+        'status',
+        'created_by',
+        'posted_by',
+        'posted_at',
+        'voided_by',
+        'voided_at',
+        'void_reason',
+    ];
 
     protected function casts(): array
     {
-        return ['transfer_date' => 'immutable_date', 'amount' => 'decimal:4', 'posted_at' => 'immutable_datetime', 'voided_at' => 'immutable_datetime'];
+        return [
+            'transfer_date' => 'immutable_date',
+            'amount' => 'decimal:4',
+            'posted_at' => 'immutable_datetime',
+            'voided_at' => 'immutable_datetime',
+        ];
     }
 
     public function branch(): BelongsTo

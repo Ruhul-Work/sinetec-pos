@@ -14,7 +14,12 @@ class FinanceAccountMapping extends Model
     protected $table = 'finance_account_mappings';
 
     protected $fillable = [
-        'scope', 'scope_key', 'branch_id', 'mapping_key', 'account_id', 'is_active',
+        'scope',
+        'scope_key',
+        'branch_id',
+        'mapping_key',
+        'account_id',
+        'is_active',
     ];
 
     protected function casts(): array

@@ -139,7 +139,15 @@ final class PurchaseJournalService
             voucherTypeCode: 'PAYMENT', branchId: (int) $payment->branch_id, entryDate: $payment->payment_date,
             sourceType: 'purchase_payment', sourceId: (int) $payment->id, postingKey: 'journal:purchase_payment:'.$payment->id,
             lines: [
-                new JournalLineData(accountId: $this->account(FinanceMappingKey::SupplierPayable, (int) $payment->branch_id), debit: $amount, memo: 'Supplier payment against '.($payment->receipt?->receipt_no ?? '#'.$payment->purchase_receipt_id)),
+                new JournalLineData(
+                    accountId: $this->account(
+                        FinanceMappingKey::SupplierPayable,
+                        (int) $payment->branch_id,
+                    ),
+                    debit: $amount,
+                    memo: 'Supplier payment against '
+                        .($payment->receipt?->receipt_no ?? '#'.$payment->purchase_receipt_id),
+                ),
                 new JournalLineData(accountId: (int) $payment->account_id, credit: $amount, memo: 'Cash or bank payment'),
             ],
             narration: 'Supplier payment '.$payment->payment_no, createdBy: $userId ?? $payment->posted_by ?? $payment->created_by,

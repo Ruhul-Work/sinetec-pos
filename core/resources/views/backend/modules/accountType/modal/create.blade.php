@@ -1,6 +1,31 @@
-<div class="modal-header py-16 px-24 border-0"><h5 class="modal-title">Add Account Type</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-<div class="modal-body p-24"><form method="POST" action="{{ route('account-types.store') }}" data-ajax="true">@csrf
-<div class="mb-3"><label class="form-label">Type Name <span class="text-danger">*</span></label><input type="text" name="name" class="form-control" required></div>
-<div class="mb-3"><label class="form-label">Code <span class="text-danger">*</span></label><input type="text" name="code" class="form-control text-uppercase" maxlength="20" placeholder="Example: ASSET" required></div>
-<div class="mb-3"><label class="form-label">Normal Balance <span class="text-danger">*</span></label><select name="normal_balance" class="form-control js-s2" required>@foreach($normalBalances as $balance)<option value="{{ $balance->value }}">{{ $balance->label() }}</option>@endforeach</select></div>
-<div class="d-flex justify-content-end gap-2 mt-4"><button type="button" class="btn btn-outline-secondary app-action-button" data-bs-dismiss="modal">Cancel</button><button class="btn btn-primary app-action-button app-primary-action">Save Type</button></div></form></div><script>S2.auto($('.modal.show'));</script>
+<div class="modal-header py-16 px-24 border-0">
+    <h5 class="modal-title">Add Account Type</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+</div>
+
+<div class="modal-body p-24">
+    <form method="POST" action="{{ route('account-types.store') }}" data-ajax="true">
+        @csrf
+        @include('backend.modules.accountType.modal.fields', [
+            'type' => null,
+            'isEdit' => false,
+        ])
+
+        <div class="d-flex justify-content-end gap-2 mt-4">
+            <button
+                type="button"
+                class="btn btn-outline-secondary app-action-button"
+                data-bs-dismiss="modal"
+            >
+                Cancel
+            </button>
+            <button type="submit" class="btn btn-primary app-action-button app-primary-action">
+                Save Type
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+    S2.auto($('.modal.show'));
+</script>

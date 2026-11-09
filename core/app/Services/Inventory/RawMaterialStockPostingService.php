@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Services\Inventory;
 
 use App\Enums\Inventory\StockDomain;

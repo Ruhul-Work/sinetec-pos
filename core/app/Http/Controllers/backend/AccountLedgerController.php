@@ -108,7 +108,10 @@ class AccountLedgerController extends Controller
                 ? '<span class="badge bg-light text-dark">Opening Balance</span><br><small class="text-muted">'.e($row->fiscal_year_name).'</small>'
                 : '<strong>'.e($row->voucher_no).'</strong><br><small class="text-muted">'.e($this->sourceLabel($row->source_type)).'</small>';
             $action = $row->journal_entry_id && $user?->canDo('finance.journals.show')
-                ? '<a href="'.e(route('finance.journals.show', $row->journal_entry_id)).'" class="w-32-px h-32-px rounded-circle d-inline-flex align-items-center justify-content-center bg-info-focus text-info-main" title="View journal"><iconify-icon icon="mdi:file-eye-outline"></iconify-icon></a>'
+                ? '<a href="'.e(route('finance.journals.show', $row->journal_entry_id)).'" '
+                    .'class="w-32-px h-32-px rounded-circle d-inline-flex align-items-center '
+                    .'justify-content-center bg-info-focus text-info-main" title="View journal">'
+                    .'<iconify-icon icon="mdi:file-eye-outline"></iconify-icon></a>'
                 : '<span class="text-muted">—</span>';
 
             return [
@@ -118,8 +121,8 @@ class AccountLedgerController extends Controller
                 '<strong>'.e($row->branch_name).'</strong><br><code>'.e($row->branch_code).'</code>',
                 $source,
                 $row->memo ? e($row->memo) : '<span class="text-muted">—</span>',
-                '<div class="text-end">'.((float) $row->debit > 0 ? '<span class="text-success-main fw-semibold">'.number_format((float) $row->debit, 2).'</span>' : '—').'</div>',
-                '<div class="text-end">'.((float) $row->credit > 0 ? '<span class="text-danger-main fw-semibold">'.number_format((float) $row->credit, 2).'</span>' : '—').'</div>',
+                $this->movementHtml((float) $row->debit, 'text-success-main'),
+                $this->movementHtml((float) $row->credit, 'text-danger-main'),
                 '<div class="text-end">'.$this->balanceHtml((float) $row->running_balance).'</div>',
                 '<div class="d-inline-flex justify-content-end w-100">'.$action.'</div>',
             ];
@@ -200,7 +203,12 @@ class AccountLedgerController extends Controller
         $union = $openingRows->unionAll($journalRows);
         $withBalance = DB::query()->fromSub($union, 'account_ledger_union')
             ->select('account_ledger_union.*')
-            ->selectRaw('SUM(debit - credit) OVER (PARTITION BY account_id, branch_id ORDER BY entry_date ASC, sort_order ASC, row_id ASC ROWS UNBOUNDED PRECEDING) as running_balance');
+            ->selectRaw(
+                'SUM(debit - credit) OVER ('
+                .'PARTITION BY account_id, branch_id '
+                .'ORDER BY entry_date ASC, sort_order ASC, row_id ASC '
+                .'ROWS UNBOUNDED PRECEDING) as running_balance',
+            );
 
         return DB::query()->fromSub($withBalance, 'account_ledger_rows');
     }
@@ -247,7 +255,11 @@ class AccountLedgerController extends Controller
             return ['amount' => '0.00', 'side' => '', 'class' => 'text-muted'];
         }
 
-        return ['amount' => number_format(abs($balance), 2), 'side' => $balance > 0 ? 'Dr' : 'Cr', 'class' => $balance > 0 ? 'text-success-main' : 'text-danger-main'];
+        return [
+            'amount' => number_format(abs($balance), 2),
+            'side' => $balance > 0 ? 'Dr' : 'Cr',
+            'class' => $balance > 0 ? 'text-success-main' : 'text-danger-main',
+        ];
     }
 
     private function balanceHtml(float $balance): string
@@ -261,6 +273,15 @@ class AccountLedgerController extends Controller
         $side = $isDebit ? 'Dr' : 'Cr';
 
         return '<span class="'.$class.' fw-semibold">'.$side.' '.number_format(abs($balance), 2).'</span>';
+    }
+
+    private function movementHtml(float $amount, string $textClass): string
+    {
+        $content = $amount > 0
+            ? '<span class="'.$textClass.' fw-semibold">'.number_format($amount, 2).'</span>'
+            : '—';
+
+        return '<div class="text-end">'.$content.'</div>';
     }
 
     private function sourceLabel(?string $sourceType): string

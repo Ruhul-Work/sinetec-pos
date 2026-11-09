@@ -10,7 +10,9 @@
       <div class="d-flex align-items-center gap-2">
         <h6 class="fw-semibold mb-0">Journal Entries</h6>
         <x-backend.page-note title="Journal workflow" label="View workflow rules" align="start">
-          Business workflows create balanced Draft journals automatically. A balanced Draft must be approved before it can be posted. Only Posted journals affect account balances; a posted journal is corrected through a separate reversal draft, never by editing or voiding it.
+          Business workflows create balanced Draft journals automatically.
+          A balanced Draft must be approved before it can be posted.
+          Only Posted journals affect account balances; corrections use a separate reversal draft.
         </x-backend.page-note>
       </div>
       <p class="text-muted m-0">Review finance drafts generated from operational documents</p>
@@ -40,7 +42,9 @@
           <option value="POSTED">Posted</option>
           <option value="VOID">Void</option>
         </select>
-        <div class="search-set me-2"><div id="tableSearch" class="search-input"></div></div>
+        <div class="search-set me-2">
+          <div id="tableSearch" class="search-input"></div>
+        </div>
         <ul class="table-top-head list-unstyled d-flex align-items-center gap-2 mb-0">
           @include('backend.include.buttons')
         </ul>

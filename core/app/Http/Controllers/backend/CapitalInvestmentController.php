@@ -21,7 +21,9 @@ use Illuminate\View\View;
 
 class CapitalInvestmentController extends Controller
 {
-    public function __construct(private readonly CapitalInvestmentService $investments) {}
+    public function __construct(
+        private readonly CapitalInvestmentService $investments,
+    ) {}
 
     public function index(): View
     {
@@ -34,12 +36,34 @@ class CapitalInvestmentController extends Controller
             ->join('branches as branch', 'branch.id', '=', 'investment.branch_id')
             ->join('accounts as cash', 'cash.id', '=', 'investment.cash_bank_account_id')
             ->join('accounts as capital', 'capital.id', '=', 'investment.capital_account_id')
-            ->when(current_branch_id(), fn (Builder $q, int $id) => $q->where('investment.branch_id', $id))
-            ->select(['investment.id', 'investment.investment_no', 'investment.investment_type', 'investment.investment_date', 'investment.amount', 'investment.status', 'branch.name as branch_name', 'branch.code as branch_code', 'cash.name as cash_name', 'cash.code as cash_code', 'capital.name as capital_name', 'capital.code as capital_code']);
+            ->when(
+                current_branch_id(),
+                fn (Builder $query, int $branchId) => $query->where('investment.branch_id', $branchId),
+            )
+            ->select([
+                'investment.id',
+                'investment.investment_no',
+                'investment.investment_type',
+                'investment.investment_date',
+                'investment.amount',
+                'investment.status',
+                'branch.name as branch_name',
+                'branch.code as branch_code',
+                'cash.name as cash_name',
+                'cash.code as cash_code',
+                'capital.name as capital_name',
+                'capital.code as capital_code',
+            ]);
         $total = (clone $query)->count();
         $search = trim((string) $request->input('search.value', ''));
         if ($search !== '') {
-            $query->where(fn (Builder $q) => $q->where('investment.investment_no', 'like', "%{$search}%")->orWhere('branch.name', 'like', "%{$search}%")->orWhere('cash.name', 'like', "%{$search}%")->orWhere('capital.name', 'like', "%{$search}%"));
+            $query->where(function (Builder $query) use ($search): void {
+                $query
+                    ->where('investment.investment_no', 'like', "%{$search}%")
+                    ->orWhere('branch.name', 'like', "%{$search}%")
+                    ->orWhere('cash.name', 'like', "%{$search}%")
+                    ->orWhere('capital.name', 'like', "%{$search}%");
+            });
         }
         $rows = $query->orderByDesc('investment.id')->get();
         $data = $rows->map(function (object $row): array {
@@ -57,11 +81,20 @@ class CapitalInvestmentController extends Controller
                 '<strong>'.e($row->capital_name).'</strong><br><code>'.e($row->capital_code).'</code>',
                 '<div class="text-end fw-semibold">'.number_format((float) $row->amount, 2).'</div>',
                 '<span class="badge '.$status->badgeClass().' text-white px-12 py-7 radius-4">'.e($status->label()).'</span>',
-                '<div class="d-inline-flex justify-content-end w-100"><a href="'.e($view).'" class="w-32-px h-32-px rounded-circle d-inline-flex align-items-center justify-content-center bg-info-focus text-info-main" title="View"><iconify-icon icon="mdi:eye-outline"></iconify-icon></a></div>',
+                '<div class="d-inline-flex justify-content-end w-100">'
+                    .'<a href="'.e($view).'" class="w-32-px h-32-px rounded-circle '
+                    .'d-inline-flex align-items-center justify-content-center bg-info-focus '
+                    .'text-info-main" title="View">'
+                    .'<iconify-icon icon="mdi:eye-outline"></iconify-icon></a></div>',
             ];
         });
 
-        return response()->json(['draw' => (int) $request->input('draw'), 'iTotalRecords' => $total, 'iTotalDisplayRecords' => $data->count(), 'aaData' => $data->all()]);
+        return response()->json([
+            'draw' => (int) $request->input('draw'),
+            'iTotalRecords' => $total,
+            'iTotalDisplayRecords' => $data->count(),
+            'aaData' => $data->all(),
+        ]);
     }
 
     public function create(): View
@@ -108,7 +141,13 @@ class CapitalInvestmentController extends Controller
             ]);
         }
 
-        return redirect()->route('finance.capital-investments.show', $investment)->with('success', 'Capital investment saved as Draft. Review and post it to create the finance journal Draft.');
+        return redirect()
+            ->route('finance.capital-investments.show', $investment)
+            ->with(
+                'success',
+                'Capital investment saved as Draft. '
+                .'Review and post it to create the finance journal Draft.',
+            );
     }
 
     public function show(int $investment): View
@@ -127,7 +166,12 @@ class CapitalInvestmentController extends Controller
             return back()->with('error', $e->getMessage());
         }
 
-        return redirect()->route('finance.capital-investments.show', $investment)->with('success', 'Capital investment posted. A finance journal Draft is ready for accountant approval.');
+        return redirect()
+            ->route('finance.capital-investments.show', $investment)
+            ->with(
+                'success',
+                'Capital investment posted. A finance journal Draft is ready for accountant approval.',
+            );
     }
 
     public function void(int $investment, Request $request): RedirectResponse
@@ -175,16 +219,27 @@ class CapitalInvestmentController extends Controller
     /** @return Collection<int, object> */
     private function cashAccounts(int $branchId)
     {
-        return DB::table('branch_accounts as assignment')->join('accounts as account', 'account.id', '=', 'assignment.account_id')
-            ->where('assignment.branch_id', $branchId)->where('assignment.is_active', true)->where('account.is_active', true)->where('account.is_cash_bank_account', true)
-            ->orderBy('account.code')->get(['account.id', 'account.code', 'account.name']);
+        return DB::table('branch_accounts as assignment')
+            ->join('accounts as account', 'account.id', '=', 'assignment.account_id')
+            ->where('assignment.branch_id', $branchId)
+            ->where('assignment.is_active', true)
+            ->where('account.is_active', true)
+            ->where('account.is_cash_bank_account', true)
+            ->orderBy('account.code')
+            ->get(['account.id', 'account.code', 'account.name']);
     }
 
     /** @return Collection<int, object> */
     private function capitalAccounts(int $branchId)
     {
-        return DB::table('branch_accounts as assignment')->join('accounts as account', 'account.id', '=', 'assignment.account_id')->join('account_types as type', 'type.id', '=', 'account.account_type_id')
-            ->where('assignment.branch_id', $branchId)->where('assignment.is_active', true)->where('account.is_active', true)->where('type.code', 'EQUITY')
-            ->orderBy('account.code')->get(['account.id', 'account.code', 'account.name']);
+        return DB::table('branch_accounts as assignment')
+            ->join('accounts as account', 'account.id', '=', 'assignment.account_id')
+            ->join('account_types as type', 'type.id', '=', 'account.account_type_id')
+            ->where('assignment.branch_id', $branchId)
+            ->where('assignment.is_active', true)
+            ->where('account.is_active', true)
+            ->where('type.code', 'EQUITY')
+            ->orderBy('account.code')
+            ->get(['account.id', 'account.code', 'account.name']);
     }
 }

@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Services\Finance;
 
 use App\Data\Finance\JournalDraftData;
@@ -18,29 +17,30 @@ use Throwable;
 
 final class LoanReceiptService
 {
-    public function __construct(private readonly JournalDraftService $journals) {}
+    public function __construct(private readonly JournalDraftService $journals)
+    {}
 
     /** @param array<string, mixed> $data */
     public function create(array $data, int $userId): LoanReceipt
     {
         return DB::transaction(function () use ($data, $userId): LoanReceipt {
             $branchId = (int) $data['branch_id'];
-            $date = $this->date($data['receipt_date'] ?? null);
-            $year = $this->activeYearFor($date);
+            $date     = $this->date($data['receipt_date'] ?? null);
+            $year     = $this->activeYearFor($date);
             $this->assertAccounts($branchId, (int) $data['cash_bank_account_id'], (int) $data['loan_account_id']);
 
             return LoanReceipt::query()->create([
-                'loan_no' => $this->nextNumber($branchId, $year->id, $date),
-                'branch_id' => $branchId,
-                'loan_type' => $this->type($data['loan_type'] ?? ''),
+                'loan_no'              => $this->nextNumber($branchId, $year->id, $date),
+                'branch_id'            => $branchId,
+                'loan_type'            => $this->type($data['loan_type'] ?? ''),
                 'cash_bank_account_id' => (int) $data['cash_bank_account_id'],
-                'loan_account_id' => (int) $data['loan_account_id'],
-                'receipt_date' => $date,
-                'amount' => $this->amount($data['amount'] ?? null),
-                'reference_no' => $this->nullableText($data['reference_no'] ?? null, 100),
-                'note' => $this->nullableText($data['note'] ?? null, 5000),
-                'status' => LoanReceiptStatus::Draft,
-                'created_by' => $userId,
+                'loan_account_id'      => (int) $data['loan_account_id'],
+                'receipt_date'         => $date,
+                'amount'               => $this->amount($data['amount'] ?? null),
+                'reference_no'         => $this->nullableText($data['reference_no'] ?? null, 100),
+                'note'                 => $this->nullableText($data['note'] ?? null, 5000),
+                'status'               => LoanReceiptStatus::Draft,
+                'created_by'           => $userId,
             ]);
         }, 3);
     }
@@ -60,12 +60,20 @@ final class LoanReceiptService
             $this->assertAccounts((int) $loan->branch_id, (int) $loan->cash_bank_account_id, (int) $loan->loan_account_id);
             $this->journals->create(new JournalDraftData(
                 voucherTypeCode: 'RECEIPT', branchId: (int) $loan->branch_id, entryDate: $loan->receipt_date,
-                sourceType: 'loan_receipt', sourceId: (int) $loan->id, postingKey: 'journal:loan_receipt:'.$loan->id,
+                sourceType: 'loan_receipt', sourceId: (int) $loan->id, postingKey: 'journal:loan_receipt:' . $loan->id,
                 lines: [
-                    new JournalLineData(accountId: (int) $loan->cash_bank_account_id, debit: (string) $loan->amount, memo: 'Loan received in Cash / Bank'),
-                    new JournalLineData(accountId: (int) $loan->loan_account_id, credit: (string) $loan->amount, memo: $this->typeLabel($loan->loan_type).' payable credited'),
+                    new JournalLineData(
+                        accountId: (int) $loan->cash_bank_account_id,
+                        debit: (string) $loan->amount,
+                        memo: 'Loan received in Cash / Bank',
+                    ),
+                    new JournalLineData(
+                        accountId: (int) $loan->loan_account_id,
+                        credit: (string) $loan->amount,
+                        memo: $this->typeLabel($loan->loan_type) . ' payable credited',
+                    ),
                 ],
-                narration: $this->typeLabel($loan->loan_type).' '.$loan->loan_no,
+                narration: $this->typeLabel($loan->loan_type) . ' ' . $loan->loan_no,
                 createdBy: $userId,
             ));
             $loan->update(['status' => LoanReceiptStatus::Posted, 'posted_by' => $userId, 'posted_at' => now()]);
@@ -103,16 +111,26 @@ final class LoanReceiptService
             throw new InvalidLoanReceiptException('Cash / Bank and Loan accounts must be different.');
         }
         $accounts = Account::query()->with('type')->whereIn('id', [$cashBankAccountId, $loanAccountId])->get()->keyBy('id');
-        $cash = $accounts->get($cashBankAccountId);
-        $loan = $accounts->get($loanAccountId);
+        $cash     = $accounts->get($cashBankAccountId);
+        $loan     = $accounts->get($loanAccountId);
         if (! $cash || ! $cash->is_active || ! $cash->is_cash_bank_account || $cash->type?->code !== 'ASSET') {
             throw new InvalidLoanReceiptException('Choose an active Cash / Bank Asset account.');
         }
         if (! $loan || ! $loan->is_active || $loan->type?->code !== 'LIABILITY') {
             throw new InvalidLoanReceiptException('Choose an active Liability account for the loan.');
         }
-        $assigned = BranchAccount::query()->where('branch_id', $branchId)->where('is_active', true)->whereIn('account_id', [$cashBankAccountId, $loanAccountId])->pluck('account_id')->map(fn ($id): int => (int) $id)->all();
-        if (! in_array($cashBankAccountId, $assigned, true) || ! in_array($loanAccountId, $assigned, true)) {
+        $assignedAccountIds = BranchAccount::query()
+            ->where('branch_id', $branchId)
+            ->where('is_active', true)
+            ->whereIn('account_id', [$cashBankAccountId, $loanAccountId])
+            ->pluck('account_id')
+            ->map(fn($accountId): int => (int) $accountId)
+            ->all();
+
+        $cashAccountIsAssigned = in_array($cashBankAccountId, $assignedAccountIds, true);
+        $loanAccountIsAssigned = in_array($loanAccountId, $assignedAccountIds, true);
+
+        if (! $cashAccountIsAssigned || ! $loanAccountIsAssigned) {
             throw new FinanceConfigurationException('Cash / Bank and Loan accounts must both be assigned to the selected branch.');
         }
     }
@@ -130,8 +148,21 @@ final class LoanReceiptService
     private function nextNumber(int $branchId, int $yearId, string $date): string
     {
         $time = now();
-        DB::table('number_sequences')->insertOrIgnore(['key_name' => 'LOAN_RECEIPT', 'branch_id' => $branchId, 'fiscal_year_id' => $yearId, 'current_number' => 0, 'created_at' => $time, 'updated_at' => $time]);
-        $sequence = DB::table('number_sequences')->where('key_name', 'LOAN_RECEIPT')->where('branch_id', $branchId)->where('fiscal_year_id', $yearId)->lockForUpdate()->first();
+        DB::table('number_sequences')->insertOrIgnore([
+            'key_name'       => 'LOAN_RECEIPT',
+            'branch_id'      => $branchId,
+            'fiscal_year_id' => $yearId,
+            'current_number' => 0,
+            'created_at'     => $time,
+            'updated_at'     => $time,
+        ]);
+
+        $sequence = DB::table('number_sequences')
+            ->where('key_name', 'LOAN_RECEIPT')
+            ->where('branch_id', $branchId)
+            ->where('fiscal_year_id', $yearId)
+            ->lockForUpdate()
+            ->first();
         if (! $sequence) {
             throw new FinanceConfigurationException('Unable to prepare the loan receipt number sequence.');
         }
@@ -173,7 +204,7 @@ final class LoanReceiptService
         }
         [$integer, $fraction] = array_pad(explode('.', $value, 2), 2, '');
 
-        return (ltrim($integer, '0') ?: '0').'.'.str_pad($fraction, 4, '0');
+        return (ltrim($integer, '0') ?: '0') . '.' . str_pad($fraction, 4, '0');
     }
 
     private function nullableText(mixed $value, int $limit): ?string

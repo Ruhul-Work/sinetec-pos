@@ -80,7 +80,9 @@ final class FinanceAccountMappingService
     public function resolveRequired(FinanceMappingKey $key, int $branchId): Account
     {
         return $this->resolve($key, $branchId)
-            ?? throw new FinanceConfigurationException("Finance account mapping [{$key->label()}] is not configured for this branch.");
+            ?? throw new FinanceConfigurationException(
+                "Finance account mapping [{$key->label()}] is not configured for this branch."
+            );
     }
 
     /** @return array<string, array{account: ?Account, source: ?string}> */
@@ -122,8 +124,8 @@ final class FinanceAccountMappingService
         $account->loadMissing('type');
 
         return $account->is_active
-            && $account->type?->code === $key->expectedTypeCode()
-            && $account->type?->normal_balance === $key->expectedNormalBalance();
+        && $account->type?->code === $key->expectedTypeCode()
+        && $account->type?->normal_balance === $key->expectedNormalBalance();
     }
 
     /** @param array<string, int|string|null> $mappings */
@@ -138,10 +140,19 @@ final class FinanceAccountMappingService
                 continue;
             }
 
-            $account = Account::query()->with('type')->whereKey($accountId)->where('is_active', true)->first()
-                ?? throw new FinanceConfigurationException("The selected account for {$key->label()} is inactive or unavailable.");
+            $account = Account::query()
+                ->with('type')
+                ->whereKey($accountId)
+                ->where('is_active', true)
+                ->first()
+                ?? throw new FinanceConfigurationException(
+                    "The selected account for {$key->label()} is inactive or unavailable."
+                );
             if (! $this->isCompatible($key, $account)) {
-                throw new FinanceConfigurationException("{$key->label()} requires an active {$key->expectedTypeCode()} account with {$key->expectedNormalBalance()->value} normal balance.");
+                throw new FinanceConfigurationException(
+                    "{$key->label()} requires an active {$key->expectedTypeCode()} account "
+                    ."with {$key->expectedNormalBalance()->value} normal balance.",
+                );
             }
             if ($scope === FinanceMappingScope::Branch && ! BranchAccount::query()
                 ->where('branch_id', $branch->id)->where('account_id', $account->id)->where('is_active', true)->exists()) {

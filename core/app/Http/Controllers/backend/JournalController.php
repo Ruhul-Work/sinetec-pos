@@ -36,7 +36,19 @@ class JournalController extends Controller
 
     public function listAjax(Request $request): JsonResponse
     {
-        $columns = ['je.id', 'je.voucher_no', 'je.entry_date', 'b.name', 'vt.name', 'je.source_type', 'totals.line_count', 'totals.total_debit', 'totals.total_credit', 'je.status', 'je.id'];
+        $columns = [
+            'je.id',
+            'je.voucher_no',
+            'je.entry_date',
+            'b.name',
+            'vt.name',
+            'je.source_type',
+            'totals.line_count',
+            'totals.total_debit',
+            'totals.total_credit',
+            'je.status',
+            'je.id',
+        ];
         $draw = (int) $request->input('draw');
         $start = max((int) $request->input('start', 0), 0);
         $length = (int) $request->input('length', 10);
@@ -67,7 +79,20 @@ class JournalController extends Controller
         if (JournalStatus::tryFrom($status)) {
             $query->where('je.status', $status);
         }
-        if (in_array($sourceType, ['purchase_receipt', 'purchase_return', 'purchase_payment', 'capital_investment', 'capital_withdrawal', 'loan_receipt', 'loan_repayment', 'cash_bank_transfer', 'fiscal_year_closing', 'journal_reversal'], true)) {
+        $knownSourceTypes = [
+            'purchase_receipt',
+            'purchase_return',
+            'purchase_payment',
+            'capital_investment',
+            'capital_withdrawal',
+            'loan_receipt',
+            'loan_repayment',
+            'cash_bank_transfer',
+            'fiscal_year_closing',
+            'journal_reversal',
+        ];
+
+        if (in_array($sourceType, $knownSourceTypes, true)) {
             $query->where('je.source_type', $sourceType);
         }
         if ($search !== '') {
@@ -86,11 +111,18 @@ class JournalController extends Controller
         $data = $rows->map(function (object $row) use ($sources): array {
             $status = JournalStatus::from($row->status);
             $source = $this->sourcePresentation($row->source_type, (int) $row->source_id, $sources);
-            $actions = '<div class="d-inline-flex justify-content-end gap-1 w-100"><a href="'.e(route('finance.journals.show', $row->id)).'" class="w-32-px h-32-px rounded-circle d-inline-flex align-items-center justify-content-center bg-info-focus text-info-main" title="View journal"><iconify-icon icon="mdi:eye-outline"></iconify-icon></a></div>';
+            $actions = '<div class="d-inline-flex justify-content-end gap-1 w-100">'
+                .'<a href="'.e(route('finance.journals.show', $row->id)).'" '
+                .'class="w-32-px h-32-px rounded-circle d-inline-flex align-items-center '
+                .'justify-content-center bg-info-focus text-info-main" title="View journal">'
+                .'<iconify-icon icon="mdi:eye-outline"></iconify-icon></a></div>';
 
             return [
                 $row->id,
-                '<a class="fw-semibold text-primary-600" href="'.e(route('finance.journals.show', $row->id)).'">'.e($row->voucher_no).'</a><br><small class="text-muted">'.e($row->fiscal_year_name).'</small>',
+                '<a class="fw-semibold text-primary-600" '
+                    .'href="'.e(route('finance.journals.show', $row->id)).'">'
+                    .e($row->voucher_no)
+                    .'</a><br><small class="text-muted">'.e($row->fiscal_year_name).'</small>',
                 e(date('d M Y', strtotime($row->entry_date))),
                 '<strong>'.e($row->branch_name).'</strong><br><code>'.e($row->branch_code).'</code>',
                 e($row->voucher_type_name),
@@ -180,7 +212,12 @@ class JournalController extends Controller
             return back()->withInput()->with('error', $exception->getMessage());
         }
 
-        return redirect()->route('finance.journals.show', $reversal)->with('success', 'Reversal draft created. Approve and post it to reverse the original journal balance.');
+        return redirect()
+            ->route('finance.journals.show', $reversal)
+            ->with(
+                'success',
+                'Reversal draft created. Approve and post it to reverse the original journal balance.',
+            );
     }
 
     /** @param array<int, object> $rows @return array<string, array<int, object>> */
@@ -206,7 +243,18 @@ class JournalController extends Controller
             'loan_repayment' => LoanRepayment::query()->whereIn('id', $repaymentIds)->get(['id', 'repayment_no'])->keyBy('id')->all(),
             'cash_bank_transfer' => CashBankTransfer::query()->whereIn('id', $transferIds)->get(['id', 'transfer_no'])->keyBy('id')->all(),
             'fiscal_year_closing' => FiscalYearClosing::query()->whereIn('id', $closingIds)->get(['id', 'closing_no'])->keyBy('id')->all(),
-            'journal_reversal' => JournalEntry::query()->whereIn('id', collect($rows)->where('source_type', 'journal_reversal')->pluck('source_id')->filter()->unique())->get(['id', 'voucher_no'])->keyBy('id')->all(),
+            'journal_reversal' => JournalEntry::query()
+                ->whereIn(
+                    'id',
+                    collect($rows)
+                        ->where('source_type', 'journal_reversal')
+                        ->pluck('source_id')
+                        ->filter()
+                        ->unique(),
+                )
+                ->get(['id', 'voucher_no'])
+                ->keyBy('id')
+                ->all(),
         ];
     }
 

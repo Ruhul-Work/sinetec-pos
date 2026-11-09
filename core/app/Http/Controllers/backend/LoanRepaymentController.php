@@ -17,7 +17,9 @@ use Illuminate\View\View;
 
 class LoanRepaymentController extends Controller
 {
-    public function __construct(private readonly LoanRepaymentService $repayments) {}
+    public function __construct(
+        private readonly LoanRepaymentService $repayments,
+    ) {}
 
     public function index(): View
     {
@@ -123,12 +125,19 @@ class LoanRepaymentController extends Controller
 
         $data = $rows->map(fn (LoanRepayment $repayment): array => [
             $repayment->id,
-            '<a class="fw-semibold text-primary-600" href="'.e(route('finance.loan-repayments.show', $repayment)).'">'.e($repayment->repayment_no).'</a>',
+            '<a class="fw-semibold text-primary-600" '
+                .'href="'.e(route('finance.loan-repayments.show', $repayment)).'">'
+                .e($repayment->repayment_no)
+                .'</a>',
             e($repayment->loanReceipt->loan_no),
             e($repayment->repayment_date->format('d M Y')),
             e($repayment->cashBankAccount->code.' — '.$repayment->cashBankAccount->name),
             '<div class="text-end">'.number_format((float) $repayment->amount, 2).'</div>',
-            '<span class="badge '.($repayment->status === 'POSTED' ? 'bg-dark-success-gradient' : 'bg-dark-warning-gradient').' text-white">'.e($repayment->status).'</span>',
+            '<span class="badge '
+                .($repayment->status === 'POSTED'
+                    ? 'bg-dark-success-gradient'
+                    : 'bg-dark-warning-gradient')
+                .' text-white">'.e($repayment->status).'</span>',
         ])->all();
 
         return response()->json([

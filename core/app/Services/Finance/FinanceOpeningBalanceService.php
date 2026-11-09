@@ -76,7 +76,10 @@ final class FinanceOpeningBalanceService
         }, 3);
     }
 
-    /** @param array<int, array{account_id: mixed, debit: mixed, credit: mixed}> $lines @return array<int, array{account_id: int, debit: string, credit: string}> */
+    /**
+     * @param  array<int, array{account_id: mixed, debit: mixed, credit: mixed}>  $lines
+     * @return array<int, array{account_id: int, debit: string, credit: string}>
+     */
     private function normalise(array $lines, int $branchId): array
     {
         $normalised = [];

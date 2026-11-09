@@ -14,9 +14,22 @@ class CapitalInvestment extends Model
     protected $table = 'finance_capital_investments';
 
     protected $fillable = [
-        'investment_no', 'branch_id', 'investment_type', 'cash_bank_account_id', 'capital_account_id',
-        'investment_date', 'amount', 'reference_no', 'note', 'status', 'created_by', 'posted_by', 'posted_at',
-        'voided_by', 'voided_at', 'void_reason',
+        'investment_no',
+        'branch_id',
+        'investment_type',
+        'cash_bank_account_id',
+        'capital_account_id',
+        'investment_date',
+        'amount',
+        'reference_no',
+        'note',
+        'status',
+        'created_by',
+        'posted_by',
+        'posted_at',
+        'voided_by',
+        'voided_at',
+        'void_reason',
     ];
 
     protected function casts(): array

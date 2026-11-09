@@ -30,7 +30,11 @@ final class LoanRepaymentService
     public function create(array $data, int $userId): LoanRepayment
     {
         return DB::transaction(function () use ($data, $userId): LoanRepayment {
-            $receipt = LoanReceipt::query()->whereKey($data['loan_receipt_id'])->where('status', 'POSTED')->lockForUpdate()->firstOrFail();
+            $receipt = LoanReceipt::query()
+                ->whereKey($data['loan_receipt_id'])
+                ->where('status', 'POSTED')
+                ->lockForUpdate()
+                ->firstOrFail();
             $year = $this->activeYearFor((string) $data['repayment_date']);
             $amount = $this->amount($data['amount'] ?? null);
             if ((float) $amount > $this->due($receipt) + 0.00001) {
@@ -59,10 +63,17 @@ final class LoanRepaymentService
             if ($repayment->status === 'POSTED') {
                 return $repayment;
             }
-            $receipt = LoanReceipt::query()->whereKey($repayment->loan_receipt_id)->where('status', 'POSTED')->lockForUpdate()->firstOrFail();
+            $receipt = LoanReceipt::query()
+                ->whereKey($repayment->loan_receipt_id)
+                ->where('status', 'POSTED')
+                ->lockForUpdate()
+                ->firstOrFail();
             $this->activeYearFor($repayment->repayment_date->toDateString());
             if ((float) $repayment->amount > $this->due($receipt) + 0.00001) {
-                throw new InvalidJournalDraftException('Loan due changed after this repayment Draft was created. Create a new repayment with the remaining due amount.');
+                throw new InvalidJournalDraftException(
+                    'Loan due changed after this repayment Draft was created. '
+                    .'Create a new repayment with the remaining due amount.',
+                );
             }
             $this->assertCashAccount((int) $repayment->branch_id, (int) $repayment->cash_bank_account_id);
             $this->journals->create(new JournalDraftData(
@@ -73,8 +84,16 @@ final class LoanRepaymentService
                 sourceId: (int) $repayment->id,
                 postingKey: 'journal:loan_repayment:'.$repayment->id,
                 lines: [
-                    new JournalLineData(accountId: (int) $receipt->loan_account_id, debit: (string) $repayment->amount, memo: 'Loan liability repaid'),
-                    new JournalLineData(accountId: (int) $repayment->cash_bank_account_id, credit: (string) $repayment->amount, memo: 'Cash / Bank loan repayment'),
+                    new JournalLineData(
+                        accountId: (int) $receipt->loan_account_id,
+                        debit: (string) $repayment->amount,
+                        memo: 'Loan liability repaid',
+                    ),
+                    new JournalLineData(
+                        accountId: (int) $repayment->cash_bank_account_id,
+                        credit: (string) $repayment->amount,
+                        memo: 'Cash / Bank loan repayment',
+                    ),
                 ],
                 narration: 'Loan repayment '.$repayment->repayment_no,
                 createdBy: $userId,
@@ -88,7 +107,19 @@ final class LoanRepaymentService
     private function assertCashAccount(int $branchId, int $accountId): void
     {
         $account = Account::query()->with('type')->find($accountId);
-        if (! $account || ! $account->is_active || ! $account->is_cash_bank_account || $account->type?->code !== 'ASSET' || ! BranchAccount::query()->where('branch_id', $branchId)->where('account_id', $accountId)->where('is_active', true)->exists()) {
+        $accountIsAssigned = BranchAccount::query()
+            ->where('branch_id', $branchId)
+            ->where('account_id', $accountId)
+            ->where('is_active', true)
+            ->exists();
+
+        $accountIsValid = $account
+            && $account->is_active
+            && $account->is_cash_bank_account
+            && $account->type?->code === 'ASSET'
+            && $accountIsAssigned;
+
+        if (! $accountIsValid) {
             throw new FinanceConfigurationException('Choose an assigned active Cash / Bank Asset account.');
         }
     }
@@ -106,8 +137,21 @@ final class LoanRepaymentService
     private function nextNumber(int $branchId, int $fiscalYearId, string $date): string
     {
         $now = now();
-        DB::table('number_sequences')->insertOrIgnore(['key_name' => 'LOAN_REPAYMENT', 'branch_id' => $branchId, 'fiscal_year_id' => $fiscalYearId, 'current_number' => 0, 'created_at' => $now, 'updated_at' => $now]);
-        $sequence = DB::table('number_sequences')->where('key_name', 'LOAN_REPAYMENT')->where('branch_id', $branchId)->where('fiscal_year_id', $fiscalYearId)->lockForUpdate()->first();
+        DB::table('number_sequences')->insertOrIgnore([
+            'key_name' => 'LOAN_REPAYMENT',
+            'branch_id' => $branchId,
+            'fiscal_year_id' => $fiscalYearId,
+            'current_number' => 0,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+
+        $sequence = DB::table('number_sequences')
+            ->where('key_name', 'LOAN_REPAYMENT')
+            ->where('branch_id', $branchId)
+            ->where('fiscal_year_id', $fiscalYearId)
+            ->lockForUpdate()
+            ->first();
         if (! $sequence) {
             throw new FinanceConfigurationException('Unable to prepare the loan repayment number sequence.');
         }

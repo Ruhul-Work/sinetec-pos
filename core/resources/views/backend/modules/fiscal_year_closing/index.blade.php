@@ -9,19 +9,26 @@
         <div>
             <div class="d-flex align-items-center gap-2">
                 <h6 class="fw-semibold mb-0">Fiscal Year Closing</h6>
-                <x-backend.page-note title="Closing workflow" label="View closing rule" align="start">This module closes one
-                    Owner/Partner Drawings balance into its Capital account at the active fiscal year end. It creates a
-                    balanced Closing Journal Draft; accountant approval and Journal posting are still required before
-                    activating the next fiscal year.</x-backend.page-note>
+                <x-backend.page-note title="Closing workflow" label="View closing rule" align="start">
+                    This module closes one Owner/Partner Drawings balance into its Capital account
+                    at the active fiscal year end. It creates a balanced Closing Journal Draft;
+                    accountant approval and Journal posting are required before activating the next year.
+                </x-backend.page-note>
             </div>
             <p class="text-muted m-0">Year-end Drawings to Capital adjustment by fiscal year and branch</p>
         </div>
+
         @perm('finance.fiscal-year-closings.create', 'add')
-            <button type="button"
+            <button
+                type="button"
                 class="btn btn-primary app-primary-action d-inline-flex align-items-center gap-1 px-14 py-9 radius-8 AjaxModal"
-                data-ajax-modal="{{ route('finance.fiscal-year-closings.create') }}" data-size="lg"
-                data-onsuccess="FiscalYearClosings.onSaved"><iconify-icon
-                    icon="mdi:calendar-check-outline"></iconify-icon><span>Prepare Year Closing</span></button>
+                data-ajax-modal="{{ route('finance.fiscal-year-closings.create') }}"
+                data-size="lg"
+                data-onsuccess="FiscalYearClosings.onSaved"
+            >
+                <iconify-icon icon="mdi:calendar-check-outline"></iconify-icon>
+                <span>Prepare Year Closing</span>
+            </button>
         @endperm
     </div>
 
@@ -32,13 +39,17 @@
                 <div class="search-set me-2">
                     <div id="tableSearch" class="search-input"></div>
                 </div>
-                <ul class="table-top-head list-unstyled d-flex align-items-center gap-2 mb-0">@include('backend.include.buttons')
+                <ul class="table-top-head list-unstyled d-flex align-items-center gap-2 mb-0">
+                    @include('backend.include.buttons')
                 </ul>
             </div>
         </div>
         <div class="card-body">
-            <table class="table bordered-table table-scroll mb-0 AjaxDataTable" id="fiscalYearClosingTable"
-                style="width:100%">
+            <table
+                class="table bordered-table table-scroll mb-0 AjaxDataTable"
+                id="fiscalYearClosingTable"
+                style="width: 100%"
+            >
                 <thead>
                     <tr>
                         <th>S.L</th>
@@ -62,10 +73,13 @@
 @section('script')
     <script>
         var DATATABLE_URL = @json(route('finance.fiscal-year-closings.list.ajax'));
+
         window.FiscalYearClosings = {
-            onSaved: function(response) {
-                if (response && response.redirect_url) window.location.href = response.redirect_url;
-            }
+            onSaved: function (response) {
+                if (response && response.redirect_url) {
+                    window.location.href = response.redirect_url;
+                }
+            },
         };
     </script>
 @endsection

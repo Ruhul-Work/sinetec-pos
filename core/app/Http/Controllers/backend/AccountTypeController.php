@@ -31,22 +31,27 @@ class AccountTypeController extends Controller
         $query->when($search !== '', fn ($q) => $q->where(fn ($inner) => $inner
             ->where('name', 'like', "%{$search}%")->orWhere('code', 'like', "%{$search}%")));
         $filtered = (clone $query)->count();
-        $rows = $query->orderBy($columns[$orderIndex] ?? 'name', $direction)->skip($start)->take($length)->get();
-        $data = $rows->map(function (AccountType $type): array {
-            $actions = '<div class="d-inline-flex justify-content-end gap-1 w-100"><a href="#" class="w-32-px h-32-px rounded-circle d-inline-flex align-items-center justify-content-center bg-success-focus text-success-main AjaxModal" data-ajax-modal="'.e(route('account-types.editModal', $type)).'" data-size="sm" data-onsuccess="AccountTypesIndex.onSaved" title="Edit"><iconify-icon icon="lucide:edit"></iconify-icon></a>';
-            if (! $type->is_system && $type->accounts_count === 0) {
-                $actions .= '<a href="#" class="w-32-px h-32-px rounded-circle d-inline-flex align-items-center justify-content-center bg-danger-focus text-danger-main btn-account-type-del" data-url="'.e(route('account-types.destroy', $type)).'" title="Delete"><iconify-icon icon="solar:trash-bin-minimalistic-outline"></iconify-icon></a>';
-            }
+        $data = $query
+            ->orderBy($columns[$orderIndex] ?? 'name', $direction)
+            ->skip($start)
+            ->take($length)
+            ->get()
+            ->map(fn (AccountType $type): array => $this->formatTableRow($type))
+            ->all();
 
-            return [$type->id, e($type->name), '<code>'.e($type->code).'</code>', e($type->normal_balance->label()), $type->is_system ? '<span class="badge bg-info-focus text-info-main">System</span>' : '<span class="badge bg-light text-dark">Custom</span>', $actions.'</div>'];
-        })->all();
-
-        return response()->json(['draw' => $draw, 'iTotalRecords' => $total, 'iTotalDisplayRecords' => $filtered, 'aaData' => $data]);
+        return response()->json([
+            'draw' => $draw,
+            'iTotalRecords' => $total,
+            'iTotalDisplayRecords' => $filtered,
+            'aaData' => $data,
+        ]);
     }
 
     public function createModal(): View
     {
-        return view('backend.modules.accountType.modal.create', ['normalBalances' => AccountNormalBalance::cases()]);
+        return view('backend.modules.accountType.modal.create', [
+            'normalBalances' => AccountNormalBalance::cases(),
+        ]);
     }
 
     public function store(Request $request): JsonResponse
@@ -59,7 +64,10 @@ class AccountTypeController extends Controller
 
     public function editModal(AccountType $type): View
     {
-        return view('backend.modules.accountType.modal.edit', ['type' => $type, 'normalBalances' => AccountNormalBalance::cases()]);
+        return view('backend.modules.accountType.modal.edit', [
+            'type' => $type,
+            'normalBalances' => AccountNormalBalance::cases(),
+        ]);
     }
 
     public function update(Request $request, AccountType $type): JsonResponse
@@ -98,5 +106,48 @@ class AccountTypeController extends Controller
         $data['code'] = strtoupper(trim($data['code']));
 
         return $data;
+    }
+
+    /** @return array<int, int|string> */
+    private function formatTableRow(AccountType $type): array
+    {
+        $actions = '<div class="d-inline-flex justify-content-end gap-1 w-100">'
+            .$this->editAction($type);
+
+        if (! $type->is_system && $type->accounts_count === 0) {
+            $actions .= $this->deleteAction($type);
+        }
+
+        $categoryBadge = $type->is_system
+            ? '<span class="badge bg-info-focus text-info-main">System</span>'
+            : '<span class="badge bg-light text-dark">Custom</span>';
+
+        return [
+            $type->id,
+            e($type->name),
+            '<code>'.e($type->code).'</code>',
+            e($type->normal_balance->label()),
+            $categoryBadge,
+            $actions.'</div>',
+        ];
+    }
+
+    private function editAction(AccountType $type): string
+    {
+        return '<a href="#" '
+            .'class="w-32-px h-32-px rounded-circle d-inline-flex align-items-center '
+            .'justify-content-center bg-success-focus text-success-main AjaxModal" '
+            .'data-ajax-modal="'.e(route('account-types.editModal', $type)).'" '
+            .'data-size="sm" data-onsuccess="AccountTypesIndex.onSaved" title="Edit">'
+            .'<iconify-icon icon="lucide:edit"></iconify-icon></a>';
+    }
+
+    private function deleteAction(AccountType $type): string
+    {
+        return '<a href="#" '
+            .'class="w-32-px h-32-px rounded-circle d-inline-flex align-items-center '
+            .'justify-content-center bg-danger-focus text-danger-main btn-account-type-del" '
+            .'data-url="'.e(route('account-types.destroy', $type)).'" title="Delete">'
+            .'<iconify-icon icon="solar:trash-bin-minimalistic-outline"></iconify-icon></a>';
     }
 }

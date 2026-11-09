@@ -23,7 +23,10 @@ use Illuminate\View\View;
 
 class PurchasePaymentController extends Controller
 {
-    public function __construct(private readonly PurchasePaymentService $payments, private readonly SupplierDueService $due) {}
+    public function __construct(
+        private readonly PurchasePaymentService $payments,
+        private readonly SupplierDueService $due,
+    ) {}
 
     public function index(): View
     {
@@ -32,9 +35,22 @@ class PurchasePaymentController extends Controller
 
     public function listAjax(Request $request): JsonResponse
     {
-        $query = DB::table('purchase_payment as pp')->join('suppliers as s', 's.id', '=', 'pp.supplier_id')->join('purchase_receipt as pr', 'pr.id', '=', 'pp.purchase_receipt_id')
-            ->when(current_branch_id(), fn (Builder $q, int $id) => $q->where('pp.branch_id', $id))
-            ->select(['pp.id', 'pp.payment_no', 'pp.payment_date', 'pp.amount', 'pp.status', 's.name as supplier_name', 'pr.receipt_no']);
+        $query = DB::table('purchase_payment as payment')
+            ->join('suppliers as supplier', 'supplier.id', '=', 'payment.supplier_id')
+            ->join('purchase_receipt as receipt', 'receipt.id', '=', 'payment.purchase_receipt_id')
+            ->when(
+                current_branch_id(),
+                fn (Builder $query, int $branchId) => $query->where('payment.branch_id', $branchId),
+            )
+            ->select([
+                'payment.id',
+                'payment.payment_no',
+                'payment.payment_date',
+                'payment.amount',
+                'payment.status',
+                'supplier.name as supplier_name',
+                'receipt.receipt_no',
+            ]);
         $rows = $query->orderByDesc('pp.id')->get()->map(function (object $row): array {
             $status = PurchasePaymentStatus::from($row->status);
 
@@ -44,16 +60,54 @@ class PurchasePaymentController extends Controller
                 default => 'bg-secondary',
             };
 
-            return [$row->id, '<a class="fw-semibold text-primary-600" href="'.e(route('purchase.payments.show', $row->id)).'">'.e($row->payment_no).'</a>', e(date('d M Y', strtotime($row->payment_date))), e($row->supplier_name), e($row->receipt_no), '<span class="fw-semibold">'.number_format((float) $row->amount, 2).'</span>', '<span class="badge '.$badge.' text-white">'.e($status->label()).'</span>'];
+            return [
+                $row->id,
+                '<a class="fw-semibold text-primary-600" '
+                    .'href="'.e(route('purchase.payments.show', $row->id)).'">'
+                    .e($row->payment_no)
+                    .'</a>',
+                e(date('d M Y', strtotime($row->payment_date))),
+                e($row->supplier_name),
+                e($row->receipt_no),
+                '<span class="fw-semibold">'.number_format((float) $row->amount, 2).'</span>',
+                '<span class="badge '.$badge.' text-white">'.e($status->label()).'</span>',
+            ];
         });
 
-        return response()->json(['draw' => (int) $request->input('draw'), 'iTotalRecords' => $rows->count(), 'iTotalDisplayRecords' => $rows->count(), 'aaData' => $rows->all()]);
+        return response()->json([
+            'draw' => (int) $request->input('draw'),
+            'iTotalRecords' => $rows->count(),
+            'iTotalDisplayRecords' => $rows->count(),
+            'aaData' => $rows->all(),
+        ]);
     }
 
     public function create(): View
     {
-        $receipts = PurchaseReceipt::query()->with('supplier:id,name')->where('status', 'POSTED')->when(current_branch_id(), fn ($q, int $id) => $q->where('branch_id', $id))->orderByDesc('receipt_date')->get();
-        $accounts = DB::table('accounts as a')->join('account_types as t', 't.id', '=', 'a.account_type_id')->join('branch_accounts as ba', 'ba.account_id', '=', 'a.id')->where('a.is_active', true)->where('a.is_cash_bank_account', true)->where('ba.is_active', true)->where('t.code', 'ASSET')->when(current_branch_id(), fn (Builder $q, int $id) => $q->where('ba.branch_id', $id))->distinct()->orderBy('a.code')->get(['a.id', 'a.code', 'a.name']);
+        $receipts = PurchaseReceipt::query()
+            ->with('supplier:id,name')
+            ->where('status', 'POSTED')
+            ->when(
+                current_branch_id(),
+                fn ($query, int $branchId) => $query->where('branch_id', $branchId),
+            )
+            ->orderByDesc('receipt_date')
+            ->get();
+
+        $accounts = DB::table('accounts as account')
+            ->join('account_types as type', 'type.id', '=', 'account.account_type_id')
+            ->join('branch_accounts as assignment', 'assignment.account_id', '=', 'account.id')
+            ->where('account.is_active', true)
+            ->where('account.is_cash_bank_account', true)
+            ->where('assignment.is_active', true)
+            ->where('type.code', 'ASSET')
+            ->when(
+                current_branch_id(),
+                fn (Builder $query, int $branchId) => $query->where('assignment.branch_id', $branchId),
+            )
+            ->distinct()
+            ->orderBy('account.code')
+            ->get(['account.id', 'account.code', 'account.name']);
         $types = DB::table('payment_types')->where('is_active', true)->orderBy('name')->get();
 
         return view('backend.modules.purchase_payment.modal', compact('receipts', 'accounts', 'types'));
@@ -68,7 +122,27 @@ class PurchasePaymentController extends Controller
 
     public function store(Request $request): JsonResponse
     {
-        $data = $request->validate(['purchase_receipt_id' => ['required', 'integer', Rule::exists('purchase_receipt', 'id')], 'payment_type_id' => ['required', 'integer', Rule::exists('payment_types', 'id')], 'account_id' => ['required', 'integer', Rule::exists('accounts', 'id')], 'payment_date' => ['required', 'date'], 'amount' => ['required', 'numeric', 'gt:0'], 'reference_no' => ['nullable', 'string', 'max:100'], 'note' => ['nullable', 'string', 'max:5000']]);
+        $data = $request->validate([
+            'purchase_receipt_id' => [
+                'required',
+                'integer',
+                Rule::exists('purchase_receipt', 'id'),
+            ],
+            'payment_type_id' => [
+                'required',
+                'integer',
+                Rule::exists('payment_types', 'id'),
+            ],
+            'account_id' => [
+                'required',
+                'integer',
+                Rule::exists('accounts', 'id'),
+            ],
+            'payment_date' => ['required', 'date'],
+            'amount' => ['required', 'numeric', 'gt:0'],
+            'reference_no' => ['nullable', 'string', 'max:100'],
+            'note' => ['nullable', 'string', 'max:5000'],
+        ]);
         try {
             $payment = $this->payments->create($data, (int) $request->user()->id);
         } catch (InvalidPurchasePaymentException $e) {
@@ -80,7 +154,18 @@ class PurchasePaymentController extends Controller
 
     public function show(int $payment): View
     {
-        $payment = PurchasePayment::query()->with(['receipt', 'supplier', 'account', 'paymentType', 'createdBy', 'postedBy', 'voidedBy', 'reversedBy', 'reversalJournal'])
+        $payment = PurchasePayment::query()
+            ->with([
+                'receipt',
+                'supplier',
+                'account',
+                'paymentType',
+                'createdBy',
+                'postedBy',
+                'voidedBy',
+                'reversedBy',
+                'reversalJournal',
+            ])
             ->when(current_branch_id(), fn ($q, int $id) => $q->where('branch_id', $id))
             ->findOrFail($payment);
         $paymentJournal = JournalEntry::query()
@@ -126,14 +211,23 @@ class PurchasePaymentController extends Controller
             'reversal_reason' => ['required', 'string', 'max:1000'],
         ]);
         try {
-            $payment = $this->payments->reverse($this->record($payment), $data['reversal_date'], $data['reversal_reason'], (int) $request->user()->id);
+            $payment = $this->payments->reverse(
+                $this->record($payment),
+                $data['reversal_date'],
+                $data['reversal_reason'],
+                (int) $request->user()->id,
+            );
         } catch (InvalidPurchasePaymentException|JournalWorkflowException|FinanceConfigurationException|InvalidJournalDraftException $e) {
             return back()->withInput()->with('error', $e->getMessage());
         }
 
         if ($payment->reversal_journal_id) {
             return redirect()->route('finance.journals.show', $payment->reversal_journal_id)
-                ->with('success', 'Payment reversed. Approve and post the linked reversal journal to reverse the Cash/Bank ledger movement.');
+                ->with(
+                    'success',
+                    'Payment reversed. Approve and post the linked reversal journal '
+                    .'to reverse the Cash / Bank ledger movement.',
+                );
         }
 
         return back()->with('success', 'Payment reversed and its unposted finance journal was voided. Supplier due has been restored.');
@@ -141,6 +235,11 @@ class PurchasePaymentController extends Controller
 
     private function record(int $id): PurchasePayment
     {
-        return PurchasePayment::query()->when(current_branch_id(), fn ($q, int $branch) => $q->where('branch_id', $branch))->findOrFail($id);
+        return PurchasePayment::query()
+            ->when(
+                current_branch_id(),
+                fn ($query, int $branchId) => $query->where('branch_id', $branchId),
+            )
+            ->findOrFail($id);
     }
 }

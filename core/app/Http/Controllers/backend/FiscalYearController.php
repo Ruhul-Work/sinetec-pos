@@ -31,17 +31,20 @@ class FiscalYearController extends Controller
         $total = (clone $query)->count();
         $query->when($search !== '', fn ($q) => $q->where('name', 'like', "%{$search}%"));
         $filtered = (clone $query)->count();
-        $rows = $query->orderBy($columns[$orderIndex] ?? 'id', $direction)->skip($start)->take($length)->get();
-        $data = $rows->map(function (FiscalYear $year): array {
-            $actions = '<div class="d-inline-flex justify-content-end gap-1 w-100"><a href="#" class="w-32-px h-32-px rounded-circle d-inline-flex align-items-center justify-content-center bg-success-focus text-success-main AjaxModal" data-ajax-modal="'.e(route('fiscal-years.editModal', $year)).'" data-size="lg" data-onsuccess="FiscalYearsIndex.onSaved" title="Edit"><iconify-icon icon="lucide:edit"></iconify-icon></a>';
-            if (! $year->is_active) {
-                $actions .= '<a href="#" class="w-32-px h-32-px rounded-circle d-inline-flex align-items-center justify-content-center bg-danger-focus text-danger-main btn-fiscal-year-delete" data-url="'.e(route('fiscal-years.destroy', $year)).'" title="Delete"><iconify-icon icon="solar:trash-bin-minimalistic-outline"></iconify-icon></a>';
-            }
+        $data = $query
+            ->orderBy($columns[$orderIndex] ?? 'id', $direction)
+            ->skip($start)
+            ->take($length)
+            ->get()
+            ->map(fn (FiscalYear $year): array => $this->formatTableRow($year))
+            ->all();
 
-            return [$year->id, '<strong>'.e($year->name).'</strong>', $year->start_date->format('d M Y'), $year->end_date->format('d M Y'), $year->is_active ? '<span class="badge bg-dark-success-gradient text-white">Active</span>' : '<span class="badge bg-dark-warning-gradient text-white">Inactive</span>', $actions.'</div>'];
-        })->all();
-
-        return response()->json(['draw' => $draw, 'iTotalRecords' => $total, 'iTotalDisplayRecords' => $filtered, 'aaData' => $data]);
+        return response()->json([
+            'draw' => $draw,
+            'iTotalRecords' => $total,
+            'iTotalDisplayRecords' => $filtered,
+            'aaData' => $data,
+        ]);
     }
 
     public function createModal(): View
@@ -182,5 +185,47 @@ class FiscalYearController extends Controller
                 'is_active' => 'Approve and post every prepared Fiscal Year Closing journal before activating the next fiscal year.',
             ]);
         }
+    }
+
+    /** @return array<int, int|string> */
+    private function formatTableRow(FiscalYear $year): array
+    {
+        $actions = '<div class="d-inline-flex justify-content-end gap-1 w-100">'
+            .$this->editAction($year);
+
+        if (! $year->is_active) {
+            $actions .= $this->deleteAction($year);
+        }
+
+        $status = $year->is_active
+            ? '<span class="badge bg-dark-success-gradient text-white">Active</span>'
+            : '<span class="badge bg-dark-warning-gradient text-white">Inactive</span>';
+
+        return [
+            $year->id,
+            '<strong>'.e($year->name).'</strong>',
+            $year->start_date->format('d M Y'),
+            $year->end_date->format('d M Y'),
+            $status,
+            $actions.'</div>',
+        ];
+    }
+
+    private function editAction(FiscalYear $year): string
+    {
+        return '<a href="#" class="w-32-px h-32-px rounded-circle d-inline-flex '
+            .'align-items-center justify-content-center bg-success-focus text-success-main AjaxModal" '
+            .'data-ajax-modal="'.e(route('fiscal-years.editModal', $year)).'" data-size="lg" '
+            .'data-onsuccess="FiscalYearsIndex.onSaved" title="Edit">'
+            .'<iconify-icon icon="lucide:edit"></iconify-icon></a>';
+    }
+
+    private function deleteAction(FiscalYear $year): string
+    {
+        return '<a href="#" class="w-32-px h-32-px rounded-circle d-inline-flex '
+            .'align-items-center justify-content-center bg-danger-focus text-danger-main '
+            .'btn-fiscal-year-delete" data-url="'.e(route('fiscal-years.destroy', $year)).'" '
+            .'title="Delete"><iconify-icon icon="solar:trash-bin-minimalistic-outline">'
+            .'</iconify-icon></a>';
     }
 }

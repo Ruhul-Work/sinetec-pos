@@ -235,6 +235,21 @@
                 </li>
             @endpermgroup
 
+            @permgroup(['production.part_boms'])
+                <li class="sidebar-menu-group-title">Production</li>
+                <li class="dropdown {{ Route::is('production.part-boms.*') ? 'active' : '' }}">
+                    <a href="javascript:void(0)">
+                        <iconify-icon icon="mdi:factory" class="menu-icon"></iconify-icon>
+                        <span>Production Setup</span>
+                    </a>
+                    <ul class="sidebar-submenu">
+                        @perm('production.part-boms.index')
+                            <li><a class="{{ Route::is('production.part-boms.*') ? 'active' : '' }}" href="{{ route('production.part-boms.index') }}"><iconify-icon icon="mdi:format-list-bulleted-type" class="menu-icon"></iconify-icon><span>Part BOM / Recipe</span></a></li>
+                        @endperm
+                    </ul>
+                </li>
+            @endpermgroup
+
             @permgroup(['core.fiscal_years', 'core.account_types', 'core.accounts', 'core.branch_accounts', 'finance.account_mappings', 'finance.opening_balances', 'finance.cash_bank_book', 'finance.cash_bank_transfers', 'finance.capital_investments', 'finance.capital_withdrawals', 'finance.loan_receipts', 'finance.loan_repayments', 'finance.fiscal_year_closings', 'finance.journals', 'finance.account_ledger', 'finance.trial_balance'])
                 <li class="sidebar-menu-group-title">Finance</li>
                 <li class="dropdown {{ Route::is('fiscal-years.*') || Route::is('account-types.*') || Route::is('accounts.*') || Route::is('branch-accounts.*') || Route::is('finance.account-mappings.*') || Route::is('finance.opening-balances.*') || Route::is('finance.cash-bank-book.*') || Route::is('finance.cash-bank-transfers.*') || Route::is('finance.capital-investments.*') || Route::is('finance.capital-withdrawals.*') || Route::is('finance.loan-receipts.*') || Route::is('finance.loan-repayments.*') || Route::is('finance.fiscal-year-closings.*') || Route::is('finance.journals.*') || Route::is('finance.account-ledger.*') || Route::is('finance.trial-balance.*') ? 'active' : '' }}">

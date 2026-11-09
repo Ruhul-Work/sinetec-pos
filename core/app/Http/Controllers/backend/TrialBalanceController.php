@@ -26,19 +26,7 @@ class TrialBalanceController extends Controller
     public function listAjax(Request $request): JsonResponse
     {
         $rows = $this->query($request)->orderBy('account_code')->get();
-        $data = $rows->map(function (object $row): array {
-            $netBalance = (float) $row->debit - (float) $row->credit;
-
-            return [
-                $row->account_id,
-                '<strong>'.e($row->account_name).'</strong><br><code>'.e($row->account_code).'</code>',
-                '<span class="badge bg-light text-secondary">'.e($row->account_type).'</span>',
-                '<div class="text-end">'.((float) $row->debit > 0 ? '<span class="text-success-main fw-semibold">'.number_format($row->debit, 2).'</span>' : '&mdash;').'</div>',
-                '<div class="text-end">'.((float) $row->credit > 0 ? '<span class="text-danger-main fw-semibold">'.number_format($row->credit, 2).'</span>' : '&mdash;').'</div>',
-                '<div class="text-end fw-semibold">'.($netBalance > 0 ? '<span class="text-success-main">Dr '.number_format($netBalance, 2).'</span>' : '&mdash;').'</div>',
-                '<div class="text-end fw-semibold">'.($netBalance < 0 ? '<span class="text-danger-main">Cr '.number_format(abs($netBalance), 2).'</span>' : '&mdash;').'</div>',
-            ];
-        });
+        $data = $rows->map(fn (object $row): array => $this->formatTableRow($row));
 
         return response()->json([
             'draw' => (int) $request->input('draw'),
@@ -110,5 +98,51 @@ class TrialBalanceController extends Controller
             ->when($request->date_to, fn (Builder $query, string $date) => $query->whereDate('entry_date', '<=', $date))
             ->groupBy('account_id', 'account_code', 'account_name', 'account_type')
             ->selectRaw('account_id, account_code, account_name, account_type, SUM(debit) as debit, SUM(credit) as credit');
+    }
+
+    /** @return array<int, int|string> */
+    private function formatTableRow(object $row): array
+    {
+        $debit = (float) $row->debit;
+        $credit = (float) $row->credit;
+        $netBalance = $debit - $credit;
+
+        return [
+            $row->account_id,
+            '<strong>'.e($row->account_name).'</strong><br><code>'.e($row->account_code).'</code>',
+            '<span class="badge bg-light text-secondary">'.e($row->account_type).'</span>',
+            $this->movementAmount($debit, 'text-success-main'),
+            $this->movementAmount($credit, 'text-danger-main'),
+            $this->netBalance($netBalance, 'debit'),
+            $this->netBalance($netBalance, 'credit'),
+        ];
+    }
+
+    private function movementAmount(float $amount, string $textClass): string
+    {
+        if ($amount <= 0) {
+            return '<div class="text-end">&mdash;</div>';
+        }
+
+        return '<div class="text-end"><span class="'.$textClass.' fw-semibold">'
+            .number_format($amount, 2)
+            .'</span></div>';
+    }
+
+    private function netBalance(float $balance, string $side): string
+    {
+        $isDebit = $side === 'debit';
+        $shouldDisplay = $isDebit ? $balance > 0 : $balance < 0;
+
+        if (! $shouldDisplay) {
+            return '<div class="text-end fw-semibold">&mdash;</div>';
+        }
+
+        $label = $isDebit ? 'Dr' : 'Cr';
+        $textClass = $isDebit ? 'text-success-main' : 'text-danger-main';
+
+        return '<div class="text-end fw-semibold"><span class="'.$textClass.'">'
+            .$label.' '.number_format(abs($balance), 2)
+            .'</span></div>';
     }
 }

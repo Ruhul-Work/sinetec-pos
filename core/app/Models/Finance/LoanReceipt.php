@@ -14,9 +14,22 @@ class LoanReceipt extends Model
     protected $table = 'finance_loan_receipts';
 
     protected $fillable = [
-        'loan_no', 'branch_id', 'loan_type', 'cash_bank_account_id', 'loan_account_id',
-        'receipt_date', 'amount', 'reference_no', 'note', 'status', 'created_by', 'posted_by', 'posted_at',
-        'voided_by', 'voided_at', 'void_reason',
+        'loan_no',
+        'branch_id',
+        'loan_type',
+        'cash_bank_account_id',
+        'loan_account_id',
+        'receipt_date',
+        'amount',
+        'reference_no',
+        'note',
+        'status',
+        'created_by',
+        'posted_by',
+        'posted_at',
+        'voided_by',
+        'voided_at',
+        'void_reason',
     ];
 
     protected function casts(): array

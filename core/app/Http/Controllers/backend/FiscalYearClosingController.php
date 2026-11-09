@@ -69,17 +69,34 @@ class FiscalYearClosingController extends Controller
                 '<strong>'.e($row->capital_name).'</strong><br><code>'.e($row->capital_code).'</code>',
                 '<div class="text-end fw-semibold">'.number_format((float) $row->amount, 2).'</div>',
                 '<span class="badge '.$status->badgeClass().' text-white px-12 py-7 radius-4">'.e($status->label()).'</span>',
-                '<div class="d-inline-flex justify-content-end w-100"><a href="'.e($url).'" class="w-32-px h-32-px rounded-circle d-inline-flex align-items-center justify-content-center bg-info-focus text-info-main" title="View closing"><iconify-icon icon="mdi:eye-outline"></iconify-icon></a></div>',
+                '<div class="d-inline-flex justify-content-end w-100">'
+                    .'<a href="'.e($url).'" class="w-32-px h-32-px rounded-circle '
+                    .'d-inline-flex align-items-center justify-content-center bg-info-focus '
+                    .'text-info-main" title="View closing">'
+                    .'<iconify-icon icon="mdi:eye-outline"></iconify-icon></a></div>',
             ];
         });
 
-        return response()->json(['draw' => (int) $request->input('draw'), 'iTotalRecords' => $total, 'iTotalDisplayRecords' => $data->count(), 'aaData' => $data->all()]);
+        return response()->json([
+            'draw' => (int) $request->input('draw'),
+            'iTotalRecords' => $total,
+            'iTotalDisplayRecords' => $data->count(),
+            'aaData' => $data->all(),
+        ]);
     }
 
     public function create(): View
     {
         $years = DB::table('fiscal_years')->where('is_active', true)->orderByDesc('end_date')->get(['id', 'name', 'start_date', 'end_date']);
-        $branches = DB::table('branches')->whereNull('deleted_at')->where('is_active', true)->when(current_branch_id(), fn (Builder $builder, int $branchId) => $builder->where('id', $branchId))->orderBy('name')->get(['id', 'name', 'code']);
+        $branches = DB::table('branches')
+            ->whereNull('deleted_at')
+            ->where('is_active', true)
+            ->when(
+                current_branch_id(),
+                fn (Builder $query, int $branchId) => $query->where('id', $branchId),
+            )
+            ->orderBy('name')
+            ->get(['id', 'name', 'code']);
         $branchId = (int) (current_branch_id() ?: $branches->first()?->id);
         abort_if($years->isEmpty(), 422, 'An active fiscal year is required before preparing year closing.');
         abort_if($branchId < 1, 422, 'An active branch is required before preparing year closing.');
@@ -124,7 +141,11 @@ class FiscalYearClosingController extends Controller
         }
 
         return $request->expectsJson()
-            ? response()->json(['success' => true, 'msg' => 'Fiscal year closing saved as Draft.', 'redirect_url' => route('finance.fiscal-year-closings.show', $closing)])
+            ? response()->json([
+                'success' => true,
+                'msg' => 'Fiscal year closing saved as Draft.',
+                'redirect_url' => route('finance.fiscal-year-closings.show', $closing),
+            ])
             : redirect()->route('finance.fiscal-year-closings.show', $closing)->with('success', 'Fiscal year closing saved as Draft.');
     }
 
@@ -144,7 +165,13 @@ class FiscalYearClosingController extends Controller
             return back()->with('error', $exception->getMessage());
         }
 
-        return redirect()->route('finance.fiscal-year-closings.show', $closing)->with('success', 'Fiscal year closing prepared. Approve and post its Journal Draft before activating the next fiscal year.');
+        return redirect()
+            ->route('finance.fiscal-year-closings.show', $closing)
+            ->with(
+                'success',
+                'Fiscal year closing prepared. Approve and post its Journal Draft '
+                .'before activating the next fiscal year.',
+            );
     }
 
     public function void(int $closing, Request $request): RedirectResponse

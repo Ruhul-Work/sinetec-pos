@@ -194,3 +194,21 @@ project:Sinetec Pos
 
 **Total:** 8.25 hours
 
+---
+
+## Date: 2026-11-08
+
+**ID:** BFT4
+
+project: Sinetec POS
+
+1. Development Roadmap, Project Plan, Current Status and Progress Report review/sync; completed phases, next Production gate and compact progress reporting update — 1 hour
+2. Readable-code delivery rule documentation and light Purchase/Inventory quality review, including Pint findings and future refactor scope — 45 min
+3. Part BOM / Recipe Master backend: models, Draft create/update/delete service, Make/Both Part eligibility, raw-material production-unit validation, base-quantity calculation and version/status rules — 2 hours
+4. Part BOM routes, independent permission, Production sidebar menu, permission seeding and user-facing Draft/Active/Inactive workflow — 1 hour
+5. Part BOM list/detail/create screens, Select2 item/unit loading, raw-material components and one-active-version activation flow — 1.5 hours
+6. Part BOM DataTable conversion, action controls, selected-material row alignment, field-note placement and form/button interface polish — 1.25 hours
+7. Part BOM automated feature tests, Pint, route/view cache compilation and local permission/cache refresh — 45 min
+
+**Total:** 7.75 hours
+

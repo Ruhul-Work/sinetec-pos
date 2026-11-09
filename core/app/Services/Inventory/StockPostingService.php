@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Services\Inventory;
 
 use App\Data\Inventory\StockPostingData;
@@ -27,7 +26,7 @@ abstract class StockPostingService
         $normalized = $this->normalize($posting);
 
         return DB::transaction(
-            fn () => $this->postWithinTransaction($normalized),
+            fn() => $this->postWithinTransaction($normalized),
             3,
         );
     }
@@ -91,7 +90,7 @@ abstract class StockPostingService
 
     private function postWithinTransaction(array $posting): StockPostingResult
     {
-        $domain = $this->domain();
+        $domain    = $this->domain();
         $itemClass = $domain->itemModel();
 
         /** @var Model|null $item */
@@ -109,7 +108,7 @@ abstract class StockPostingService
             throw new InvalidStockPostingException('The warehouse does not belong to the selected branch.');
         }
 
-        $balance = $this->lockedBalance($posting['item_id'], $posting['warehouse_id']);
+        $balance       = $this->lockedBalance($posting['item_id'], $posting['warehouse_id']);
         $movementClass = $domain->movementModel();
 
         /** @var StockMovement|null $existing */
@@ -123,9 +122,9 @@ abstract class StockPostingService
             return new StockPostingResult($existing, $balance, true);
         }
 
-        $balanceQuery = $balance->newQuery()->whereKey($balance->getKey());
+        $balanceQuery   = $balance->newQuery()->whereKey($balance->getKey());
         $balanceChanges = [
-            'version' => DB::raw('version + 1'),
+            'version'    => DB::raw('version + 1'),
             'updated_at' => now(),
         ];
 
@@ -149,20 +148,20 @@ abstract class StockPostingService
         /** @var StockMovement $movement */
         $movement = $movementClass::query()->create([
             $domain->itemForeignKey() => $posting['item_id'],
-            'branch_id' => $posting['branch_id'],
-            'warehouse_id' => $posting['warehouse_id'],
-            'movement_at' => $posting['movement_at'],
-            'movement_type' => $posting['movement_type'],
-            'direction' => $posting['direction'],
-            'quantity' => $posting['quantity'],
-            'unit_cost' => $posting['unit_cost'],
-            'source_type' => $posting['source_type'],
-            'source_id' => $posting['source_id'],
-            'source_item_id' => $posting['source_item_id'],
-            'posting_key' => $posting['posting_key'],
-            'reversal_of_id' => $posting['reversal_of_id'],
-            'note' => $posting['note'],
-            'posted_by' => $posting['posted_by'],
+            'branch_id'               => $posting['branch_id'],
+            'warehouse_id'            => $posting['warehouse_id'],
+            'movement_at'             => $posting['movement_at'],
+            'movement_type'           => $posting['movement_type'],
+            'direction'               => $posting['direction'],
+            'quantity'                => $posting['quantity'],
+            'unit_cost'               => $posting['unit_cost'],
+            'source_type'             => $posting['source_type'],
+            'source_id'               => $posting['source_id'],
+            'source_item_id'          => $posting['source_item_id'],
+            'posting_key'             => $posting['posting_key'],
+            'reversal_of_id'          => $posting['reversal_of_id'],
+            'note'                    => $posting['note'],
+            'posted_by'               => $posting['posted_by'],
         ]);
 
         /** @var StockBalance $freshBalance */
@@ -173,19 +172,19 @@ abstract class StockPostingService
 
     private function lockedBalance(int $itemId, int $warehouseId): StockBalance
     {
-        $domain = $this->domain();
-        $balanceClass = $domain->balanceModel();
+        $domain         = $this->domain();
+        $balanceClass   = $domain->balanceModel();
         $itemForeignKey = $domain->itemForeignKey();
-        $balanceTable = (new $balanceClass)->getTable();
-        $timestamp = now();
+        $balanceTable   = (new $balanceClass)->getTable();
+        $timestamp      = now();
 
         DB::table($balanceTable)->insertOrIgnore([
             $itemForeignKey => $itemId,
-            'warehouse_id' => $warehouseId,
-            'quantity' => 0,
-            'version' => 0,
-            'created_at' => $timestamp,
-            'updated_at' => $timestamp,
+            'warehouse_id'  => $warehouseId,
+            'quantity'      => 0,
+            'version'       => 0,
+            'created_at'    => $timestamp,
+            'updated_at'    => $timestamp,
         ]);
 
         /** @var StockBalance $balance */
@@ -220,10 +219,10 @@ abstract class StockPostingService
         }
 
         foreach ([
-            'item ID' => $posting->itemId,
-            'branch ID' => $posting->branchId,
+            'item ID'      => $posting->itemId,
+            'branch ID'    => $posting->branchId,
             'warehouse ID' => $posting->warehouseId,
-            'source ID' => $posting->sourceId,
+            'source ID'    => $posting->sourceId,
         ] as $field => $value) {
             if ($value < 1) {
                 throw new InvalidStockPostingException("The {$field} must be a positive integer.");
@@ -231,9 +230,9 @@ abstract class StockPostingService
         }
 
         foreach ([
-            'source item ID' => $posting->sourceItemId,
+            'source item ID'       => $posting->sourceItemId,
             'reversal movement ID' => $posting->reversalOfId,
-            'posted-by user ID' => $posting->postedBy,
+            'posted-by user ID'    => $posting->postedBy,
         ] as $field => $value) {
             if ($value !== null && $value < 1) {
                 throw new InvalidStockPostingException("The {$field} must be a positive integer when provided.");
@@ -252,28 +251,28 @@ abstract class StockPostingService
         }
 
         return [
-            'item_id' => $posting->itemId,
-            'branch_id' => $posting->branchId,
-            'warehouse_id' => $posting->warehouseId,
-            'movement_type' => $posting->movementType,
-            'direction' => $posting->direction,
-            'quantity' => $this->decimal($posting->quantity, 6, 14, false, 'quantity'),
-            'unit_cost' => $posting->unitCost === null
+            'item_id'        => $posting->itemId,
+            'branch_id'      => $posting->branchId,
+            'warehouse_id'   => $posting->warehouseId,
+            'movement_type'  => $posting->movementType,
+            'direction'      => $posting->direction,
+            'quantity'       => $this->decimal($posting->quantity, 6, 14, false, 'quantity'),
+            'unit_cost'      => $posting->unitCost === null
                 ? null
                 : $this->decimal($posting->unitCost, 4, 16, true, 'unit cost'),
-            'source_type' => $sourceType,
-            'source_id' => $posting->sourceId,
+            'source_type'    => $sourceType,
+            'source_id'      => $posting->sourceId,
             'source_item_id' => $posting->sourceItemId,
-            'posting_key' => $postingKey,
+            'posting_key'    => $postingKey,
             'reversal_of_id' => $posting->reversalOfId,
-            'movement_at' => CarbonImmutable::parse($posting->movementAt ?? now()),
-            'note' => $posting->note,
-            'posted_by' => $posting->postedBy,
+            'movement_at'    => CarbonImmutable::parse($posting->movementAt ?? now()),
+            'note'           => $posting->note,
+            'posted_by'      => $posting->postedBy,
         ];
     }
 
     private function decimal(
-        int|float|string $value,
+        int | float | string $value,
         int $scale,
         int $maxIntegerDigits,
         bool $allowZero,
@@ -288,17 +287,17 @@ abstract class StockPostingService
         }
 
         [$integer, $fraction] = array_pad(explode('.', $raw, 2), 2, '');
-        $integer = ltrim($integer, '0');
-        $integer = $integer === '' ? '0' : $integer;
-        $fraction = rtrim($fraction, '0');
+        $integer              = ltrim($integer, '0');
+        $integer              = $integer === '' ? '0' : $integer;
+        $fraction             = rtrim($fraction, '0');
 
         if (strlen($integer) > $maxIntegerDigits || strlen($fraction) > $scale) {
             throw new InvalidStockPostingException("The {$field} exceeds the supported precision.");
         }
 
-        $normalized = $integer.'.'.str_pad($fraction, $scale, '0');
+        $normalized = $integer . '.' . str_pad($fraction, $scale, '0');
 
-        if (! $allowZero && $normalized === '0.'.str_repeat('0', $scale)) {
+        if (! $allowZero && $normalized === '0.' . str_repeat('0', $scale)) {
             throw new InvalidStockPostingException("The {$field} must be greater than zero.");
         }
 
@@ -311,16 +310,16 @@ abstract class StockPostingService
         $itemForeignKey = $this->domain()->itemForeignKey();
 
         $matches = (int) $existing->{$itemForeignKey} === $posting['item_id']
-            && (int) $existing->branch_id === $posting['branch_id']
-            && (int) $existing->warehouse_id === $posting['warehouse_id']
-            && $existing->movement_type === $posting['movement_type']
-            && $existing->direction === $posting['direction']
-            && $existing->quantity === $posting['quantity']
-            && $existing->unit_cost === $posting['unit_cost']
-            && $existing->source_type === $posting['source_type']
-            && (int) $existing->source_id === $posting['source_id']
-            && $existing->source_item_id === $posting['source_item_id']
-            && $existing->reversal_of_id === $posting['reversal_of_id'];
+        && (int) $existing->branch_id === $posting['branch_id']
+        && (int) $existing->warehouse_id === $posting['warehouse_id']
+        && $existing->movement_type === $posting['movement_type']
+        && $existing->direction === $posting['direction']
+        && $existing->quantity === $posting['quantity']
+        && $existing->unit_cost === $posting['unit_cost']
+        && $existing->source_type === $posting['source_type']
+        && (int) $existing->source_id === $posting['source_id']
+        && $existing->source_item_id === $posting['source_item_id']
+        && $existing->reversal_of_id === $posting['reversal_of_id'];
 
         if (! $matches) {
             throw new DuplicateStockPostingException(

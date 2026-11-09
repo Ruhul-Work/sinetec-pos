@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Services\Purchase;
 
 use App\Enums\Finance\JournalStatus;
@@ -28,16 +27,16 @@ final class PurchasePaymentService
         return DB::transaction(function () use ($data, $userId): PurchasePayment {
             $receipt = $this->receipt((int) $data['purchase_receipt_id']);
             $account = $this->cashAccount((int) $data['account_id'], (int) $receipt->branch_id);
-            $amount = $this->amount($data['amount']);
+            $amount  = $this->amount($data['amount']);
             if ($amount > $this->due->receiptDue($receipt)['due']) {
                 throw new InvalidPurchasePaymentException('Payment cannot exceed this receipt’s current due amount.');
             }
 
             return PurchasePayment::query()->create([
-                'payment_no' => 'PAY-'.now()->format('Ymd-His-u'), 'branch_id' => $receipt->branch_id, 'supplier_id' => $receipt->supplier_id,
-                'purchase_receipt_id' => $receipt->id, 'payment_type_id' => $data['payment_type_id'], 'account_id' => $account->id,
-                'payment_date' => $data['payment_date'], 'amount' => $amount, 'reference_no' => trim((string) ($data['reference_no'] ?? '')) ?: null,
-                'status' => PurchasePaymentStatus::Draft, 'note' => trim((string) ($data['note'] ?? '')) ?: null, 'created_by' => $userId,
+                'payment_no'          => 'PAY-' . now()->format('Ymd-His-u'), 'branch_id' => $receipt->branch_id, 'supplier_id'                         => $receipt->supplier_id,
+                'purchase_receipt_id' => $receipt->id, 'payment_type_id'                  => $data['payment_type_id'], 'account_id'                     => $account->id,
+                'payment_date'        => $data['payment_date'], 'amount'                  => $amount, 'reference_no'                                    => trim((string) ($data['reference_no'] ?? '')) ?: null,
+                'status'              => PurchasePaymentStatus::Draft, 'note'             => trim((string) ($data['note'] ?? '')) ?: null, 'created_by' => $userId,
             ]);
         }, 3);
     }
@@ -68,7 +67,7 @@ final class PurchasePaymentService
     {
         return DB::transaction(function () use ($payment, $reason, $userId): PurchasePayment {
             $payment = PurchasePayment::query()->whereKey($payment->id)->lockForUpdate()->firstOrFail();
-            $reason = $this->reason($reason);
+            $reason  = $this->reason($reason);
 
             if ($payment->status === PurchasePaymentStatus::Void) {
                 return $payment;
@@ -78,9 +77,9 @@ final class PurchasePaymentService
             }
 
             $payment->update([
-                'status' => PurchasePaymentStatus::Void,
-                'voided_by' => $userId,
-                'voided_at' => now(),
+                'status'      => PurchasePaymentStatus::Void,
+                'voided_by'   => $userId,
+                'voided_at'   => now(),
                 'void_reason' => $reason,
             ]);
 
@@ -92,7 +91,7 @@ final class PurchasePaymentService
     {
         return DB::transaction(function () use ($payment, $reversalDate, $reason, $userId): PurchasePayment {
             $payment = PurchasePayment::query()->whereKey($payment->id)->lockForUpdate()->firstOrFail();
-            $reason = $this->reason($reason);
+            $reason  = $this->reason($reason);
 
             if ($payment->status === PurchasePaymentStatus::Reversed) {
                 return $payment;
@@ -114,14 +113,14 @@ final class PurchasePaymentService
             if ($journal->status === JournalStatus::Posted) {
                 $reversalJournalId = $this->journalWorkflow->createReversalDraft($journal, $reversalDate, $reason, $userId)->id;
             } elseif ($journal->status !== JournalStatus::Void) {
-                $this->journalWorkflow->void($journal, 'Payment reversed: '.$reason, $userId);
+                $this->journalWorkflow->void($journal, 'Payment reversed: ' . $reason, $userId);
             }
 
             $payment->update([
-                'status' => PurchasePaymentStatus::Reversed,
-                'reversed_by' => $userId,
-                'reversed_at' => now(),
-                'reversal_reason' => $reason,
+                'status'              => PurchasePaymentStatus::Reversed,
+                'reversed_by'         => $userId,
+                'reversed_at'         => now(),
+                'reversal_reason'     => $reason,
                 'reversal_journal_id' => $reversalJournalId,
             ]);
 
@@ -131,8 +130,7 @@ final class PurchasePaymentService
 
     private function receipt(int $id): PurchaseReceipt
     {
-        return PurchaseReceipt::query()->whereKey($id)->where('status', PurchaseReceiptStatus::Posted)->lockForUpdate()->first()
-            ?? throw new InvalidPurchasePaymentException('Select a posted purchase receipt.');
+        return PurchaseReceipt::query()->whereKey($id)->where('status', PurchaseReceiptStatus::Posted)->lockForUpdate()->first() ?? throw new InvalidPurchasePaymentException('Select a posted purchase receipt.');
     }
 
     private function cashAccount(int $id, int $branchId): Account
