@@ -235,16 +235,19 @@
                 </li>
             @endpermgroup
 
-            @permgroup(['production.part_boms'])
+            @permgroup(['production.part_boms', 'production.part_productions'])
                 <li class="sidebar-menu-group-title">Production</li>
-                <li class="dropdown {{ Route::is('production.part-boms.*') ? 'active' : '' }}">
+                <li class="dropdown {{ Route::is('production.part-boms.*') || Route::is('production.part-productions.*') ? 'active' : '' }}">
                     <a href="javascript:void(0)">
                         <iconify-icon icon="mdi:factory" class="menu-icon"></iconify-icon>
-                        <span>Production Setup</span>
+                        <span>Production Management</span>
                     </a>
                     <ul class="sidebar-submenu">
                         @perm('production.part-boms.index')
                             <li><a class="{{ Route::is('production.part-boms.*') ? 'active' : '' }}" href="{{ route('production.part-boms.index') }}"><iconify-icon icon="mdi:format-list-bulleted-type" class="menu-icon"></iconify-icon><span>Part BOM / Recipe</span></a></li>
+                        @endperm
+                        @perm('production.part-productions.index')
+                            <li><a class="{{ Route::is('production.part-productions.*') ? 'active' : '' }}" href="{{ route('production.part-productions.index') }}"><iconify-icon icon="mdi:factory" class="menu-icon"></iconify-icon><span>Part Production</span></a></li>
                         @endperm
                     </ul>
                 </li>

@@ -1,8 +1,8 @@
 # Electronics Manufacturing, Inventory & Sales System — Project Plan
 
-**Status:** Business scope approved; Purchasing, Inventory Core, operational Finance foundation and Part BOM / Recipe setup complete; Internal Part Production is next
-**Version:** 1.3
-**Updated:** 8 November 2026
+**Status:** Business scope approved; Purchasing, Inventory Core, operational Finance foundation, Part BOM and Internal Part Production complete; Finished Product BOM / Assembly is next
+**Version:** 1.4
+**Updated:** 9 November 2026
 **Purpose:** This is the authoritative business-scope and decision-history document. Physical implementation details and current progress are tracked in the linked design, roadmap and status documents.
 
 ## 1. Project objective
@@ -121,7 +121,7 @@ The approved scope remains unchanged. The following foundation is now complete a
 - Purchase Order, direct/PO-based Purchase Receipt, Purchase Return, Supplier Payment/Due and Purchase Price History.
 - Operational Finance foundation: Chart of Accounts, branch accounts, purchase mapping, Draft Journal workflow, Account Ledger, Cash/Bank Book, capital/loan controls, Trial Balance and Fiscal Year Closing.
 
-Part BOM / Recipe setup is complete. The next delivery is **Internal Part Production**, followed by Finished Product BOM and Assembly. Sales, monthly rate/reporting and supply planning remain later release work.
+Part BOM / Recipe and Internal Part Production are complete. The next delivery is **Finished Product BOM and Assembly**, followed by Sales. Monthly rate/reporting and supply planning remain later release work.
 
 ## 4. Simple operational flows
 
@@ -279,3 +279,4 @@ These four documents, including this plan, are the authoritative project set. Th
 | 1.1 | 8 October 2026 | Recorded Phase 1 implementation decisions: separate category modules and Raw Material Master; stock, rates, alternate units and supplier mappings remain separate downstream modules. |
 | 1.2 | 8 November 2026 | Synced the plan with completed inventory, purchasing and operational Finance delivery; confirmed Part BOM / Production as the next implementation sequence. |
 | 1.3 | 8 November 2026 | Recorded completed Part BOM / Recipe Master and moved the next implementation gate to Internal Part Production. |
+| 1.4 | 9 November 2026 | Recorded Internal Part Production completion with atomic material consumption, Part output, QC, expense allocation and Draft production journal; moved the next gate to Finished Product BOM / Assembly. |

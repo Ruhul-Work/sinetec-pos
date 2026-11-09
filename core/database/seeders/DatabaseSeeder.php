@@ -15,6 +15,7 @@ class DatabaseSeeder extends Seeder
             VoucherTypeSeeder::class,
             FiscalYearSeeder::class,
             FinanceFoundationSeeder::class,
+            ProductionFoundationSeeder::class,
             CorePermissionSeeder::class,
         ]);
     }

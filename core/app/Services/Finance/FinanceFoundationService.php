@@ -33,6 +33,7 @@ final class FinanceFoundationService
         ['code' => '3020', 'name' => 'Owner Drawings', 'type' => 'EQUITY'],
         ['code' => '3030', 'name' => 'Partner Drawings', 'type' => 'EQUITY'],
         ['code' => '4100', 'name' => 'Purchase Discount', 'type' => 'INCOME'],
+        ['code' => '5100', 'name' => 'Production Loss', 'type' => 'EXPENSE'],
     ];
 
     private const VOUCHER_TYPES = [

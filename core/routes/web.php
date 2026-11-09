@@ -26,9 +26,10 @@ use App\Http\Controllers\backend\JournalController;
 use App\Http\Controllers\backend\LoanReceiptController;
 use App\Http\Controllers\backend\LoanRepaymentController;
 use App\Http\Controllers\backend\OpeningStockController;
-use App\Http\Controllers\backend\PartCategoryController;
 use App\Http\Controllers\backend\PartBomController;
+use App\Http\Controllers\backend\PartCategoryController;
 use App\Http\Controllers\backend\PartController;
+use App\Http\Controllers\backend\PartProductionController;
 use App\Http\Controllers\backend\PartReorderLevelController;
 use App\Http\Controllers\backend\PartSupplierController;
 use App\Http\Controllers\backend\PaymentTypeController;
@@ -387,6 +388,19 @@ Route::middleware(['web', 'auth', 'perm', 'branchscope'])->group(function () {
         Route::patch('{partBom}/activate', 'activate')->whereNumber('partBom')->name('activate');
         Route::patch('{partBom}/deactivate', 'deactivate')->whereNumber('partBom')->name('deactivate');
         Route::delete('{partBom}', 'destroy')->whereNumber('partBom')->name('destroy');
+    });
+
+    Route::prefix('production/part-productions')->name('production.part-productions.')->controller(PartProductionController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('list', 'listAjax')->name('list.ajax');
+        Route::get('create', 'create')->name('create');
+        Route::post('/', 'store')->name('store');
+        Route::get('bom/{partBom}/plan', 'bomPlan')->whereNumber('partBom')->name('bom-plan');
+        Route::get('{partProduction}', 'show')->whereNumber('partProduction')->name('show');
+        Route::get('{partProduction}/edit', 'edit')->whereNumber('partProduction')->name('edit');
+        Route::put('{partProduction}', 'update')->whereNumber('partProduction')->name('update');
+        Route::patch('{partProduction}/complete', 'complete')->whereNumber('partProduction')->name('complete');
+        Route::delete('{partProduction}', 'destroy')->whereNumber('partProduction')->name('destroy');
     });
 
     Route::prefix('supplier')->name('supplier.')->group(function () {

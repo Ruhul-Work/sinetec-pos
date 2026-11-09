@@ -36,6 +36,11 @@ class PartBom extends Model
         return $this->hasMany(PartBomItem::class);
     }
 
+    public function productionBatches(): HasMany
+    {
+        return $this->hasMany(PartProductionBatch::class);
+    }
+
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');

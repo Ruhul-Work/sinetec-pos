@@ -755,6 +755,88 @@ html[data-theme="dark"] .page-note__body code {
   justify-content: flex-end;
 }
 
+/* ================================================================
+   Internal Part Production
+   Keeps batch filters and production form controls compact and aligned.
+   ================================================================ */
+.part-production-index-actions .form-select {
+  flex: 0 0 128px;
+  width: 128px;
+}
+
+.part-production-index-actions {
+  justify-content: flex-end;
+}
+
+.part-production-header-grid .select2-container {
+  width: 100% !important;
+}
+
+.part-production-header-grid .select2-selection--single {
+  min-height: 34px;
+  border-color: #d1d9e6;
+  border-radius: 0.5rem;
+}
+
+.part-production-header-grid .select2-selection__rendered {
+  line-height: 32px !important;
+  padding-left: 0.75rem !important;
+}
+
+.part-production-header-grid .select2-selection__arrow {
+  height: 32px !important;
+}
+
+.part-production-consumption-table .form-control-sm {
+  min-height: 36px;
+}
+
+.part-production-empty-icon {
+  display: flex;
+  width: max-content;
+  margin-inline: auto;
+  align-items: center;
+  justify-content: center;
+}
+
+.production-expense-header {
+  margin-bottom: 0.5rem;
+  padding: 0 0.25rem;
+  color: #475569;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.production-expense-row {
+  padding: 0.5rem 0.25rem;
+  border: 1px solid #e5eaf2;
+  border-radius: 0.625rem;
+  background: #fff;
+}
+
+.production-expense-row .select2-container {
+  width: 100% !important;
+}
+
+.production-expense-row .select2-selection--single,
+.production-expense-row .form-control-sm {
+  min-height: 34px;
+}
+
+.production-expense-row .select2-selection__rendered {
+  line-height: 32px !important;
+}
+
+.production-expense-row .select2-selection__arrow {
+  height: 32px !important;
+}
+
+@media (max-width: 991.98px) {
+  .production-expense-header {
+    display: none !important;
+  }
+}
+
 .field-note .field-note__toggle {
   width: 18px;
   height: 18px;

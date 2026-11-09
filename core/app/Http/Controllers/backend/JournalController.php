@@ -14,6 +14,7 @@ use App\Models\Finance\CashBankTransfer;
 use App\Models\Finance\FiscalYearClosing;
 use App\Models\Finance\LoanReceipt;
 use App\Models\Finance\LoanRepayment;
+use App\Models\Production\PartProductionBatch;
 use App\Models\Purchase\PurchasePayment;
 use App\Models\Purchase\PurchaseReceipt;
 use App\Models\Purchase\PurchaseReturn;
@@ -89,6 +90,7 @@ class JournalController extends Controller
             'loan_repayment',
             'cash_bank_transfer',
             'fiscal_year_closing',
+            'part_production_batch',
             'journal_reversal',
         ];
 
@@ -232,6 +234,7 @@ class JournalController extends Controller
         $repaymentIds = collect($rows)->where('source_type', 'loan_repayment')->pluck('source_id')->filter()->unique();
         $transferIds = collect($rows)->where('source_type', 'cash_bank_transfer')->pluck('source_id')->filter()->unique();
         $closingIds = collect($rows)->where('source_type', 'fiscal_year_closing')->pluck('source_id')->filter()->unique();
+        $partProductionIds = collect($rows)->where('source_type', 'part_production_batch')->pluck('source_id')->filter()->unique();
 
         return [
             'purchase_receipt' => PurchaseReceipt::query()->whereIn('id', $receiptIds)->get(['id', 'receipt_no'])->keyBy('id')->all(),
@@ -243,6 +246,7 @@ class JournalController extends Controller
             'loan_repayment' => LoanRepayment::query()->whereIn('id', $repaymentIds)->get(['id', 'repayment_no'])->keyBy('id')->all(),
             'cash_bank_transfer' => CashBankTransfer::query()->whereIn('id', $transferIds)->get(['id', 'transfer_no'])->keyBy('id')->all(),
             'fiscal_year_closing' => FiscalYearClosing::query()->whereIn('id', $closingIds)->get(['id', 'closing_no'])->keyBy('id')->all(),
+            'part_production_batch' => PartProductionBatch::query()->whereIn('id', $partProductionIds)->get(['id', 'batch_no'])->keyBy('id')->all(),
             'journal_reversal' => JournalEntry::query()
                 ->whereIn(
                     'id',
@@ -272,6 +276,7 @@ class JournalController extends Controller
             'loan_repayment' => ['Loan Repayment', $record?->repayment_no ?? '#'.$id, $record ? route('finance.loan-repayments.show', $id) : null],
             'cash_bank_transfer' => ['Cash / Bank Transfer', $record?->transfer_no ?? '#'.$id, $record ? route('finance.cash-bank-transfers.show', $id) : null],
             'fiscal_year_closing' => ['Fiscal Year Closing', $record?->closing_no ?? '#'.$id, $record ? route('finance.fiscal-year-closings.show', $id) : null],
+            'part_production_batch' => ['Part Production', $record?->batch_no ?? '#'.$id, $record ? route('production.part-productions.show', $id) : null],
             'journal_reversal' => ['Journal Reversal', $record?->voucher_no ?? '#'.$id, $record ? route('finance.journals.show', $id) : null],
             default => [str($type ?: 'Manual')->replace('_', ' ')->title()->toString(), '#'.$id, null],
         };

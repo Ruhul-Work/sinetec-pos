@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Services\Production;
 
 use App\Models\backend\Part;
@@ -12,17 +13,17 @@ class PartBomService
     public function createDraft(array $header, array $lines, ?int $userId): PartBom
     {
         return DB::transaction(function () use ($header, $lines, $userId): PartBom {
-            $part            = $this->produciblePart((int) $header['part_id']);
+            $part = $this->produciblePart((int) $header['part_id']);
             $normalizedLines = $this->normalizeLines($lines);
 
             $bom = PartBom::query()->create([
-                'part_id'         => $part->id,
-                'version'         => $header['version'],
+                'part_id' => $part->id,
+                'version' => $header['version'],
                 'output_quantity' => $this->quantity($header['output_quantity'], 'Output quantity'),
-                'status'          => 'DRAFT',
-                'effective_from'  => $header['effective_from'] ?: null,
-                'effective_to'    => $header['effective_to'] ?: null,
-                'created_by'      => $userId,
+                'status' => 'DRAFT',
+                'effective_from' => $header['effective_from'] ?: null,
+                'effective_to' => $header['effective_to'] ?: null,
+                'created_by' => $userId,
             ]);
 
             $this->insertLines($bom, $normalizedLines);
@@ -36,15 +37,15 @@ class PartBomService
         return DB::transaction(function () use ($bom, $header, $lines): PartBom {
             $bom = $this->lock($bom);
             $this->assertDraft($bom);
-            $part            = $this->produciblePart((int) $header['part_id']);
+            $part = $this->produciblePart((int) $header['part_id']);
             $normalizedLines = $this->normalizeLines($lines);
 
             $bom->update([
-                'part_id'         => $part->id,
-                'version'         => $header['version'],
+                'part_id' => $part->id,
+                'version' => $header['version'],
                 'output_quantity' => $this->quantity($header['output_quantity'], 'Output quantity'),
-                'effective_from'  => $header['effective_from'] ?: null,
-                'effective_to'    => $header['effective_to'] ?: null,
+                'effective_from' => $header['effective_from'] ?: null,
+                'effective_to' => $header['effective_to'] ?: null,
             ]);
 
             $bom->items()->delete();
@@ -112,7 +113,7 @@ class PartBomService
             ]);
         }
 
-        $normalized  = [];
+        $normalized = [];
         $materialIds = [];
 
         foreach ($lines as $index => $line) {
@@ -136,17 +137,17 @@ class PartBomService
                 ]);
             }
 
-            $unitId           = (int) ($line['unit_id'] ?? 0);
-            $factor           = $this->productionUnitFactor($material, $unitId, $index);
+            $unitId = (int) ($line['unit_id'] ?? 0);
+            $factor = $this->productionUnitFactor($material, $unitId, $index);
             $requiredQuantity = $this->quantity($line['required_quantity'] ?? null, 'Required quantity');
-            $wastagePercent   = $this->percentage($line['wastage_percent'] ?? 0, 'Wastage percentage');
+            $wastagePercent = $this->percentage($line['wastage_percent'] ?? 0, 'Wastage percentage');
 
             $normalized[] = [
-                'raw_material_id'   => $material->id,
-                'unit_id'           => $unitId,
+                'raw_material_id' => $material->id,
+                'unit_id' => $unitId,
                 'required_quantity' => $requiredQuantity,
-                'base_quantity'     => $this->multiply($requiredQuantity, $factor),
-                'wastage_percent'   => $wastagePercent,
+                'base_quantity' => $this->multiply($requiredQuantity, $factor),
+                'wastage_percent' => $wastagePercent,
             ];
             $materialIds[] = $materialId;
         }
@@ -180,7 +181,7 @@ class PartBomService
         $now = now();
 
         $bom->items()->createMany(array_map(
-            fn(array $line): array=> $line + ['created_at' => $now, 'updated_at' => $now],
+            fn (array $line): array => $line + ['created_at' => $now, 'updated_at' => $now],
             $lines
         ));
     }

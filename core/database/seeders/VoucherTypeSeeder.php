@@ -46,6 +46,10 @@ class VoucherTypeSeeder extends Seeder
                 'code' => 'EXPENSE',
             ],
             [
+                'name' => 'Production Voucher',
+                'code' => 'PRODUCTION',
+            ],
+            [
                 'name' => 'Account Transfer Voucher',
                 'code' => 'TRANSFER',
             ],

@@ -201,11 +201,13 @@ Receipt      Adjustment      Production   Stock Count
 | --- | --- | --- | --- |
 | **Complete:** Part BOM header/version | New | Make/Both Part + output unit | Production, planning |
 | **Complete:** Part BOM component lines | New | Raw Material + production unit mapping | Material calculation |
-| Next: Part Production batch | New | Active BOM + source/output warehouse | Inventory, QC, finance |
-| Pending: Actual consumption | New | Inventory service | Component stock OUT |
-| Pending: Production expense allocation | New/adapt expenses | Expense category + batch | Batch cost + finance |
-| Pending: Basic QC / reject record | New fields/workflow | Production batch | Wastage reports |
-| Pending: Production completion | New action | Consumption + QC | Output stock IN + finance draft |
+| **Complete:** Part Production batch | New | Active BOM + source/output warehouse | Inventory, QC, finance |
+| **Complete:** Actual consumption | New | Inventory service | Component stock OUT |
+| **Complete:** Production expense allocation | New/adapt expenses | Expense category + batch | Batch cost + finance |
+| **Complete:** Basic QC / reject record | New fields/workflow | Production batch | Wastage reports |
+| **Complete:** Production completion | New action | Consumption + QC | Output stock IN + finance draft |
+| Next: Finished Product BOM | New | Finished Product + mixed Part/Raw inputs | Final assembly |
+| Pending: Final Product Assembly | New | Active Product BOM + component stock | Finished Product stock + finance |
 
 **Screen flow**
 
