@@ -3,8 +3,10 @@
 namespace App\Models\Production;
 
 use App\Models\backend\Account;
+use App\Models\Finance\Expense;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class PartProductionExpense extends Model
 {
@@ -37,5 +39,10 @@ class PartProductionExpense extends Model
     public function account(): BelongsTo
     {
         return $this->belongsTo(Account::class);
+    }
+
+    public function expenseDocument(): HasOne
+    {
+        return $this->hasOne(Expense::class, 'part_production_expense_id');
     }
 }

@@ -15,6 +15,8 @@ use App\Http\Controllers\backend\CustomerController;
 use App\Http\Controllers\backend\DistrictController;
 use App\Http\Controllers\backend\DivisionController;
 use App\Http\Controllers\backend\DomainUnitMappingController;
+use App\Http\Controllers\backend\ExpenseController;
+use App\Http\Controllers\backend\ExpenseCategoryController;
 use App\Http\Controllers\backend\FinanceAccountMappingController;
 use App\Http\Controllers\backend\FinanceOpeningBalanceController;
 use App\Http\Controllers\backend\FinishedProductCategoryController;
@@ -33,6 +35,7 @@ use App\Http\Controllers\backend\PartProductionController;
 use App\Http\Controllers\backend\PartReorderLevelController;
 use App\Http\Controllers\backend\PartSupplierController;
 use App\Http\Controllers\backend\PaymentTypeController;
+use App\Http\Controllers\backend\ProductionExpenseCategoryController;
 use App\Http\Controllers\backend\PurchaseOrderController;
 use App\Http\Controllers\backend\PurchasePaymentController;
 use App\Http\Controllers\backend\PurchasePriceHistoryController;
@@ -390,6 +393,25 @@ Route::middleware(['web', 'auth', 'perm', 'branchscope'])->group(function () {
         Route::delete('{partBom}', 'destroy')->whereNumber('partBom')->name('destroy');
     });
 
+    Route::prefix('production/expense-categories')
+        ->name('production.expense-categories.')
+        ->controller(ProductionExpenseCategoryController::class)
+        ->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::post('list', 'listAjax')->name('list.ajax');
+            Route::get('create-modal', 'createModal')->name('createModal');
+            Route::post('/', 'store')->name('store');
+            Route::get('{expenseCategory}/edit-modal', 'editModal')
+                ->whereNumber('expenseCategory')
+                ->name('editModal');
+            Route::put('{expenseCategory}', 'update')
+                ->whereNumber('expenseCategory')
+                ->name('update');
+            Route::delete('{expenseCategory}', 'destroy')
+                ->whereNumber('expenseCategory')
+                ->name('destroy');
+        });
+
     Route::prefix('production/part-productions')->name('production.part-productions.')->controller(PartProductionController::class)->group(function () {
         Route::get('/', 'index')->name('index');
         Route::post('list', 'listAjax')->name('list.ajax');
@@ -535,6 +557,41 @@ Route::middleware(['web', 'auth', 'perm', 'branchscope'])->group(function () {
         Route::post('/', [CashBankTransferController::class, 'store'])->name('store');
         Route::patch('{transfer}/post', [CashBankTransferController::class, 'post'])->whereNumber('transfer')->name('post');
         Route::get('{transfer}', [CashBankTransferController::class, 'show'])->whereNumber('transfer')->name('show');
+    });
+
+    Route::prefix('finance/expenses')->name('finance.expenses.')->group(function () {
+        Route::get('/', [ExpenseController::class, 'index'])->name('index');
+        Route::post('list', [ExpenseController::class, 'listAjax'])->name('list.ajax');
+        Route::get('create', [ExpenseController::class, 'create'])->name('create');
+        Route::get('branches/{branch}/options', [ExpenseController::class, 'branchOptions'])
+            ->whereNumber('branch')
+            ->name('branch-options');
+        Route::post('/', [ExpenseController::class, 'store'])->name('store');
+        Route::patch('{expense}/post', [ExpenseController::class, 'post'])
+            ->whereNumber('expense')
+            ->name('post');
+        Route::patch('{expense}/void', [ExpenseController::class, 'void'])
+            ->whereNumber('expense')
+            ->name('void');
+        Route::get('{expense}', [ExpenseController::class, 'show'])
+            ->whereNumber('expense')
+            ->name('show');
+    });
+
+    Route::prefix('finance/expense-categories')->name('finance.expense-categories.')->group(function () {
+        Route::get('/', [ExpenseCategoryController::class, 'index'])->name('index');
+        Route::post('list', [ExpenseCategoryController::class, 'listAjax'])->name('list.ajax');
+        Route::get('create-modal', [ExpenseCategoryController::class, 'createModal'])->name('createModal');
+        Route::post('/', [ExpenseCategoryController::class, 'store'])->name('store');
+        Route::get('{expenseCategory}/edit-modal', [ExpenseCategoryController::class, 'editModal'])
+            ->whereNumber('expenseCategory')
+            ->name('editModal');
+        Route::put('{expenseCategory}', [ExpenseCategoryController::class, 'update'])
+            ->whereNumber('expenseCategory')
+            ->name('update');
+        Route::delete('{expenseCategory}', [ExpenseCategoryController::class, 'destroy'])
+            ->whereNumber('expenseCategory')
+            ->name('destroy');
     });
 
     Route::prefix('finance/capital-investments')->name('finance.capital-investments.')->group(function () {

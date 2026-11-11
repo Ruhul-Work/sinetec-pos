@@ -7,6 +7,7 @@ use App\Enums\Finance\FinanceMappingScope;
 use App\Models\backend\Account;
 use App\Models\Finance\FinanceAccountMapping;
 use App\Models\Production\ProductionExpenseCategory;
+use App\Services\Finance\ExpenseCategorySyncService;
 use Illuminate\Database\Seeder;
 
 class ProductionFoundationSeeder extends Seeder
@@ -22,13 +23,16 @@ class ProductionFoundationSeeder extends Seeder
         ];
 
         foreach ($categories as $category) {
-            ProductionExpenseCategory::query()->updateOrCreate(
+            $productionCategory = ProductionExpenseCategory::query()->updateOrCreate(
                 ['code' => $category['code']],
                 [
                     'name' => $category['name'],
                     'is_active' => true,
                 ],
             );
+
+            app(ExpenseCategorySyncService::class)
+                ->syncProductionCategory($productionCategory);
         }
 
         $productionLoss = Account::query()->where('code', '5100')->first();

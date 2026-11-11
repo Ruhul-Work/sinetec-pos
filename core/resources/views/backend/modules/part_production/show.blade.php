@@ -16,9 +16,13 @@
       ProductionQcStatus::Failed => 'bg-danger-focus text-danger-main',
       ProductionQcStatus::Pending => 'bg-secondary-focus text-secondary-main',
   };
-  $materialCost = $batch->consumptions->sum(fn ($line) => (float) $line->total_cost);
-  $expenseCost = $batch->expenses->sum(fn ($line) => (float) $line->amount);
-  $totalCost = $materialCost + $expenseCost;
+  $isEstimatedMaterialCost = $materialCostPreview['is_estimate'];
+  $materialCostLines = $materialCostPreview['lines'];
+  $materialCost = (float) $materialCostPreview['material_cost'];
+  $expenseCost = (float) $materialCostPreview['expense_cost'];
+  $totalCost = (float) $materialCostPreview['total_cost'];
+  $goodOutputUnitCost = $materialCostPreview['good_output_unit_cost'];
+  $outputUnitCode = $batch->bom?->part?->baseUnit?->code ?? 'UNIT';
 @endphp
 
 @section('meta')
@@ -187,8 +191,13 @@
   </div>
 
   <div class="card mb-24">
-    <div class="card-header">
+    <div class="card-header d-flex align-items-center justify-content-between gap-2 flex-wrap">
       <h5 class="card-title mb-0">Raw Material Consumption</h5>
+      @if ($isEstimatedMaterialCost)
+        <span class="badge bg-info-focus text-info-main px-12 py-7 radius-4">
+          Estimated from latest warehouse receipt cost
+        </span>
+      @endif
     </div>
     <div class="card-body">
       <div class="table-responsive">
@@ -206,6 +215,9 @@
           </thead>
           <tbody>
             @foreach ($batch->consumptions as $index => $line)
+              @php
+                $lineCost = $materialCostLines[$line->id];
+              @endphp
               <tr>
                 <td>{{ $index + 1 }}</td>
                 <td>
@@ -218,14 +230,16 @@
                   {{ rtrim(rtrim(number_format((float) $line->base_quantity, 6, '.', ''), '0'), '.') }}
                   {{ $line->rawMaterial?->baseUnit?->code }}
                 </td>
-                <td class="text-end">{{ number_format((float) $line->unit_cost, 4) }}</td>
-                <td class="text-end fw-semibold">{{ number_format((float) $line->total_cost, 2) }}</td>
+                <td class="text-end">{{ number_format((float) $lineCost['unit_cost'], 4) }}</td>
+                <td class="text-end fw-semibold">{{ number_format((float) $lineCost['total_cost'], 2) }}</td>
               </tr>
             @endforeach
           </tbody>
           <tfoot>
             <tr>
-              <th colspan="6" class="text-end">Material Cost</th>
+              <th colspan="6" class="text-end">
+                {{ $isEstimatedMaterialCost ? 'Estimated Material Cost' : 'Material Cost' }}
+              </th>
               <th class="text-end">{{ number_format($materialCost, 2) }}</th>
             </tr>
           </tfoot>
@@ -248,6 +262,7 @@
                   <th>Category</th>
                   <th>Note</th>
                   <th class="text-end">Amount</th>
+                  <th class="text-end">Payment</th>
                 </tr>
               </thead>
               <tbody>
@@ -256,16 +271,45 @@
                     <td>{{ $expense->category?->name }}</td>
                     <td>{{ $expense->note ?: '—' }}</td>
                     <td class="text-end">{{ number_format((float) $expense->amount, 2) }}</td>
+                    <td class="text-end">
+                      @if ($expense->expenseDocument)
+                        <a
+                          href="{{ route('finance.expenses.show', $expense->expenseDocument) }}"
+                          class="fw-semibold text-info-main"
+                        >
+                          {{ $expense->expenseDocument->expense_no }}
+                        </a>
+                        <small class="text-muted d-block">
+                          {{ $expense->expenseDocument->status->label() }}
+                        </small>
+                      @elseif ($batch->status === \App\Enums\Production\PartProductionStatus::Completed)
+                        @perm('finance.expenses.create', 'add')
+                          <button
+                            type="button"
+                            class="btn btn-outline-primary btn-sm px-10 py-6 radius-8 AjaxModal"
+                            data-ajax-modal="{{ route('finance.expenses.create', ['production_expense' => $expense->id]) }}"
+                            data-size="xl"
+                            data-onsuccess="PartProductionExpenseBooking.onSaved"
+                          >
+                            Book Payment
+                          </button>
+                        @else
+                          <span class="text-muted">Not booked</span>
+                        @endperm
+                      @else
+                        <span class="text-muted">Available after completion</span>
+                      @endif
+                    </td>
                   </tr>
                 @empty
                   <tr>
-                    <td colspan="3" class="text-center text-muted">No direct production expense was allocated.</td>
+                    <td colspan="4" class="text-center text-muted">No direct production expense was allocated.</td>
                   </tr>
                 @endforelse
               </tbody>
               <tfoot>
                 <tr>
-                  <th colspan="2" class="text-end">Direct Expense Cost</th>
+                  <th colspan="3" class="text-end">Direct Expense Cost</th>
                   <th class="text-end">{{ number_format($expenseCost, 2) }}</th>
                 </tr>
               </tfoot>
@@ -286,7 +330,9 @@
             <strong>{{ $batch->qc_status->label() }}</strong>
           </div>
           <div class="d-flex justify-content-between gap-3 py-2 border-bottom">
-            <span class="text-muted">Material Cost</span>
+            <span class="text-muted">
+              {{ $isEstimatedMaterialCost ? 'Estimated Material Cost' : 'Material Cost' }}
+            </span>
             <strong>{{ number_format($materialCost, 2) }}</strong>
           </div>
           <div class="d-flex justify-content-between gap-3 py-2 border-bottom">
@@ -296,6 +342,24 @@
           <div class="d-flex justify-content-between gap-3 py-3">
             <span class="fw-semibold">Total Batch Cost</span>
             <strong class="text-primary-600 text-lg">{{ number_format($totalCost, 2) }}</strong>
+          </div>
+
+          <div class="production-output-unit-cost mt-2 p-16 radius-8">
+            <div class="d-flex align-items-center justify-content-between gap-3">
+              <div>
+                <span class="text-muted text-sm d-block">
+                  {{ $isEstimatedMaterialCost ? 'Estimated Good Output Unit Cost' : 'Good Output Unit Cost' }}
+                </span>
+                <small class="text-muted">Total batch cost ÷ good output quantity</small>
+              </div>
+              @if ($goodOutputUnitCost !== null)
+                <strong class="text-primary-600 text-xl text-end">
+                  {{ number_format((float) $goodOutputUnitCost, 4) }} / {{ $outputUnitCode }}
+                </strong>
+              @else
+                <span class="badge bg-warning-focus text-warning-main px-12 py-7 radius-4">Pending QC output</span>
+              @endif
+            </div>
           </div>
 
           @if ($batch->qc_note)
@@ -308,4 +372,16 @@
       </div>
     </div>
   </div>
+@endsection
+
+@section('script')
+  <script>
+    window.PartProductionExpenseBooking = {
+      onSaved: function (response) {
+        if (response && response.redirect_url) {
+          window.location.href = response.redirect_url;
+        }
+      },
+    };
+  </script>
 @endsection

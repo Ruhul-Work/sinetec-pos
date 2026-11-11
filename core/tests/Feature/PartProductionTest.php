@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Enums\Finance\FinanceMappingKey;
 use App\Enums\Production\PartProductionStatus;
+use App\Exceptions\Finance\JournalWorkflowException;
 use App\Exceptions\Inventory\InsufficientStockException;
 use App\Models\backend\Account;
 use App\Models\backend\Branch;
@@ -13,11 +14,14 @@ use App\Models\backend\PartCategory;
 use App\Models\backend\RawMaterial;
 use App\Models\backend\RawMaterialCategory;
 use App\Models\backend\Unit;
+use App\Models\backend\User;
 use App\Models\backend\Warehouse;
 use App\Models\Inventory\RawMaterialStockMovement;
 use App\Models\Production\PartBom;
+use App\Models\Production\ProductionExpenseCategory;
 use App\Services\Finance\FinanceAccountMappingService;
 use App\Services\Finance\FinanceFoundationService;
+use App\Services\Finance\JournalWorkflowService;
 use App\Services\Production\PartBomService;
 use App\Services\Production\PartProductionService;
 use Database\Seeders\ProductionFoundationSeeder;
@@ -163,6 +167,13 @@ class PartProductionTest extends TestCase
             null,
         );
 
+        $preview = $service->materialCostPreview($batch);
+
+        $this->assertTrue($preview['is_estimate']);
+        $this->assertSame('5.0000', $preview['lines'][$batch->consumptions->first()->id]['unit_cost']);
+        $this->assertSame('10.0000', $preview['material_cost']);
+        $this->assertSame('5.0000', $preview['good_output_unit_cost']);
+
         $completed = $service->complete($batch, null);
 
         $this->assertNotNull($completed->journal);
@@ -183,6 +194,64 @@ class PartProductionTest extends TestCase
             'debit' => 0,
             'credit' => 10,
         ]);
+    }
+
+    public function test_production_journal_waits_for_direct_expense_payment_journal(): void
+    {
+        $setup = $this->productionSetup('10');
+        app(FinanceFoundationService::class)->bootstrap();
+        $this->seed(VoucherTypeSeeder::class);
+        $this->seed(ProductionFoundationSeeder::class);
+
+        FiscalYear::query()->create([
+            'name' => 'FY '.now()->year,
+            'start_date' => now()->startOfYear()->toDateString(),
+            'end_date' => now()->endOfYear()->toDateString(),
+            'is_active' => true,
+        ]);
+
+        $rawInventory = Account::query()->where('code', '1100')->firstOrFail();
+        $partInventory = Account::query()->where('code', '1110')->firstOrFail();
+        $productionLoss = Account::query()->where('code', '5100')->firstOrFail();
+        app(FinanceAccountMappingService::class)->saveCompanyMappings([
+            FinanceMappingKey::RawMaterialInventory->value => $rawInventory->id,
+            FinanceMappingKey::PartInventory->value => $partInventory->id,
+            FinanceMappingKey::ProductionLoss->value => $productionLoss->id,
+        ]);
+
+        $expenseCategory = ProductionExpenseCategory::query()
+            ->where('code', 'DIRECT_LABOUR')
+            ->firstOrFail();
+        $expenseCategory->update(['expense_account_id' => $productionLoss->id]);
+
+        $service = app(PartProductionService::class);
+        $batch = $service->createDraft(
+            $this->header($setup, '1', '1', '0', 'PASSED'),
+            [[
+                'raw_material_id' => $setup['raw_material']->id,
+                'unit_id' => $setup['unit']->id,
+                'quantity' => '1',
+            ]],
+            [[
+                'production_expense_category_id' => $expenseCategory->id,
+                'amount' => '3',
+            ]],
+            null,
+        );
+        $batch = $service->complete($batch, null);
+
+        $user = User::query()->create([
+            'name' => 'Accountant',
+            'email' => 'accountant@example.test',
+            'password' => bcrypt('password'),
+            'status' => true,
+        ]);
+        $workflow = app(JournalWorkflowService::class);
+        $productionJournal = $workflow->approve($batch->journal, $user->id);
+
+        $this->expectException(JournalWorkflowException::class);
+        $this->expectExceptionMessage('Book every production expense payment');
+        $workflow->post($productionJournal, $user->id);
     }
 
     /** @return array<string, mixed> */

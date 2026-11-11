@@ -73,6 +73,23 @@ class StockLedgerTest extends TestCase
         $this->assertStringContainsString('7 PCS', $payload['aaData'][0][10]);
     }
 
+    public function test_ledger_does_not_round_a_stored_fraction_when_unit_precision_is_zero(): void
+    {
+        [$raw, , $warehouse, $branch] = $this->foundation();
+        $this->postRaw($raw->id, $warehouse->id, $branch->id, StockDirection::In, 20, '2026-11-09 09:00:00', 'fraction-in');
+        $this->postRaw($raw->id, $warehouse->id, $branch->id, StockDirection::Out, '1.05', '2026-11-09 10:00:00', 'fraction-out');
+
+        $response = app(StockLedgerController::class)->listAjax($this->request([
+            'domain' => 'raw_material',
+            'item_id' => $raw->id,
+        ]));
+        $payload = $response->getData(true);
+        $outRow = collect($payload['aaData'])->first(fn (array $row) => str_contains($row[8], '1.05 PCS'));
+
+        $this->assertNotNull($outRow);
+        $this->assertStringContainsString('18.95 PCS', $outRow[10]);
+    }
+
     public function test_stock_ledger_routes_have_an_independent_permission(): void
     {
         $this->seed(CorePermissionSeeder::class);
@@ -102,8 +119,15 @@ class StockLedgerTest extends TestCase
         ], $overrides));
     }
 
-    private function postRaw(int $itemId, int $warehouseId, int $branchId, StockDirection $direction, int $quantity, string $movementAt, string $key): void
-    {
+    private function postRaw(
+        int $itemId,
+        int $warehouseId,
+        int $branchId,
+        StockDirection $direction,
+        int|float|string $quantity,
+        string $movementAt,
+        string $key,
+    ): void {
         app(RawMaterialStockPostingService::class)->post(new StockPostingData(
             itemId: $itemId,
             branchId: $branchId,

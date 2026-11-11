@@ -212,3 +212,39 @@ project: Sinetec POS
 
 **Total:** 7.75 hours
 
+---
+
+## Date: 2026-11-09
+
+**ID:** BFT4
+
+project: Sinetec POS
+
+1. Internal Part Production Batch backend with Draft/update/complete workflow, active BOM scaling, actual raw-material consumption and basic QC rules — 2 hours
+2. Atomic Raw Material OUT and Part IN stock posting, insufficient-stock rollback, production costing and balanced Draft production journal integration — 1.5 hours
+3. Part Production list/create/detail interface, warehouse/BOM selection, consumption/expense rows, button/input alignment and quantity-display polish — 1.25 hours
+4. Production Expense Category module with category CRUD, leaf Expense account mapping, active-branch assignment, menu, routes and independent permissions — 1.5 hours
+5. Production Loss mapping, starter production categories, voucher setup and production source navigation in Journal Entries — 45 min
+6. Draft material-cost preview using latest eligible warehouse receipt cost, with estimated/final costing indicators and stored-cost verification — 30 min
+7. Production code-quality guards, feature/regression tests, route/view cache verification and roadmap/current-status documentation update — 30 min
+
+**Total:** 8 hours
+
+---
+
+## Date: 2026-11-10
+
+**ID:** BFT4
+
+project: Sinetec POS
+
+1. Part Production costing review: Raw Material consumption precision, latest receipt-cost calculation, batch total and good-output unit-cost visibility — 1 hour
+2. Production stock-ledger quantity/cost verification and completed-batch details interface correction — 45 min
+3. Direct Expense Payment backend with Draft/Recorded/Void workflow, source-controlled Production allocation and Cash/Bank payment validation — 1.5 hours
+4. Balanced Expense Journal generation with Debit Expense, Credit Cash/Bank and accountant approval/posting workflow — 1 hour
+5. Production Journal dependency guard requiring every linked production-expense payment journal to be Posted before Production posting — 1 hour
+6. Separate Production and General Expense Category management, leaf Expense account mapping and automatic active-branch assignment — 1.25 hours
+7. Expense Payment list/form/details UI, Part Production Book Payment action, journal source links, sidebar, routes and permission integration — 1.25 hours
+8. Expense/Production code-quality checks, migrations, permission/data sync, 311-test full regression and roadmap/current-status documentation update — 45 min
+
+

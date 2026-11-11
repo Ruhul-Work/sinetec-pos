@@ -311,7 +311,17 @@ class StockLedgerController extends Controller
 
     private function formatQuantity(string|float|int $quantity, int $precision): string
     {
-        return number_format((float) $quantity, max(0, min(6, $precision)), '.', ',');
+        $normalized = number_format((float) $quantity, 6, '.', '');
+        $fraction = str_contains($normalized, '.')
+            ? rtrim(explode('.', $normalized, 2)[1], '0')
+            : '';
+        $storedPrecision = strlen($fraction);
+        $displayPrecision = max(
+            max(0, min(6, $precision)),
+            $storedPrecision,
+        );
+
+        return number_format((float) $quantity, $displayPrecision, '.', ',');
     }
 
     private function validDate(string $date): bool

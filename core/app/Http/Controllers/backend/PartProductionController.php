@@ -201,8 +201,11 @@ class PartProductionController extends Controller
 
     public function show(int $partProduction): View
     {
+        $batch = $this->record($partProduction);
+
         return view('backend.modules.part_production.show', [
-            'batch' => $this->record($partProduction),
+            'batch' => $batch,
+            'materialCostPreview' => $this->productionService->materialCostPreview($batch),
         ]);
     }
 
@@ -423,6 +426,7 @@ class PartProductionController extends Controller
                 'consumptions.unit',
                 'expenses.category',
                 'expenses.account',
+                'expenses.expenseDocument.journal',
                 'creator',
                 'completedBy',
                 'journal',

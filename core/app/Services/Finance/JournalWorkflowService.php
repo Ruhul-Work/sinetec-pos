@@ -28,6 +28,8 @@ final class JournalWorkflowService
         'loan_repayment',
         'cash_bank_transfer',
         'fiscal_year_closing',
+        'expense',
+        'part_production_batch',
     ];
 
     public function __construct(private readonly JournalDraftService $drafts) {}
@@ -196,6 +198,8 @@ final class JournalWorkflowService
 
     private function assertPostable(JournalEntry $journal): void
     {
+        $this->assertSourceDependencies($journal);
+
         $branch = Branch::query()->whereKey($journal->branch_id)->where('is_active', true)->lockForUpdate()->first();
         if (! $branch) {
             throw new FinanceConfigurationException('The journal branch is inactive or unavailable.');
@@ -223,6 +227,43 @@ final class JournalWorkflowService
             if (! in_array((int) $accountId, $assigned, true)) {
                 throw new FinanceConfigurationException("Account {$account->code} is no longer assigned to this journal branch.");
             }
+        }
+    }
+
+    private function assertSourceDependencies(JournalEntry $journal): void
+    {
+        if ($journal->source_type !== 'part_production_batch') {
+            return;
+        }
+
+        $unpostedExpenseCount = DB::table('part_production_expenses as production_expense')
+            ->leftJoin('expenses as expense', function ($join): void {
+                $join
+                    ->on(
+                        'expense.part_production_expense_id',
+                        '=',
+                        'production_expense.id',
+                    )
+                    ->where('expense.status', '=', 'POSTED');
+            })
+            ->leftJoin('journal_entries as expense_journal', function ($join): void {
+                $join
+                    ->on('expense_journal.source_id', '=', 'expense.id')
+                    ->where('expense_journal.source_type', '=', 'expense')
+                    ->where('expense_journal.status', '=', 'POSTED');
+            })
+            ->where('production_expense.part_production_batch_id', $journal->source_id)
+            ->where(function ($query): void {
+                $query
+                    ->whereNull('expense.id')
+                    ->orWhereNull('expense_journal.id');
+            })
+            ->count();
+
+        if ($unpostedExpenseCount > 0) {
+            throw new JournalWorkflowException(
+                'Book every production expense payment and post its Expense journal before posting this Production journal.',
+            );
         }
     }
 

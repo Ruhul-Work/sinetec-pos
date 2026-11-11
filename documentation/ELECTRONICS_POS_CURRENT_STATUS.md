@@ -1,7 +1,7 @@
 # Electronics POS — Current Status and Next Actions
 
-**Status:** Purchasing, the Phase 1 operational Finance foundation—including controlled Fiscal Year Closing—and Part BOM / Recipe setup are complete. Internal Part Production is the next implementation phase. Expense, sales accounting, Profit & Loss and Balance Sheet remain later Finance/reporting scope.
-**Updated:** 8 November 2026
+**Status:** Purchasing, the operational Finance foundation, Part BOM, Internal Part Production and direct Expense Payment accounting are complete. Finished Product BOM and Final Assembly are next. Sales accounting, Profit & Loss and Balance Sheet remain later Finance/reporting scope.
+**Updated:** 10 November 2026
 
 ## 1. Current result
 
@@ -15,7 +15,7 @@
 - Parts support `MAKE`, `BUY` and `BOTH`.
 - Packaging and consumables are Raw Material classifications.
 - Offers, coupons and loyalty are inactive future foundations only.
-- The application baseline is upgraded to Laravel 13.38 on PHP 8.3; Composer validation and production cache compilation pass. The current suite has 133 passing automated tests with 594 assertions. The latest online Composer advisory refresh was unavailable during the 7 November audit because Packagist could not be reached; the prior audit had no advisory.
+- The application baseline is upgraded to Laravel 13.38 on PHP 8.3; Composer validation, production cache compilation and the complete automated test suite pass. The latest online Composer advisory refresh was unavailable during the 7 November audit because Packagist could not be reached; the prior audit had no advisory.
 
 ## 2. Database readiness
 
@@ -100,6 +100,7 @@ Old permission data points to removed routes. Permissions must be created from t
 - Fiscal Year Closing is independently permissioned and branch-scoped. One document closes a selected Owner/Partner Drawings debit balance into a selected Capital account at the active fiscal year end. It cannot be prepared before that end date; its amount is calculated only from Posted opening/journal rows, and it creates a balanced Draft Closing Journal (Debit Capital, Credit Drawings). Another fiscal year cannot be activated while the current year has a Draft journal, Draft closing, or prepared closing journal that remains unposted.
 - The 7 November Finance audit fixed Trial Balance's local branch filter while the topbar is in All Branches mode, protected Loan Repayment detail/due access by branch, made Cash/Bank Transfer amount normalization exact at four decimals, added Cash/Bank Transfer as a navigable Journal source, and cleaned the worst minified Finance/controller/route code. Finance application files now pass Pint; route and Blade caches compile.
 - The draft generator never posts a journal automatically. BOM/manufacturing follows the remaining purchase-finance work.
+- Expense Payments is independently permissioned and branch-scoped. A completed production expense allocation can be booked once against an assigned Cash/Bank account; its amount and Expense account remain source-controlled by the production batch. Recording the payment creates a Draft Expense journal (Debit Expense, Credit Cash/Bank). The related Production journal cannot be posted until every allocated expense has a posted Expense journal, preventing negative expense balances or missing Cash/Bank movement. General/period expenses use separately managed General Expense Categories on the same controlled direct-payment screen and are never added to production cost. Payable/accrued expenses remain a later workflow.
 - Test retained Supplier/Customer CSV imports against the clean schema.
 - Review public registration before production; unrestricted role selection must not be exposed.
 
@@ -141,7 +142,9 @@ Old permission data points to removed routes. Permissions must be created from t
 34. **Complete:** Refactor Finance routes, models, controllers, services and Blade screens to readable, developer-friendly code; remove compressed structural markup and add an automated Finance code-quality guard.
 35. **Complete:** Build Part BOM / Recipe Master for Make/Both Parts with Draft/Active version control, raw-material production-unit validation and base-quantity snapshot.
 36. **Complete:** Build Internal Part Production Batch with active-BOM scaling, editable actual consumption, direct-expense allocation, basic QC, atomic Raw Material OUT / Part IN posting and automatic Draft production journal.
-37. **Next:** Build Finished Product BOM with mixed Part/Raw Material components, followed by Final Product Assembly.
+37. **Complete:** Build Production Expense Category setup with leaf Expense account mapping, configuration status and automatic assignment to active branches.
+38. **Complete:** Build separate General and Production Expense Category setup plus direct Expense Payment accounting, Cash/Bank payment, Draft journal creation and a production-journal posting dependency guard.
+39. **Next:** Build Finished Product BOM with mixed Part/Raw Material components, followed by Final Product Assembly.
 
 ## 5. Implementation decision trace
 
@@ -160,6 +163,7 @@ Old permission data points to removed routes. Permissions must be created from t
 | 10 Oct 2026 | Domain Unit Mapping | One `Item Units` UI uses Raw Material, Part and Finished Product tabs while persisting to three independent mapping tables. Base units are implicit at factor 1; alternative conversion is stored as `1 alternative unit = N base units`. Raw Material/Part exclude sale usage and Finished Product excludes purchase usage. | Supplier mappings and warehouse reorder levels remain the next Phase 1 setup modules. |
 | 10 Oct 2026 | Page notes | General instructional notes use the reusable compact `page-note` header control and open on demand instead of occupying permanent space above the page content. | Conditional warnings and validation/security alerts remain visibly inline. |
 | 9 Nov 2026 | Internal Part Production | One permission-controlled Draft → Complete flow scales the active Part BOM, permits actual consumption/QC updates, blocks insufficient stock, posts Raw Material OUT and good Part IN atomically, and creates a balanced Draft production journal when cost exists. | Expense allocation requires an expense account on the selected production-expense category; advanced work orders and rework remain deferred. |
+| 10 Nov 2026 | Direct Expense Payment | Completed production expense allocations can be booked once from assigned Cash/Bank accounts. Recording creates a Draft Expense journal; the Production journal waits until every linked Expense journal is Posted. General expenses remain period costs and do not inflate inventory. | Current delivery is direct-paid only. Accrued/payable expenses and later settlement remain deferred. |
 | 11 Oct 2026 | Supplier mappings | Raw Material Supplier and Part Supplier are separate route/controller/permission modules. They store approved item-supplier links, the supplier's item code, lead days and a single preferred source per item. | Actual prices remain in purchase/history data; warehouse reorder levels are next. |
 | 11 Oct 2026 | Route/RBAC convention | New functionally separate modules use explicit route groups and independent permission keys, even when safe internal implementation code or views are shared. | Existing Item Units remains one approved shared permission unless domain-specific access is later requested. |
 | 18 Oct 2026 | Reorder levels | Raw Material, Part and Finished Product use separate warehouse-wise modules/tables/permissions. Minimum quantity is required; fixed replenishment quantity and maximum/target quantity are optional. A blank replenishment value is stored as zero and means demand-based planning. | The setup only provides thresholds and planning inputs; it never creates purchase, production or stock transactions automatically. |
@@ -191,6 +195,7 @@ Old permission data points to removed routes. Permissions must be created from t
 | 7 Nov 2026 | Fiscal Year Closing | One Fiscal Year Closing document handles one Drawings account to one Capital account for a branch. Amount is server-calculated from only Posted opening/journal movement at the active fiscal-year end; the prepared document creates a balanced Draft Journal: Debit Capital and Credit Drawings. | The Journal must be approved and posted before the next fiscal year can be activated. Profit/loss closing, retained earnings and statutory final accounts remain separate future scope. |
 | 8 Nov 2026 | Finance code quality | Finance routes, models, controllers, services and Blade screens use readable multiline structures, descriptive variables and reusable form/summary partials. Automated tests reject long source lines and minified structural Blade markup in Finance scope. | Apply the same readability gate to every new module before it is considered complete. |
 | 4 Nov 2026 | Cash/Bank account control & Book | `accounts.is_cash_bank_account` explicitly marks liquid Asset accounts. Starter Cash in Hand and Bank Account are marked automatically; the marker controls Supplier Payment eligibility and Cash/Bank Book selection. The Book is a read-only derived view over Posted opening and journal movement, with branch/account/date filters and a true running balance. | Owner investment, loan, withdrawal and transfer source documents remain next; they will create journals consumed by this Book. |
+| 10 Nov 2026 | Part Production reject costing | Until company policy defines a normal-reject tolerance, every Partial QC reject is treated as normal production loss: the complete batch cost is absorbed by the good Part output. A fully Failed batch continues to debit Production Loss. | Add BOM/company normal-reject percentage and split only excess/abnormal reject cost to Production Loss after management approves the policy. |
 
 When a decision changes, add a new dated row; do not overwrite the old decision without recording what superseded it and why.
 

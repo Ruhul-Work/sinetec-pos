@@ -186,6 +186,59 @@ final class PartProductionService
         }, 3);
     }
 
+    /**
+     * @return array{
+     *     is_estimate: bool,
+     *     material_cost: string,
+     *     expense_cost: string,
+     *     total_cost: string,
+     *     good_output_unit_cost: string|null,
+     *     lines: array<int, array{unit_cost: string, total_cost: string}>
+     * }
+     */
+    public function materialCostPreview(PartProductionBatch $batch): array
+    {
+        $batch->loadMissing('consumptions');
+        $isEstimate = $batch->status === PartProductionStatus::Draft;
+        $materialCost = '0.0000';
+        $lines = [];
+
+        foreach ($batch->consumptions as $consumption) {
+            $unitCost = $isEstimate
+                ? $this->latestRawMaterialCost(
+                    (int) $consumption->raw_material_id,
+                    (int) $batch->input_warehouse_id,
+                    $batch->production_date->toDateString(),
+                )
+                : (string) $consumption->unit_cost;
+            $totalCost = $isEstimate
+                ? $this->roundProduct((string) $consumption->base_quantity, $unitCost, 4)
+                : (string) $consumption->total_cost;
+
+            $lines[(int) $consumption->id] = [
+                'unit_cost' => $unitCost,
+                'total_cost' => $totalCost,
+            ];
+            $materialCost = bcadd($materialCost, $totalCost, 4);
+        }
+
+        $batch->loadMissing('expenses');
+        $expenseCost = $this->sumExpenses($batch, false);
+        $totalCost = bcadd($materialCost, $expenseCost, 4);
+        $goodOutputUnitCost = bccomp((string) $batch->good_quantity, '0', 6) > 0
+            ? $this->roundDivision($totalCost, (string) $batch->good_quantity, 4)
+            : null;
+
+        return [
+            'is_estimate' => $isEstimate,
+            'material_cost' => $materialCost,
+            'expense_cost' => $expenseCost,
+            'total_cost' => $totalCost,
+            'good_output_unit_cost' => $goodOutputUnitCost,
+            'lines' => $lines,
+        ];
+    }
+
     public function deleteDraft(PartProductionBatch $batch): void
     {
         DB::transaction(function () use ($batch): void {
@@ -393,12 +446,14 @@ final class PartProductionService
         }
     }
 
-    private function sumExpenses(PartProductionBatch $batch): string
-    {
+    private function sumExpenses(
+        PartProductionBatch $batch,
+        bool $requireConfiguredAccounts = true,
+    ): string {
         $total = '0.0000';
 
         foreach ($batch->expenses as $expense) {
-            if (! $expense->account_id) {
+            if ($requireConfiguredAccounts && ! $expense->account_id) {
                 throw new InvalidPartProductionException(
                     "Production expense category {$expense->category?->name} requires an expense account before completion.",
                 );

@@ -831,6 +831,11 @@ html[data-theme="dark"] .page-note__body code {
   height: 32px !important;
 }
 
+.production-output-unit-cost {
+  border: 1px solid #c7d7fe;
+  background: linear-gradient(135deg, #f4f7ff 0%, #eef9ff 100%);
+}
+
 @media (max-width: 991.98px) {
   .production-expense-header {
     display: none !important;

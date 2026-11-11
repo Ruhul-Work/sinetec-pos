@@ -72,6 +72,7 @@ class ProductionCodeQualityTest extends TestCase
         $root = self::projectRoot();
         $files = [
             $root.'/app/Http/Controllers/backend/PartProductionController.php',
+            $root.'/app/Http/Controllers/backend/ProductionExpenseCategoryController.php',
             $root.'/app/Services/Production/PartProductionService.php',
         ];
 
@@ -99,6 +100,12 @@ class ProductionCodeQualityTest extends TestCase
     {
         $files = self::phpFilesIn(
             self::projectRoot().'/resources/views/backend/modules/part_production',
+        );
+        array_push(
+            $files,
+            ...self::phpFilesIn(
+                self::projectRoot().'/resources/views/backend/modules/production_expense_category',
+            ),
         );
         sort($files);
 

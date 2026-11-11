@@ -235,9 +235,9 @@
                 </li>
             @endpermgroup
 
-            @permgroup(['production.part_boms', 'production.part_productions'])
+            @permgroup(['production.part_boms', 'production.expense_categories', 'production.part_productions'])
                 <li class="sidebar-menu-group-title">Production</li>
-                <li class="dropdown {{ Route::is('production.part-boms.*') || Route::is('production.part-productions.*') ? 'active' : '' }}">
+                <li class="dropdown {{ Route::is('production.part-boms.*') || Route::is('production.expense-categories.*') || Route::is('production.part-productions.*') ? 'active' : '' }}">
                     <a href="javascript:void(0)">
                         <iconify-icon icon="mdi:factory" class="menu-icon"></iconify-icon>
                         <span>Production Management</span>
@@ -246,6 +246,9 @@
                         @perm('production.part-boms.index')
                             <li><a class="{{ Route::is('production.part-boms.*') ? 'active' : '' }}" href="{{ route('production.part-boms.index') }}"><iconify-icon icon="mdi:format-list-bulleted-type" class="menu-icon"></iconify-icon><span>Part BOM / Recipe</span></a></li>
                         @endperm
+                        @perm('production.expense-categories.index')
+                            <li><a class="{{ Route::is('production.expense-categories.*') ? 'active' : '' }}" href="{{ route('production.expense-categories.index') }}"><iconify-icon icon="mdi:cash-multiple" class="menu-icon"></iconify-icon><span>Expense Categories</span></a></li>
+                        @endperm
                         @perm('production.part-productions.index')
                             <li><a class="{{ Route::is('production.part-productions.*') ? 'active' : '' }}" href="{{ route('production.part-productions.index') }}"><iconify-icon icon="mdi:factory" class="menu-icon"></iconify-icon><span>Part Production</span></a></li>
                         @endperm
@@ -253,9 +256,9 @@
                 </li>
             @endpermgroup
 
-            @permgroup(['core.fiscal_years', 'core.account_types', 'core.accounts', 'core.branch_accounts', 'finance.account_mappings', 'finance.opening_balances', 'finance.cash_bank_book', 'finance.cash_bank_transfers', 'finance.capital_investments', 'finance.capital_withdrawals', 'finance.loan_receipts', 'finance.loan_repayments', 'finance.fiscal_year_closings', 'finance.journals', 'finance.account_ledger', 'finance.trial_balance'])
+            @permgroup(['core.fiscal_years', 'core.account_types', 'core.accounts', 'core.branch_accounts', 'finance.account_mappings', 'finance.opening_balances', 'finance.cash_bank_book', 'finance.cash_bank_transfers', 'finance.expense_categories', 'finance.expenses', 'finance.capital_investments', 'finance.capital_withdrawals', 'finance.loan_receipts', 'finance.loan_repayments', 'finance.fiscal_year_closings', 'finance.journals', 'finance.account_ledger', 'finance.trial_balance'])
                 <li class="sidebar-menu-group-title">Finance</li>
-                <li class="dropdown {{ Route::is('fiscal-years.*') || Route::is('account-types.*') || Route::is('accounts.*') || Route::is('branch-accounts.*') || Route::is('finance.account-mappings.*') || Route::is('finance.opening-balances.*') || Route::is('finance.cash-bank-book.*') || Route::is('finance.cash-bank-transfers.*') || Route::is('finance.capital-investments.*') || Route::is('finance.capital-withdrawals.*') || Route::is('finance.loan-receipts.*') || Route::is('finance.loan-repayments.*') || Route::is('finance.fiscal-year-closings.*') || Route::is('finance.journals.*') || Route::is('finance.account-ledger.*') || Route::is('finance.trial-balance.*') ? 'active' : '' }}">
+                <li class="dropdown {{ Route::is('fiscal-years.*') || Route::is('account-types.*') || Route::is('accounts.*') || Route::is('branch-accounts.*') || Route::is('finance.account-mappings.*') || Route::is('finance.opening-balances.*') || Route::is('finance.cash-bank-book.*') || Route::is('finance.cash-bank-transfers.*') || Route::is('finance.expense-categories.*') || Route::is('finance.expenses.*') || Route::is('finance.capital-investments.*') || Route::is('finance.capital-withdrawals.*') || Route::is('finance.loan-receipts.*') || Route::is('finance.loan-repayments.*') || Route::is('finance.fiscal-year-closings.*') || Route::is('finance.journals.*') || Route::is('finance.account-ledger.*') || Route::is('finance.trial-balance.*') ? 'active' : '' }}">
                     <a href="javascript:void(0)">
                         <iconify-icon icon="mdi:bank-outline" class="menu-icon"></iconify-icon>
                         <span>Finance Management</span>
@@ -284,6 +287,12 @@
                         @endperm
                         @perm('finance.cash-bank-transfers.index')
                             <li><a class="{{ Route::is('finance.cash-bank-transfers.*') ? 'active' : '' }}" href="{{ route('finance.cash-bank-transfers.index') }}"><iconify-icon icon="mdi:bank-transfer" class="menu-icon"></iconify-icon><span>Cash / Bank Transfer</span></a></li>
+                        @endperm
+                        @perm('finance.expenses.index')
+                            <li><a class="{{ Route::is('finance.expenses.*') ? 'active' : '' }}" href="{{ route('finance.expenses.index') }}"><iconify-icon icon="mdi:receipt-text-minus-outline" class="menu-icon"></iconify-icon><span>Expense Payments</span></a></li>
+                        @endperm
+                        @perm('finance.expense-categories.index')
+                            <li><a class="{{ Route::is('finance.expense-categories.*') ? 'active' : '' }}" href="{{ route('finance.expense-categories.index') }}"><iconify-icon icon="mdi:shape-plus-outline" class="menu-icon"></iconify-icon><span>General Expense Categories</span></a></li>
                         @endperm
                         @perm('finance.capital-investments.index')
                             <li><a class="{{ Route::is('finance.capital-investments.*') ? 'active' : '' }}" href="{{ route('finance.capital-investments.index') }}"><iconify-icon icon="mdi:cash-plus" class="menu-icon"></iconify-icon><span>Capital Investments</span></a></li>
