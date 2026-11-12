@@ -224,7 +224,9 @@ Opening stock uses adjustment type `OPENING`. Transfer posts OUT and IN atomical
 - `part_bom_items`: raw material, unit, required/base quantity, wastage percentage;
 - `part_production_batches`: BOM, branch, warehouses, planned/good/reject quantities, status;
 - `part_production_consumptions`: raw material and actual consumed quantity/cost;
-- `part_production_expenses`: category/account reference, amount and allocation.
+- `part_production_expenses`: production cost category, amount and batch allocation; no per-category ledger account is required.
+- `expenses.part_production_batch_id`: identifies a production-cost settlement voucher.
+- `expense_items`: links one settlement voucher to one or more production-cost allocation lines and stores each partial payment amount.
 
 Only `MAKE` or `BOTH` parts may have an active BOM or production batch.
 
@@ -283,6 +285,7 @@ Implemented finance-foundation rules:
 - fiscal-year date ranges cannot overlap and only one fiscal year is active;
 - `finance_account_mappings` uses explicit `COMPANY` or `BRANCH` scope plus a unique `scope_key + mapping_key` pair, avoiding nullable-branch uniqueness ambiguity;
 - purchase mapping keys are `RAW_MATERIAL_INVENTORY`, `PART_INVENTORY`, `SUPPLIER_PAYABLE`, `INPUT_TAX`, and `PURCHASE_DISCOUNT`;
+- production mapping adds `PRODUCTION_EXPENSE_PAYABLE`; production completion credits this Liability control account and later settlement debits it against Cash/Bank;
 - effective mapping resolves branch override first and company default second; branch overrides require an active branch-account assignment;
 - the generic Draft Journal service accepts only active branch-assigned BDT accounts, exactly balanced four-decimal lines and a journal date covered by the single active fiscal year;
 - identical posting/source retries return the original journal, while conflicting reuse is rejected; the service creates `DRAFT` only and has no automatic posting authority;

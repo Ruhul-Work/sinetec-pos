@@ -105,21 +105,22 @@ Development is progressing according to the approved roadmap. Core master data, 
 18. Fiscal Year Closing
 19. Finance Security, Code Quality & Regression Testing
 20. Part BOM / Recipe Master
+21. Internal Part Production with QC, Stock Posting and Costing
+22. Production Cost Categories
+23. Production Expense Payable and Partial Cost Settlement
 
 ### Currently In Progress
 
-- End-to-end Finance smoke testing and user verification
-- Foundation and test-data review before Production development starts
+- Production settlement smoke testing and user verification
+- Finished Product BOM / Assembly design alignment
 
 ### Next Steps
 
-1. Internal Part Production
-2. Finished Product BOM and Assembly
-3. Production expense, consumption, wastage/reject and calculated cost
-4. Finished Product stock completion
-5. POS and Wholesale Sales
-6. Reports, monthly rate snapshots and supply planning
-7. Final integration, user acceptance testing and deployment preparation
+1. Finished Product BOM and Assembly
+2. Finished Product stock completion
+3. POS and Wholesale Sales
+4. Reports, monthly rate snapshots and supply planning
+5. Final integration, user acceptance testing and deployment preparation
 
 ### Deferred
 
@@ -133,6 +134,6 @@ Development is progressing according to the approved roadmap. Core master data, 
 
 ### Current Status
 
-Purchasing, stock-control workflows and the operational Finance foundation are complete and audited.
-Finance smoke testing is in progress; Part BOM is complete and Internal Part Production is the next implementation phase.
+Purchasing, stock-control workflows, the operational Finance foundation, Part BOM, Internal Part Production and
+payable-based partial Production Cost Settlement are complete. Finished Product BOM and Assembly are next.
 

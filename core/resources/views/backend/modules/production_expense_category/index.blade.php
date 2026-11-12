@@ -1,18 +1,17 @@
 @extends('backend.layouts.master')
 
 @section('meta')
-  <title>Production Expense Categories</title>
+  <title>Production Cost Categories</title>
 @endsection
 
 @section('content')
   <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
     <div>
       <div class="d-flex align-items-center gap-2">
-        <h6 class="fw-semibold mb-0">Production Expense Categories</h6>
-        <x-backend.page-note title="How expense category mapping works" label="View mapping rules" align="start">
-          Map each production cost category to an active leaf Expense account. The selected account is
-          automatically assigned to every active branch. A mapped category can then be allocated to a
-          Part Production batch.
+        <h6 class="fw-semibold mb-0">Production Cost Categories</h6>
+        <x-backend.page-note title="How production cost categories work" label="View category rules" align="start">
+          These categories classify direct production costs such as labour, power and handling. Accounting uses
+          the single Production Expense Payable control account, so no separate ledger account is required here.
         </x-backend.page-note>
       </div>
       <p class="text-muted m-0">Configure labour, power, handling and other direct production costs.</p>
@@ -21,7 +20,7 @@
 
   <div class="card basic-data-table">
     <div class="card-header d-flex align-items-center justify-content-between gap-3 flex-wrap">
-      <h5 class="card-title mb-0">Expense Category & Account Mapping</h5>
+        <h5 class="card-title mb-0">Production Cost Category List</h5>
 
       <div class="actions-bar d-flex align-items-center gap-2 flex-wrap">
         <div class="search-set me-2">
@@ -54,8 +53,6 @@
             <th style="width: 60px">S.L</th>
             <th>Code</th>
             <th>Category</th>
-            <th>Expense Account</th>
-            <th>Configuration</th>
             <th>Status</th>
             <th style="width: 110px" class="text-end">Action</th>
           </tr>

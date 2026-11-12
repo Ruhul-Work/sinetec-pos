@@ -247,7 +247,7 @@
                             <li><a class="{{ Route::is('production.part-boms.*') ? 'active' : '' }}" href="{{ route('production.part-boms.index') }}"><iconify-icon icon="mdi:format-list-bulleted-type" class="menu-icon"></iconify-icon><span>Part BOM / Recipe</span></a></li>
                         @endperm
                         @perm('production.expense-categories.index')
-                            <li><a class="{{ Route::is('production.expense-categories.*') ? 'active' : '' }}" href="{{ route('production.expense-categories.index') }}"><iconify-icon icon="mdi:cash-multiple" class="menu-icon"></iconify-icon><span>Expense Categories</span></a></li>
+                            <li><a class="{{ Route::is('production.expense-categories.*') ? 'active' : '' }}" href="{{ route('production.expense-categories.index') }}"><iconify-icon icon="mdi:cash-multiple" class="menu-icon"></iconify-icon><span>Production Cost Categories</span></a></li>
                         @endperm
                         @perm('production.part-productions.index')
                             <li><a class="{{ Route::is('production.part-productions.*') ? 'active' : '' }}" href="{{ route('production.part-productions.index') }}"><iconify-icon icon="mdi:factory" class="menu-icon"></iconify-icon><span>Part Production</span></a></li>

@@ -1,6 +1,6 @@
 # Electronics Manufacturing, Inventory & Sales System — Project Plan
 
-**Status:** Business scope approved; Purchasing, Inventory Core, operational Finance foundation, Part BOM, Internal Part Production and direct Expense Payment complete; Finished Product BOM / Assembly is next
+**Status:** Business scope approved; Purchasing, Inventory Core, operational Finance foundation, Part BOM, Internal Part Production and payable-based Production Cost Settlement complete; Finished Product BOM / Assembly is next
 **Version:** 1.4
 **Updated:** 10 November 2026
 **Purpose:** This is the authoritative business-scope and decision-history document. Physical implementation details and current progress are tracked in the linked design, roadmap and status documents.
@@ -280,4 +280,5 @@ These four documents, including this plan, are the authoritative project set. Th
 | 1.2 | 8 November 2026 | Synced the plan with completed inventory, purchasing and operational Finance delivery; confirmed Part BOM / Production as the next implementation sequence. |
 | 1.3 | 8 November 2026 | Recorded completed Part BOM / Recipe Master and moved the next implementation gate to Internal Part Production. |
 | 1.4 | 9 November 2026 | Recorded Internal Part Production completion with atomic material consumption, Part output, QC, expense allocation and Draft production journal; moved the next gate to Finished Product BOM / Assembly. |
-| 1.5 | 10 November 2026 | Added direct Expense Payment accounting for production allocations and general period expenses; Production journal posting now waits for every linked Expense journal to be posted. |
+| 1.5 | 10 November 2026 | Added controlled Expense Payment accounting for production allocations and general period expenses. |
+| 1.6 | 11 November 2026 | Replaced per-line direct production payments with one mapped Production Expense Payable account, independent production/payment journals, multi-line settlement and partial payment support. |

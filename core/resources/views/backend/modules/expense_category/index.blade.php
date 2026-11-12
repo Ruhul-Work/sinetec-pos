@@ -11,7 +11,7 @@
         <h6 class="fw-semibold mb-0">General Expense Categories</h6>
         <x-backend.page-note title="How general expense categories work" label="View category rules" align="start">
           Use these categories for office, administration and other period expenses paid from Cash or Bank.
-          Direct production costs use the separate Production Expense Categories screen.
+          Direct production costs use the separate Production Cost Categories screen.
         </x-backend.page-note>
       </div>
       <p class="text-muted m-0">Map each general expense category to its own leaf Expense account.</p>

@@ -6,7 +6,6 @@ use App\Data\Finance\JournalDraftData;
 use App\Data\Finance\JournalDraftResult;
 use App\Data\Finance\JournalLineData;
 use App\Enums\Finance\FinanceMappingKey;
-use App\Exceptions\Finance\FinanceConfigurationException;
 use App\Models\Production\PartProductionBatch;
 
 final class PartProductionJournalService
@@ -18,7 +17,7 @@ final class PartProductionJournalService
 
     public function createDraft(PartProductionBatch $batch, ?int $userId = null): ?JournalDraftResult
     {
-        $batch->loadMissing(['bom.part', 'consumptions', 'expenses.category']);
+        $batch->loadMissing(['bom.part', 'consumptions', 'expenses']);
 
         $materialCost = $this->sum($batch->consumptions->pluck('total_cost')->all());
         $expenseCost = $this->sum($batch->expenses->pluck('amount')->all());
@@ -56,17 +55,13 @@ final class PartProductionJournalService
             );
         }
 
-        foreach ($batch->expenses->groupBy('account_id') as $accountId => $expenses) {
-            if ((int) $accountId < 1) {
-                throw new FinanceConfigurationException(
-                    'Every allocated production expense category requires an expense account before completion.',
-                );
-            }
-
+        if (bccomp($expenseCost, '0.0000', 4) > 0) {
             $lines[] = new JournalLineData(
-                accountId: (int) $accountId,
-                credit: $this->sum($expenses->pluck('amount')->all()),
-                memo: 'Direct production expense allocated to part inventory',
+                accountId: (int) $this->mappings
+                    ->resolveRequired(FinanceMappingKey::ProductionExpensePayable, $branchId)
+                    ->id,
+                credit: $expenseCost,
+                memo: 'Direct production costs accrued for later settlement',
             );
         }
 

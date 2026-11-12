@@ -247,4 +247,30 @@ project: Sinetec POS
 7. Expense Payment list/form/details UI, Part Production Book Payment action, journal source links, sidebar, routes and permission integration — 1.25 hours
 8. Expense/Production code-quality checks, migrations, permission/data sync, 311-test full regression and roadmap/current-status documentation update — 45 min
 
+**Total:** 8.5 hours
+
+---
+
+## Date: 2026-11-11
+
+**ID:** BFT4
+
+project: Sinetec POS
+
+1. Production accounting workflow review and payable-based settlement design: production completion and later Cash/Bank payment separated into independent journal flows — 1 hour
+2. Production Cost Settlement database refactor with batch-level expense documents, multi-line `expense_items`, legacy allocation migration and backward-safe data conversion — 1.5 hours
+3. `Production Expense Payable` starter account/mapping integration and balanced Production Journal update for Raw Material, Part Inventory and accrued direct costs — 1.10 hours
+4. Multi-category and partial Production Cost Settlement service with duplicate-booking protection, Draft/Posted journal awareness and Cash/Bank payment validation — 1 hours
+5. Production Cost Category and General Expense separation, simplified category UI, settlement form/details interface and production cost-status display — 1 hour
+6. Existing production test transaction audit, JSON recovery snapshot, generated payment/journal/stock cleanup and batch/stock balance restoration — 15 min
+7. Production Batch List payment summary with Paid/Pending/Outstanding badges, context-aware settlement action and circular action-button UI correction — 45 min
+8. Cross-database migration correction, automated production/finance regression coverage, 312-test full-suite verification, Pint/cache checks and project documentation update — 30 min
+
+
+project:DK Fashion & Toyo
+
+1. dk product details page image requerment collect and discuss and toyo deploy -30min 
+
+**Total:** 8.25 hours
+
 

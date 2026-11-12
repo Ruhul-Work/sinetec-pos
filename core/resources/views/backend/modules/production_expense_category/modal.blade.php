@@ -1,7 +1,7 @@
 <div class="modal-header py-16 px-24 border-0">
   <div>
     <h5 class="modal-title mb-1">{{ $title }}</h5>
-    <p class="text-muted text-sm mb-0">Connect a production cost category with its accounting destination.</p>
+    <p class="text-muted text-sm mb-0">Classify direct costs used while preparing a production batch.</p>
   </div>
   <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 </div>
@@ -12,6 +12,11 @@
     @if ($method === 'PUT')
       @method('PUT')
     @endif
+
+    <div class="alert alert-light-info border-info-subtle text-sm py-10 mb-20">
+      Production cost categories do not need individual ledger accounts. All unpaid direct production costs use
+      the Production Expense Payable control account configured in Finance Account Mapping.
+    </div>
 
     <div class="row g-3">
       <div class="col-md-5">
@@ -40,25 +45,6 @@
           required
         >
         <div class="invalid-feedback d-block name-error" style="display: none"></div>
-      </div>
-
-      <div class="col-12">
-        <div class="d-flex align-items-center gap-1 mb-8">
-          <label class="form-label text-sm mb-0">Expense Account</label>
-          <x-backend.field-note label="Expense account selection rule">
-            Only active child/leaf accounts under the Expense account type are available. Saving the mapping
-            also assigns the account to all active branches. Leave blank if the category is not ready for use.
-          </x-backend.field-note>
-        </div>
-        <select name="expense_account_id" class="form-select form-select-sm js-s2">
-          <option value="">Select expense account</option>
-          @foreach ($accounts as $account)
-            <option value="{{ $account->id }}" @selected((int) $category->expense_account_id === $account->id)>
-              {{ $account->code }} — {{ $account->name }}
-            </option>
-          @endforeach
-        </select>
-        <div class="invalid-feedback d-block expense_account_id-error" style="display: none"></div>
       </div>
 
       <div class="col-12">

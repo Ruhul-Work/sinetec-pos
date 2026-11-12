@@ -3,10 +3,10 @@
 namespace App\Models\Production;
 
 use App\Models\backend\Account;
-use App\Models\Finance\Expense;
+use App\Models\Finance\ExpenseItem;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PartProductionExpense extends Model
 {
@@ -41,8 +41,8 @@ class PartProductionExpense extends Model
         return $this->belongsTo(Account::class);
     }
 
-    public function expenseDocument(): HasOne
+    public function settlementItems(): HasMany
     {
-        return $this->hasOne(Expense::class, 'part_production_expense_id');
+        return $this->hasMany(ExpenseItem::class, 'part_production_expense_id');
     }
 }

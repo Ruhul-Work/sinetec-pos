@@ -9,6 +9,7 @@ enum FinanceMappingKey: string
     case SupplierPayable = 'SUPPLIER_PAYABLE';
     case InputTax = 'INPUT_TAX';
     case PurchaseDiscount = 'PURCHASE_DISCOUNT';
+    case ProductionExpensePayable = 'PRODUCTION_EXPENSE_PAYABLE';
     case ProductionLoss = 'PRODUCTION_LOSS';
 
     public function label(): string
@@ -19,6 +20,7 @@ enum FinanceMappingKey: string
             self::SupplierPayable => 'Supplier Payable',
             self::InputTax => 'Input Tax',
             self::PurchaseDiscount => 'Purchase Discount',
+            self::ProductionExpensePayable => 'Production Expense Payable',
             self::ProductionLoss => 'Production Loss',
         };
     }
@@ -31,6 +33,7 @@ enum FinanceMappingKey: string
             self::SupplierPayable => 'Tracks amounts owed to suppliers.',
             self::InputTax => 'Tracks recoverable purchase tax.',
             self::PurchaseDiscount => 'Tracks supplier discounts separately from inventory.',
+            self::ProductionExpensePayable => 'Tracks direct production costs recorded but not yet paid.',
             self::ProductionLoss => 'Records raw-material and allocated batch cost when a production batch fully fails QC.',
         };
     }
@@ -40,6 +43,7 @@ enum FinanceMappingKey: string
         return match ($this) {
             self::RawMaterialInventory, self::PartInventory, self::InputTax => 'ASSET',
             self::SupplierPayable => 'LIABILITY',
+            self::ProductionExpensePayable => 'LIABILITY',
             self::PurchaseDiscount => 'INCOME',
             self::ProductionLoss => 'EXPENSE',
         };
@@ -49,7 +53,7 @@ enum FinanceMappingKey: string
     {
         return match ($this) {
             self::RawMaterialInventory, self::PartInventory, self::InputTax => AccountNormalBalance::Debit,
-            self::SupplierPayable, self::PurchaseDiscount => AccountNormalBalance::Credit,
+            self::SupplierPayable, self::ProductionExpensePayable, self::PurchaseDiscount => AccountNormalBalance::Credit,
             self::ProductionLoss => AccountNormalBalance::Debit,
         };
     }

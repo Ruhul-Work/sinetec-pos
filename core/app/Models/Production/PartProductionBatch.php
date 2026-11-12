@@ -8,6 +8,7 @@ use App\Models\backend\Branch;
 use App\Models\backend\JournalEntry;
 use App\Models\backend\User;
 use App\Models\backend\Warehouse;
+use App\Models\Finance\Expense;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -90,5 +91,10 @@ class PartProductionBatch extends Model
     {
         return $this->hasOne(JournalEntry::class, 'source_id')
             ->where('source_type', 'part_production_batch');
+    }
+
+    public function settlements(): HasMany
+    {
+        return $this->hasMany(Expense::class, 'part_production_batch_id');
     }
 }

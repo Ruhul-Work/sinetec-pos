@@ -1,13 +1,13 @@
 # Electronics POS — Development Roadmap
 
-**Status:** Active implementation roadmap; Purchasing, inventory core, operational Finance foundation, Part BOM, Internal Part Production and direct Expense Payment are complete; Finished Product BOM is next
+**Status:** Active implementation roadmap; Purchasing, inventory core, operational Finance foundation, Part BOM, Internal Part Production and payable-based Production Cost Settlement are complete; Finished Product BOM is next
 **Version:** 1.3
 **Updated:** 10 November 2026
 **Based on:** Project Plan v1.0 and Physical Database Design v2.1
 
 > **Decision override:** Any later reference in this document to a unified `inventory_item`, `inventory_movement`, or `inventory_balance` means the corresponding separate Raw Material, Part, and Finished Product masters/ledgers/balances. The unified-table proposal is cancelled.
 
-> **Current delivery position:** Phases 0-3 are complete. The purchase-related Finance foundation and accountant workflow from Phase 6 were completed early so Purchasing can operate with controlled Draft Journals. Phase 4 is in progress: Part BOM, Production Expense Category mapping, Internal Part Production and direct Expense Payment accounting are complete. Finished Product BOM and Assembly are next; Sales, monthly reporting and supply planning are not yet implemented.
+> **Current delivery position:** Phases 0-3 are complete. The purchase-related Finance foundation and accountant workflow from Phase 6 were completed early so Purchasing can operate with controlled Draft Journals. Phase 4 is in progress: Part BOM, Production Cost Categories, Internal Part Production and payable-based partial settlement are complete. Finished Product BOM and Assembly are next; Sales, monthly reporting and supply planning are not yet implemented.
 
 ## 1. Roadmap objective
 
@@ -203,7 +203,7 @@ Receipt      Adjustment      Production   Stock Count
 | **Complete:** Part BOM component lines | New | Raw Material + production unit mapping | Material calculation |
 | **Complete:** Part Production batch | New | Active BOM + source/output warehouse | Inventory, QC, finance |
 | **Complete:** Actual consumption | New | Inventory service | Component stock OUT |
-| **Complete:** Production expense allocation | New/adapt expenses | Expense category + batch | Batch cost + finance |
+| **Complete:** Production cost allocation and settlement | New/adapt expenses | Cost category + batch + Production Expense Payable | Batch cost + partial/multi-line payment |
 | **Complete:** Basic QC / reject record | New fields/workflow | Production batch | Wastage reports |
 | **Complete:** Production completion | New action | Consumption + QC | Output stock IN + finance draft |
 | Next: Finished Product BOM | New | Finished Product + mixed Part/Raw inputs | Final assembly |
@@ -274,7 +274,8 @@ Receipt      Adjustment      Production   Stock Count
 | --- | --- |
 | Posted purchase receipt | Inventory/stock debit; supplier payable or cash/bank credit |
 | Posted purchase return | Supplier payable/cash debit; inventory credit |
-| Posted direct production expense | Production/WIP cost debit; cash/bank/payable credit |
+| Completed production batch | Part inventory/production loss debit; raw-material inventory and Production Expense Payable credit |
+| Recorded production-cost settlement | Production Expense Payable debit; Cash/Bank credit |
 | Completed production | WIP/output inventory reclassification according to approved policy |
 | Completed sale | Cash/receivable debit; sales income credit; inventory/COGS entry as approved |
 | Completed sale return | Reversal/return entry according to approved policy |
@@ -415,8 +416,8 @@ Receipt      Adjustment      Production   Stock Count
 40. **Complete:** Finance code-quality pass—refactor compressed routes, models, controllers, services and Blade markup; introduce reusable view partials and an automated readability guard for the complete Finance scope.
 41. **Complete:** Build Part BOM / Recipe Master for Make/Both Parts with versioning, Draft/Active control, raw-material production-unit validation, base-quantity snapshot and one-active-version policy.
 42. **Complete:** Build Internal Part Production Batch using the active Part BOM, actual consumption, basic QC, expense allocation, atomic stock posting and Draft journal generation.
-43. **Complete:** Build company-wide Production Expense Category setup with leaf Expense account mapping and automatic active-branch assignment.
-44. **Complete:** Build separate General and Production Expense Category setup plus direct Expense Payment accounting, Cash/Bank payment, Draft Expense journal and Production-journal dependency protection.
+43. **Complete:** Build Production Cost Categories without per-category ledger-account duplication.
+44. **Complete:** Build mapped Production Expense Payable accounting plus multi-line and partial production-cost settlement from Cash/Bank with an independent Draft journal.
 45. **Next implementation:** Build Finished Product BOM with mixed Part and Raw Material components.
 
 Finance account mapping, the generic Draft Journal engine and the authorised accountant workflow are complete. Purchase integration creates reviewable drafts; only approved, successfully revalidated journals can be posted.

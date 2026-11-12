@@ -4,21 +4,24 @@ namespace Tests\Feature;
 
 use App\Enums\Finance\FinanceMappingKey;
 use App\Enums\Production\PartProductionStatus;
-use App\Exceptions\Finance\JournalWorkflowException;
 use App\Exceptions\Inventory\InsufficientStockException;
+use App\Http\Controllers\backend\PartProductionController;
 use App\Models\backend\Account;
 use App\Models\backend\Branch;
 use App\Models\backend\FiscalYear;
 use App\Models\backend\Part;
 use App\Models\backend\PartCategory;
+use App\Models\backend\PaymentType;
 use App\Models\backend\RawMaterial;
 use App\Models\backend\RawMaterialCategory;
+use App\Models\backend\Role;
 use App\Models\backend\Unit;
 use App\Models\backend\User;
 use App\Models\backend\Warehouse;
 use App\Models\Inventory\RawMaterialStockMovement;
 use App\Models\Production\PartBom;
 use App\Models\Production\ProductionExpenseCategory;
+use App\Services\Finance\ExpenseService;
 use App\Services\Finance\FinanceAccountMappingService;
 use App\Services\Finance\FinanceFoundationService;
 use App\Services\Finance\JournalWorkflowService;
@@ -27,6 +30,7 @@ use App\Services\Production\PartProductionService;
 use Database\Seeders\ProductionFoundationSeeder;
 use Database\Seeders\VoucherTypeSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
@@ -196,7 +200,7 @@ class PartProductionTest extends TestCase
         ]);
     }
 
-    public function test_production_journal_waits_for_direct_expense_payment_journal(): void
+    public function test_production_journal_posts_independently_to_expense_payable(): void
     {
         $setup = $this->productionSetup('10');
         app(FinanceFoundationService::class)->bootstrap();
@@ -212,18 +216,18 @@ class PartProductionTest extends TestCase
 
         $rawInventory = Account::query()->where('code', '1100')->firstOrFail();
         $partInventory = Account::query()->where('code', '1110')->firstOrFail();
+        $productionExpensePayable = Account::query()->where('code', '2050')->firstOrFail();
         $productionLoss = Account::query()->where('code', '5100')->firstOrFail();
         app(FinanceAccountMappingService::class)->saveCompanyMappings([
             FinanceMappingKey::RawMaterialInventory->value => $rawInventory->id,
             FinanceMappingKey::PartInventory->value => $partInventory->id,
+            FinanceMappingKey::ProductionExpensePayable->value => $productionExpensePayable->id,
             FinanceMappingKey::ProductionLoss->value => $productionLoss->id,
         ]);
 
         $expenseCategory = ProductionExpenseCategory::query()
             ->where('code', 'DIRECT_LABOUR')
             ->firstOrFail();
-        $expenseCategory->update(['expense_account_id' => $productionLoss->id]);
-
         $service = app(PartProductionService::class);
         $batch = $service->createDraft(
             $this->header($setup, '1', '1', '0', 'PASSED'),
@@ -246,12 +250,169 @@ class PartProductionTest extends TestCase
             'password' => bcrypt('password'),
             'status' => true,
         ]);
+        $superRole = Role::query()->create([
+            'name' => 'Super Administrator',
+            'key' => 'super-administrator',
+            'is_super' => true,
+        ]);
+        $user->update(['role_id' => $superRole->id]);
+        $user->load('role');
         $workflow = app(JournalWorkflowService::class);
         $productionJournal = $workflow->approve($batch->journal, $user->id);
+        $productionJournal = $workflow->post($productionJournal, $user->id);
 
-        $this->expectException(JournalWorkflowException::class);
-        $this->expectExceptionMessage('Book every production expense payment');
+        $this->assertSame('POSTED', $productionJournal->status->value);
+        $this->assertDatabaseHas('journal_entry_lines', [
+            'journal_entry_id' => $productionJournal->id,
+            'account_id' => $partInventory->id,
+            'debit' => 3,
+            'credit' => 0,
+        ]);
+        $this->assertDatabaseHas('journal_entry_lines', [
+            'journal_entry_id' => $productionJournal->id,
+            'account_id' => $productionExpensePayable->id,
+            'debit' => 0,
+            'credit' => 3,
+        ]);
+    }
+
+    public function test_multiple_production_cost_lines_allow_partial_settlement(): void
+    {
+        $setup = $this->productionSetup('10');
+        app(FinanceFoundationService::class)->bootstrap();
+        $this->seed(VoucherTypeSeeder::class);
+        $this->seed(ProductionFoundationSeeder::class);
+
+        FiscalYear::query()->create([
+            'name' => 'FY '.now()->year,
+            'start_date' => now()->startOfYear()->toDateString(),
+            'end_date' => now()->endOfYear()->toDateString(),
+            'is_active' => true,
+        ]);
+
+        $rawInventory = Account::query()->where('code', '1100')->firstOrFail();
+        $partInventory = Account::query()->where('code', '1110')->firstOrFail();
+        $productionExpensePayable = Account::query()->where('code', '2050')->firstOrFail();
+        $productionLoss = Account::query()->where('code', '5100')->firstOrFail();
+        app(FinanceAccountMappingService::class)->saveCompanyMappings([
+            FinanceMappingKey::RawMaterialInventory->value => $rawInventory->id,
+            FinanceMappingKey::PartInventory->value => $partInventory->id,
+            FinanceMappingKey::ProductionExpensePayable->value => $productionExpensePayable->id,
+            FinanceMappingKey::ProductionLoss->value => $productionLoss->id,
+        ]);
+
+        $labour = ProductionExpenseCategory::query()->where('code', 'DIRECT_LABOUR')->firstOrFail();
+        $power = ProductionExpenseCategory::query()->where('code', 'PRODUCTION_POWER')->firstOrFail();
+        $production = app(PartProductionService::class);
+        $batch = $production->createDraft(
+            $this->header($setup, '1', '1', '0', 'PASSED'),
+            [[
+                'raw_material_id' => $setup['raw_material']->id,
+                'unit_id' => $setup['unit']->id,
+                'quantity' => '1',
+            ]],
+            [
+                ['production_expense_category_id' => $labour->id, 'amount' => '3'],
+                ['production_expense_category_id' => $power->id, 'amount' => '2.5'],
+            ],
+            null,
+        );
+        $batch = $production->complete($batch, null);
+
+        $user = User::query()->create([
+            'name' => 'Cashier',
+            'email' => 'cashier@example.test',
+            'password' => bcrypt('password'),
+            'status' => true,
+        ]);
+        $superRole = Role::query()->create([
+            'name' => 'Super Administrator',
+            'key' => 'super-administrator',
+            'is_super' => true,
+        ]);
+        $user->update(['role_id' => $superRole->id]);
+        $user->load('role');
+        $paymentType = PaymentType::query()->create([
+            'name' => 'Cash',
+            'slug' => 'cash',
+            'is_active' => true,
+        ]);
+        $cashAccount = Account::query()->where('code', '1000')->firstOrFail();
+        $cashAccount->update(['allow_negative' => true]);
+        $allocations = $batch->expenses->keyBy('production_expense_category_id');
+
+        $workflow = app(JournalWorkflowService::class);
+        $productionJournal = $workflow->approve($batch->journal, $user->id);
         $workflow->post($productionJournal, $user->id);
+
+        $settlement = app(ExpenseService::class)->create([
+            'branch_id' => $setup['branch']->id,
+            'part_production_batch_id' => $batch->id,
+            'expense_date' => now()->toDateString(),
+            'production_items' => [
+                [
+                    'selected' => true,
+                    'part_production_expense_id' => $allocations[$labour->id]->id,
+                    'amount' => '3',
+                ],
+                [
+                    'selected' => true,
+                    'part_production_expense_id' => $allocations[$power->id]->id,
+                    'amount' => '1',
+                ],
+            ],
+            'payment_type_id' => $paymentType->id,
+            'account_id' => $cashAccount->id,
+        ], $user->id);
+
+        $this->assertSame('4.0000', $settlement->amount);
+        $this->assertCount(2, $settlement->items);
+
+        $recorded = app(ExpenseService::class)->post($settlement, $user->id);
+        $this->assertDatabaseHas('journal_entry_lines', [
+            'journal_entry_id' => $recorded->journal->id,
+            'account_id' => $productionExpensePayable->id,
+            'debit' => 4,
+            'credit' => 0,
+        ]);
+        $this->assertDatabaseHas('journal_entry_lines', [
+            'journal_entry_id' => $recorded->journal->id,
+            'account_id' => $cashAccount->id,
+            'debit' => 0,
+            'credit' => 4,
+        ]);
+
+        $pendingList = $this->partProductionList($user);
+        $pendingHtml = implode(' ', $pendingList['aaData'][0]);
+        $this->assertStringContainsString('Payment Pending', $pendingHtml);
+        $this->assertStringContainsString('Outstanding 5.50', $pendingHtml);
+        $this->assertStringContainsString('Settle production costs', $pendingHtml);
+
+        $settlementJournal = $workflow->approve($recorded->journal, $user->id);
+        $workflow->post($settlementJournal, $user->id);
+
+        $partiallyPaidList = $this->partProductionList($user);
+        $partiallyPaidHtml = implode(' ', $partiallyPaidList['aaData'][0]);
+        $this->assertStringContainsString('Partially Paid', $partiallyPaidHtml);
+        $this->assertStringContainsString('Paid 4.00 / 5.50', $partiallyPaidHtml);
+        $this->assertStringContainsString('Outstanding 1.50', $partiallyPaidHtml);
+        $this->assertStringContainsString('Settle production costs', $partiallyPaidHtml);
+    }
+
+    /** @return array<string, mixed> */
+    private function partProductionList(User $user): array
+    {
+        $request = Request::create('/production/part-productions/list', 'POST', [
+            'draw' => 1,
+            'start' => 0,
+            'length' => 10,
+            'order' => [['column' => 0, 'dir' => 'desc']],
+        ]);
+        $request->setUserResolver(fn (): User => $user);
+
+        return app(PartProductionController::class)
+            ->listAjax($request)
+            ->getData(true);
     }
 
     /** @return array<string, mixed> */

@@ -5,7 +5,10 @@
 @endsection
 
 @section('content')
-    @php($isDraft = $expense->status === \App\Enums\Finance\ExpenseStatus::Draft)
+    @php
+        $isDraft = $expense->status === \App\Enums\Finance\ExpenseStatus::Draft;
+        $isProductionSettlement = (bool) $expense->productionBatch;
+    @endphp
 
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-24">
         <div>
@@ -15,7 +18,11 @@
                     {{ $expense->status->label() }}
                 </span>
             </div>
-            <p class="text-muted m-0">Direct Cash/Bank expense document with controlled journal posting</p>
+            <p class="text-muted m-0">
+                {{ $isProductionSettlement
+                    ? 'Production payable settlement with controlled journal posting'
+                    : 'Direct Cash/Bank expense document with controlled journal posting' }}
+            </p>
         </div>
 
         <div class="d-flex flex-wrap gap-2">
@@ -46,7 +53,8 @@
                         @method('PATCH')
                         <button
                             type="submit"
-                            class="btn btn-success btn-sm px-14 py-8 radius-8 text-white app-action-button d-inline-flex align-items-center gap-1"
+                            class="btn btn-success btn-sm px-14 py-8 radius-8 text-white app-action-button
+                                d-inline-flex align-items-center gap-1"
                         >
                             <iconify-icon icon="mdi:cash-check"></iconify-icon>
                             <span>Record Payment</span>
@@ -57,7 +65,8 @@
 
             <a
                 href="{{ route('finance.expenses.index') }}"
-                class="btn btn-outline-secondary btn-sm px-14 py-8 radius-8 app-action-button d-inline-flex align-items-center gap-1"
+                class="btn btn-outline-secondary btn-sm px-14 py-8 radius-8 app-action-button
+                    d-inline-flex align-items-center gap-1"
             >
                 <iconify-icon icon="mdi:arrow-left"></iconify-icon>
                 <span>Back</span>
@@ -80,18 +89,22 @@
             </div>
             <div class="col-xl-3 col-md-4">
                 <small class="text-muted d-block">Category</small>
-                <strong>{{ $expense->category->name }}</strong>
+                <strong>{{ $expense->category?->name ?: 'Production Cost Settlement' }}</strong>
             </div>
             <div class="col-xl-3 col-md-4">
                 <small class="text-muted d-block">Amount</small>
-                <strong class="text-danger-main">{{ number_format($expense->amount, 2) }}</strong>
+                <strong class="text-danger-main">{{ number_format((float) $expense->amount, 2) }}</strong>
             </div>
             <div class="col-xl-4 col-md-6">
-                <small class="text-muted d-block">Expense Account Debited</small>
-                <strong>
-                    {{ $expense->category->expenseAccount->code }} —
-                    {{ $expense->category->expenseAccount->name }}
-                </strong>
+                <small class="text-muted d-block">Account Debited</small>
+                @if ($isProductionSettlement)
+                    <strong>Production Expense Payable</strong>
+                @else
+                    <strong>
+                        {{ $expense->category->expenseAccount->code }} —
+                        {{ $expense->category->expenseAccount->name }}
+                    </strong>
+                @endif
             </div>
             <div class="col-xl-4 col-md-6">
                 <small class="text-muted d-block">Cash / Bank Credited</small>
@@ -102,7 +115,7 @@
                 <strong>{{ $expense->payment->paymentType->name }}</strong>
             </div>
             <div class="col-xl-4 col-md-6">
-                <small class="text-muted d-block">Payee</small>
+                <small class="text-muted d-block">Paid To</small>
                 <strong>{{ $expense->payee ?: '—' }}</strong>
             </div>
             <div class="col-xl-4 col-md-6">
@@ -129,28 +142,48 @@
         </div>
     </div>
 
-    @if ($expense->productionExpense)
+    @if ($isProductionSettlement)
         <div class="card mb-24">
             <div class="card-header">
-                <h5 class="card-title mb-0">Production Allocation Source</h5>
+                <h5 class="card-title mb-0">Production Cost Settlement Lines</h5>
             </div>
-            <div class="card-body row g-3">
-                <div class="col-md-4">
-                    <small class="text-muted d-block">Batch</small>
-                    <a
-                        class="fw-semibold text-info-main"
-                        href="{{ route('production.part-productions.show', $expense->productionExpense->batch) }}"
-                    >
-                        {{ $expense->productionExpense->batch->batch_no }}
-                    </a>
+            <div class="card-body">
+                <div class="row g-3 mb-20">
+                    <div class="col-md-4">
+                        <small class="text-muted d-block">Batch</small>
+                        <a class="fw-semibold text-info-main" href="{{ route('production.part-productions.show', $expense->productionBatch) }}">
+                            {{ $expense->productionBatch->batch_no }}
+                        </a>
+                    </div>
+                    <div class="col-md-4">
+                        <small class="text-muted d-block">Output Part</small>
+                        <strong>{{ $expense->productionBatch->bom->part->name }}</strong>
+                    </div>
+                    <div class="col-md-4">
+                        <small class="text-muted d-block">Selected Lines</small>
+                        <strong>{{ $expense->items->count() }}</strong>
+                    </div>
                 </div>
-                <div class="col-md-4">
-                    <small class="text-muted d-block">Output Part</small>
-                    <strong>{{ $expense->productionExpense->batch->bom->part->name }}</strong>
-                </div>
-                <div class="col-md-4">
-                    <small class="text-muted d-block">Production Cost Category</small>
-                    <strong>{{ $expense->productionExpense->category->name }}</strong>
+
+                <div class="table-responsive">
+                    <table class="table bordered-table align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>Production Cost Category</th>
+                                <th>Note</th>
+                                <th class="text-end">Paid Now</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($expense->items as $item)
+                                <tr>
+                                    <td>{{ $item->productionExpense?->category?->name }}</td>
+                                    <td>{{ $item->note ?: '—' }}</td>
+                                    <td class="text-end fw-semibold">{{ number_format((float) $item->amount, 2) }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -167,9 +200,7 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
-                        <p class="text-muted text-sm">
-                            This Draft has not affected Cash/Bank or the Account Ledger.
-                        </p>
+                        <p class="text-muted text-sm">This Draft has not affected Cash/Bank or the Account Ledger.</p>
                         <label class="form-label">Reason <span class="text-danger">*</span></label>
                         <textarea name="void_reason" class="form-control" rows="3" maxlength="1000" required></textarea>
                     </div>

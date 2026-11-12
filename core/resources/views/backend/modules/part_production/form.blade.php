@@ -306,7 +306,7 @@
           return [
               'id' => $category->id,
               'text' => $category->name.' ('.$category->code.')',
-              'account_configured' => (bool) $category->expense_account_id,
+              'account_configured' => true,
           ];
       })
       ->values();

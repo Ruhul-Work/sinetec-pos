@@ -6,9 +6,10 @@ use App\Enums\Finance\ExpenseStatus;
 use App\Models\backend\Branch;
 use App\Models\backend\JournalEntry;
 use App\Models\backend\User;
-use App\Models\Production\PartProductionExpense;
+use App\Models\Production\PartProductionBatch;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Expense extends Model
@@ -19,7 +20,7 @@ class Expense extends Model
         'expense_no',
         'branch_id',
         'expense_category_id',
-        'part_production_expense_id',
+        'part_production_batch_id',
         'expense_date',
         'payee',
         'amount',
@@ -57,9 +58,14 @@ class Expense extends Model
         return $this->belongsTo(ExpenseCategory::class, 'expense_category_id');
     }
 
-    public function productionExpense(): BelongsTo
+    public function productionBatch(): BelongsTo
     {
-        return $this->belongsTo(PartProductionExpense::class, 'part_production_expense_id');
+        return $this->belongsTo(PartProductionBatch::class, 'part_production_batch_id');
+    }
+
+    public function items(): HasMany
+    {
+        return $this->hasMany(ExpenseItem::class);
     }
 
     public function payment(): HasOne

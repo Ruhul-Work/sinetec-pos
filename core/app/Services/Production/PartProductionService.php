@@ -223,7 +223,7 @@ final class PartProductionService
         }
 
         $batch->loadMissing('expenses');
-        $expenseCost = $this->sumExpenses($batch, false);
+        $expenseCost = $this->sumExpenses($batch);
         $totalCost = bcadd($materialCost, $expenseCost, 4);
         $goodOutputUnitCost = bccomp((string) $batch->good_quantity, '0', 6) > 0
             ? $this->roundDivision($totalCost, (string) $batch->good_quantity, 4)
@@ -405,7 +405,7 @@ final class PartProductionService
 
             $normalized[] = [
                 'production_expense_category_id' => $category->id,
-                'account_id' => $category->expense_account_id,
+                'account_id' => null,
                 'amount' => $this->decimal($line['amount'] ?? null, 4, false, 'Expense amount'),
                 'allocation_basis' => 'BATCH',
                 'note' => $this->nullableText($line['note'] ?? null),
@@ -446,19 +446,11 @@ final class PartProductionService
         }
     }
 
-    private function sumExpenses(
-        PartProductionBatch $batch,
-        bool $requireConfiguredAccounts = true,
-    ): string {
+    private function sumExpenses(PartProductionBatch $batch): string
+    {
         $total = '0.0000';
 
         foreach ($batch->expenses as $expense) {
-            if ($requireConfiguredAccounts && ! $expense->account_id) {
-                throw new InvalidPartProductionException(
-                    "Production expense category {$expense->category?->name} requires an expense account before completion.",
-                );
-            }
-
             $total = bcadd($total, (string) $expense->amount, 4);
         }
 

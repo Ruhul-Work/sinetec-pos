@@ -23,6 +23,12 @@
   $totalCost = (float) $materialCostPreview['total_cost'];
   $goodOutputUnitCost = $materialCostPreview['good_output_unit_cost'];
   $outputUnitCode = $batch->bom?->part?->baseUnit?->code ?? 'UNIT';
+  $productionCostBooked = $batch->expenses->sum(function ($expense) {
+      return $expense->settlementItems
+          ->filter(fn ($item) => $item->expense?->status?->value !== 'VOID')
+          ->sum(fn ($item) => (float) $item->amount);
+  });
+  $productionCostRemaining = max($expenseCost - $productionCostBooked, 0);
 @endphp
 
 @section('meta')
@@ -250,9 +256,26 @@
 
   <div class="row g-3">
     <div class="col-lg-7">
-      <div class="card h-100">
-        <div class="card-header">
-          <h5 class="card-title mb-0">Direct Production Expenses</h5>
+      <div class="card h-100" id="production-cost-settlements">
+        <div class="card-header d-flex align-items-center justify-content-between gap-2 flex-wrap">
+          <div>
+            <h5 class="card-title mb-0">Direct Production Costs</h5>
+            <small class="text-muted">Recorded at completion; payments settle the Production Expense Payable.</small>
+          </div>
+          @if ($batch->status === PartProductionStatus::Completed && $productionCostRemaining > 0)
+            @perm('finance.expenses.create', 'add')
+              <button
+                type="button"
+                class="btn btn-outline-primary btn-sm px-12 py-7 radius-8 AjaxModal app-action-button"
+                data-ajax-modal="{{ route('finance.expenses.create', ['production_batch' => $batch->id]) }}"
+                data-size="xl"
+                data-onsuccess="PartProductionExpenseBooking.onSaved"
+              >
+                <iconify-icon icon="mdi:cash-multiple"></iconify-icon>
+                <span>Settle Production Costs</span>
+              </button>
+            @endperm
+          @endif
         </div>
         <div class="card-body">
           <div class="table-responsive">
@@ -261,60 +284,84 @@
                 <tr>
                   <th>Category</th>
                   <th>Note</th>
-                  <th class="text-end">Amount</th>
-                  <th class="text-end">Payment</th>
+                  <th class="text-end">Total</th>
+                  <th class="text-end">Booked</th>
+                  <th class="text-end">Remaining</th>
+                  <th class="text-center">Status</th>
                 </tr>
               </thead>
               <tbody>
                 @forelse ($batch->expenses as $expense)
+                  @php
+                    $bookedAmount = $expense->settlementItems
+                        ->filter(fn ($item) => $item->expense?->status?->value !== 'VOID')
+                        ->sum(fn ($item) => (float) $item->amount);
+                    $paidAmount = $expense->settlementItems
+                        ->filter(fn ($item) => $item->expense?->journal?->status?->value === 'POSTED')
+                        ->sum(fn ($item) => (float) $item->amount);
+                    $remainingAmount = max((float) $expense->amount - $bookedAmount, 0);
+                    $paymentStatus = match (true) {
+                        $paidAmount >= (float) $expense->amount => 'Paid',
+                        $paidAmount > 0 => 'Partially Paid',
+                        $bookedAmount >= (float) $expense->amount => 'Payment Pending',
+                        $bookedAmount > 0 => 'Partially Booked',
+                        default => 'Unpaid',
+                    };
+                    $paymentStatusClass = match ($paymentStatus) {
+                        'Paid' => 'bg-success-focus text-success-main',
+                        'Partially Paid', 'Payment Pending', 'Partially Booked' =>
+                            'bg-warning-focus text-warning-main',
+                        default => 'bg-secondary-focus text-secondary-main',
+                    };
+                  @endphp
                   <tr>
                     <td>{{ $expense->category?->name }}</td>
                     <td>{{ $expense->note ?: '—' }}</td>
                     <td class="text-end">{{ number_format((float) $expense->amount, 2) }}</td>
-                    <td class="text-end">
-                      @if ($expense->expenseDocument)
-                        <a
-                          href="{{ route('finance.expenses.show', $expense->expenseDocument) }}"
-                          class="fw-semibold text-info-main"
-                        >
-                          {{ $expense->expenseDocument->expense_no }}
-                        </a>
-                        <small class="text-muted d-block">
-                          {{ $expense->expenseDocument->status->label() }}
-                        </small>
-                      @elseif ($batch->status === \App\Enums\Production\PartProductionStatus::Completed)
-                        @perm('finance.expenses.create', 'add')
-                          <button
-                            type="button"
-                            class="btn btn-outline-primary btn-sm px-10 py-6 radius-8 AjaxModal"
-                            data-ajax-modal="{{ route('finance.expenses.create', ['production_expense' => $expense->id]) }}"
-                            data-size="xl"
-                            data-onsuccess="PartProductionExpenseBooking.onSaved"
-                          >
-                            Book Payment
-                          </button>
-                        @else
-                          <span class="text-muted">Not booked</span>
-                        @endperm
-                      @else
-                        <span class="text-muted">Available after completion</span>
-                      @endif
+                    <td class="text-end">{{ number_format($bookedAmount, 2) }}</td>
+                    <td class="text-end fw-semibold">{{ number_format($remainingAmount, 2) }}</td>
+                    <td class="text-center">
+                      <span class="badge {{ $paymentStatusClass }} px-10 py-6 radius-4">{{ $paymentStatus }}</span>
                     </td>
                   </tr>
                 @empty
                   <tr>
-                    <td colspan="4" class="text-center text-muted">No direct production expense was allocated.</td>
+                    <td colspan="6" class="text-center text-muted">No direct production cost was allocated.</td>
                   </tr>
                 @endforelse
               </tbody>
               <tfoot>
                 <tr>
-                  <th colspan="3" class="text-end">Direct Expense Cost</th>
+                  <th colspan="2" class="text-end">Direct Production Cost</th>
                   <th class="text-end">{{ number_format($expenseCost, 2) }}</th>
+                  <th class="text-end">{{ number_format($productionCostBooked, 2) }}</th>
+                  <th class="text-end">{{ number_format($productionCostRemaining, 2) }}</th>
+                  <th></th>
                 </tr>
               </tfoot>
             </table>
           </div>
+
+          @php
+            $activeSettlements = $batch->settlements
+                ->filter(fn ($settlement) => $settlement->status?->value !== 'VOID');
+          @endphp
+          @if ($activeSettlements->isNotEmpty())
+            <div class="border-top mt-16 pt-16">
+              <small class="text-muted d-block mb-8">Settlement Documents</small>
+              <div class="d-flex flex-wrap gap-2">
+                @foreach ($activeSettlements as $settlement)
+                  <a
+                    href="{{ route('finance.expenses.show', $settlement) }}"
+                    class="badge bg-info-focus text-info-main px-10 py-7 radius-4"
+                  >
+                    {{ $settlement->expense_no }} · {{ number_format((float) $settlement->amount, 2) }}
+                    ({{ $settlement->status->label() }})
+                  </a>
+                @endforeach
+              </div>
+            </div>
+          @endif
         </div>
       </div>
     </div>

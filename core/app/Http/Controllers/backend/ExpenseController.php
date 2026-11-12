@@ -39,20 +39,14 @@ class ExpenseController extends Controller
 
         $query = DB::table('expenses as expense')
             ->join('branches as branch', 'branch.id', '=', 'expense.branch_id')
-            ->join('expense_categories as category', 'category.id', '=', 'expense.expense_category_id')
+            ->leftJoin('expense_categories as category', 'category.id', '=', 'expense.expense_category_id')
             ->leftJoin('expense_payments as payment', 'payment.expense_id', '=', 'expense.id')
             ->leftJoin('accounts as account', 'account.id', '=', 'payment.account_id')
-            ->leftJoin(
-                'part_production_expenses as production_expense',
-                'production_expense.id',
-                '=',
-                'expense.part_production_expense_id',
-            )
             ->leftJoin(
                 'part_production_batches as production_batch',
                 'production_batch.id',
                 '=',
-                'production_expense.part_production_batch_id',
+                'expense.part_production_batch_id',
             )
             ->when(
                 current_branch_id(),
@@ -108,7 +102,7 @@ class ExpenseController extends Controller
                 '<a class="fw-semibold text-primary-600" href="'.e($viewUrl).'">'.e($row->expense_no).'</a>',
                 e(date('d M Y', strtotime($row->expense_date))),
                 '<strong>'.e($row->branch_name).'</strong><br><code>'.e($row->branch_code).'</code>',
-                e($row->category_name),
+                e($row->category_name ?: 'Production Cost Settlement'),
                 $source,
                 $account,
                 '<div class="text-end fw-semibold">'.number_format((float) $row->amount, 2).'</div>',
@@ -131,7 +125,7 @@ class ExpenseController extends Controller
 
     public function create(Request $request): View
     {
-        $selectedProductionExpenseId = $request->integer('production_expense');
+        $selectedProductionBatchId = $request->integer('production_batch');
         $branches = DB::table('branches')
             ->whereNull('deleted_at')
             ->where('is_active', true)
@@ -141,8 +135,8 @@ class ExpenseController extends Controller
             )
             ->orderBy('name')
             ->get(['id', 'name', 'code']);
-        $productionBranchId = $selectedProductionExpenseId
-            ? $this->productionExpenseBranchId($selectedProductionExpenseId)
+        $productionBranchId = $selectedProductionBatchId
+            ? $this->productionBatchBranchId($selectedProductionBatchId)
             : null;
         $branchId = (int) (
             $productionBranchId
@@ -157,7 +151,13 @@ class ExpenseController extends Controller
         return view('backend.modules.expense.form', [
             'branches' => $branches,
             'branchId' => $branchId,
-            'selectedProductionExpenseId' => $selectedProductionExpenseId,
+            'selectedProductionBatchId' => $selectedProductionBatchId,
+            'productionBatch' => $selectedProductionBatchId
+                ? $this->productionBatchForPayment($selectedProductionBatchId)
+                : null,
+            'productionAllocations' => $selectedProductionBatchId
+                ? $this->productionAllocations($selectedProductionBatchId)
+                : collect(),
             'options' => $this->optionsForBranch($branchId),
         ]);
     }
@@ -206,8 +206,8 @@ class ExpenseController extends Controller
         $expense = $this->record($expense)->load([
             'branch',
             'category.expenseAccount',
-            'productionExpense.batch.bom.part',
-            'productionExpense.category',
+            'productionBatch.bom.part',
+            'items.productionExpense.category',
             'payment.account',
             'payment.paymentType',
             'createdBy',
@@ -269,12 +269,21 @@ class ExpenseController extends Controller
                 Rule::exists('branches', 'id')->where('is_active', true),
             ],
             'source_mode' => ['required', Rule::in(['GENERAL', 'PRODUCTION'])],
-            'part_production_expense_id' => [
+            'part_production_batch_id' => [
                 Rule::requiredIf($sourceMode === 'PRODUCTION'),
                 'nullable',
                 'integer',
+                'exists:part_production_batches,id',
+            ],
+            'production_items' => [Rule::requiredIf($sourceMode === 'PRODUCTION'), 'nullable', 'array'],
+            'production_items.*.selected' => ['nullable', 'boolean'],
+            'production_items.*.part_production_expense_id' => [
+                'required_with:production_items.*.selected',
+                'integer',
+                'distinct',
                 'exists:part_production_expenses,id',
             ],
+            'production_items.*.amount' => ['nullable', 'numeric', 'gt:0'],
             'expense_category_id' => [
                 Rule::requiredIf($sourceMode === 'GENERAL'),
                 'nullable',
@@ -295,8 +304,8 @@ class ExpenseController extends Controller
             'description' => ['nullable', 'string', 'max:5000'],
         ]);
 
-        $data['part_production_expense_id'] = $sourceMode === 'PRODUCTION'
-            ? (int) $data['part_production_expense_id']
+        $data['part_production_batch_id'] = $sourceMode === 'PRODUCTION'
+            ? (int) $data['part_production_batch_id']
             : null;
         $data['expense_category_id'] = $sourceMode === 'GENERAL'
             ? (int) $data['expense_category_id']
@@ -309,7 +318,6 @@ class ExpenseController extends Controller
     private function optionsForBranch(int $branchId): array
     {
         return [
-            'production_expenses' => $this->unbookedProductionExpenses($branchId),
             'categories' => $this->generalCategories($branchId),
             'cash_accounts' => $this->cashBankAccounts($branchId),
             'payment_types' => DB::table('payment_types')
@@ -320,44 +328,43 @@ class ExpenseController extends Controller
     }
 
     /** @return Collection<int, object> */
-    private function unbookedProductionExpenses(int $branchId): Collection
+    private function productionAllocations(int $batchId): Collection
     {
         return DB::table('part_production_expenses as production_expense')
-            ->join(
-                'part_production_batches as batch',
-                'batch.id',
-                '=',
-                'production_expense.part_production_batch_id',
-            )
-            ->join('part_boms as bom', 'bom.id', '=', 'batch.part_bom_id')
-            ->join('parts as part', 'part.id', '=', 'bom.part_id')
             ->join(
                 'production_expense_categories as category',
                 'category.id',
                 '=',
                 'production_expense.production_expense_category_id',
             )
-            ->leftJoin('expenses as expense', function ($join): void {
-                $join->on(
-                    'expense.part_production_expense_id',
-                    '=',
-                    'production_expense.id',
-                );
-            })
-            ->where('batch.branch_id', $branchId)
-            ->where('batch.status', 'COMPLETED')
-            ->where('category.is_active', true)
-            ->whereNull('expense.id')
-            ->orderByDesc('batch.production_date')
-            ->orderByDesc('production_expense.id')
+            ->leftJoinSub(
+                DB::table('expense_items as settlement_item')
+                    ->join('expenses as settlement', 'settlement.id', '=', 'settlement_item.expense_id')
+                    ->where('settlement.status', '!=', ExpenseStatus::Void->value)
+                    ->groupBy('settlement_item.part_production_expense_id')
+                    ->selectRaw(
+                        'settlement_item.part_production_expense_id, '
+                        .'SUM(settlement_item.amount) as booked_amount',
+                    ),
+                'booked',
+                'booked.part_production_expense_id',
+                '=',
+                'production_expense.id',
+            )
+            ->where('production_expense.part_production_batch_id', $batchId)
+            ->orderBy('category.name')
             ->get([
                 'production_expense.id',
                 'production_expense.amount',
-                'batch.batch_no',
-                'batch.production_date',
-                'part.name as part_name',
+                'production_expense.note',
                 'category.name as category_name',
-            ]);
+                DB::raw('COALESCE(booked.booked_amount, 0) as booked_amount'),
+                DB::raw(
+                    'GREATEST(production_expense.amount - COALESCE(booked.booked_amount, 0), 0) '
+                    .'as remaining_amount',
+                ),
+            ])
+            ->filter(fn (object $allocation): bool => (float) $allocation->remaining_amount > 0);
     }
 
     /** @return Collection<int, object> */
@@ -416,20 +423,32 @@ class ExpenseController extends Controller
         }
     }
 
-    private function productionExpenseBranchId(int $productionExpenseId): int
+    private function productionBatchBranchId(int $batchId): int
     {
-        $branchId = DB::table('part_production_expenses as production_expense')
-            ->join(
-                'part_production_batches as batch',
-                'batch.id',
-                '=',
-                'production_expense.part_production_batch_id',
-            )
-            ->where('production_expense.id', $productionExpenseId)
-            ->value('batch.branch_id');
+        $branchId = DB::table('part_production_batches')
+            ->where('id', $batchId)
+            ->where('status', 'COMPLETED')
+            ->value('branch_id');
 
-        abort_unless($branchId, 404, 'The production expense allocation does not exist.');
+        abort_unless($branchId, 404, 'The completed production batch does not exist.');
+        $this->assertBranchScope((int) $branchId);
 
         return (int) $branchId;
+    }
+
+    private function productionBatchForPayment(int $batchId): object
+    {
+        return DB::table('part_production_batches as batch')
+            ->join('part_boms as bom', 'bom.id', '=', 'batch.part_bom_id')
+            ->join('parts as part', 'part.id', '=', 'bom.part_id')
+            ->where('batch.id', $batchId)
+            ->where('batch.status', 'COMPLETED')
+            ->firstOrFail([
+                'batch.id',
+                'batch.batch_no',
+                'batch.production_date',
+                'part.name as part_name',
+                'part.part_code',
+            ]);
     }
 }
