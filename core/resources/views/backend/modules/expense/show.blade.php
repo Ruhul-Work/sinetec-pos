@@ -89,7 +89,7 @@
             </div>
             <div class="col-xl-3 col-md-4">
                 <small class="text-muted d-block">Category</small>
-                <strong>{{ $expense->category?->name ?: 'Production Cost Settlement' }}</strong>
+                <strong>{{ $expense->category?->name ?: 'Legacy Production Settlement' }}</strong>
             </div>
             <div class="col-xl-3 col-md-4">
                 <small class="text-muted d-block">Amount</small>
@@ -98,7 +98,7 @@
             <div class="col-xl-4 col-md-6">
                 <small class="text-muted d-block">Account Debited</small>
                 @if ($isProductionSettlement)
-                    <strong>Production Expense Payable</strong>
+                    <strong>Legacy Production Expense Payable</strong>
                 @else
                     <strong>
                         {{ $expense->category->expenseAccount->code }} —
@@ -145,7 +145,7 @@
     @if ($isProductionSettlement)
         <div class="card mb-24">
             <div class="card-header">
-                <h5 class="card-title mb-0">Production Cost Settlement Lines</h5>
+                <h5 class="card-title mb-0">Legacy Production Cost Settlement Lines</h5>
             </div>
             <div class="card-body">
                 <div class="row g-3 mb-20">

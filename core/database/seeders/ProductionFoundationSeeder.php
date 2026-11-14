@@ -2,12 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Enums\Finance\FinanceMappingKey;
-use App\Enums\Finance\FinanceMappingScope;
-use App\Models\backend\Account;
-use App\Models\Finance\FinanceAccountMapping;
 use App\Models\Production\ProductionExpenseCategory;
-use App\Services\Finance\FinanceFoundationService;
 use Illuminate\Database\Seeder;
 
 class ProductionFoundationSeeder extends Seeder
@@ -27,34 +22,6 @@ class ProductionFoundationSeeder extends Seeder
                 ['code' => $category['code']],
                 [
                     'name' => $category['name'],
-                    'is_active' => true,
-                ],
-            );
-        }
-
-        app(FinanceFoundationService::class)->bootstrap();
-
-        $mappingAccounts = [
-            FinanceMappingKey::ProductionExpensePayable->value => '2050',
-            FinanceMappingKey::ProductionLoss->value => '5100',
-        ];
-
-        foreach ($mappingAccounts as $mappingKey => $accountCode) {
-            $account = Account::query()->where('code', $accountCode)->first();
-
-            if (! $account) {
-                continue;
-            }
-
-            FinanceAccountMapping::query()->updateOrCreate(
-                [
-                    'scope_key' => FinanceMappingScope::Company->scopeKey(),
-                    'mapping_key' => $mappingKey,
-                ],
-                [
-                    'scope' => FinanceMappingScope::Company,
-                    'branch_id' => null,
-                    'account_id' => $account->id,
                     'is_active' => true,
                 ],
             );

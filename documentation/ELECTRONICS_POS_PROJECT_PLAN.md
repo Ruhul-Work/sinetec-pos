@@ -1,6 +1,6 @@
 # Electronics Manufacturing, Inventory & Sales System — Project Plan
 
-**Status:** Business scope approved; Purchasing, Inventory Core, operational Finance foundation, Part BOM, Internal Part Production and payable-based Production Cost Settlement complete; Finished Product BOM / Assembly is next
+**Status:** Business scope approved; Purchasing, Inventory Core, operational Finance foundation, Part BOM and stock-only/report-only Internal Part Production complete; Finished Product BOM / Assembly is next
 **Version:** 1.4
 **Updated:** 10 November 2026
 **Purpose:** This is the authoritative business-scope and decision-history document. Physical implementation details and current progress are tracked in the linked design, roadmap and status documents.
@@ -136,9 +136,9 @@ Part BOM / Recipe and Internal Part Production are complete. The next delivery i
 
 1. User selects the part or finished product to produce and enters output quantity.
 2. System loads its BOM and calculates required input quantities.
-3. User confirms or adjusts actual consumed quantities and adds direct expenses such as labour, packing, electricity, or transport.
+3. User confirms or adjusts actual consumed quantities and records optional labour, packing, electricity or transport estimates for reporting only.
 4. User records wastage/reject quantity if applicable.
-5. On completion, the system posts input stock OUT, output stock IN, and stores the actual batch cost.
+5. On completion, the system posts input stock OUT, output stock IN, and stores the estimated batch/unit cost. No production journal or payable is created.
 
 The first version will not require a complex work-order approval chain. A single “Complete Production” action, protected by permission, is the intended operating model.
 
@@ -177,7 +177,7 @@ This is a planning-level assessment based on the current codebase. Before implem
 | Purchase order, receipt, payment, return | Rebuilt / complete | Purchase lines reference raw materials or parts only; actual receipt price, stock and supplier due remain auditable. |
 | Legacy product catalogue and variants | Replace | Create a dedicated finished-product master. Raw materials and parts have their own masters. |
 | POS, sale, payment, return | Rebuild / simplify | One sales engine for POS and wholesale; sale lines reference finished products only. |
-| Expense module | Adapt | Categorize direct production expenses separately from admin/selling expenses. |
+| Expense module | Adapt | General Expense records actual financial expenses. Production cost categories remain separate report-only batch data and never create payments/journals. |
 | Accounts, vouchers, journals, fiscal year | Rebuilt / operational | Controlled Draft/Approve/Post/Void/Reversal workflow is active for current purchase and cash/bank events; production/sales event mappings are later work. |
 | Reports and print views | Adapt | Build new reports on the new stock and production records; use existing print conventions where suitable. |
 | Offers, coupons, loyalty, public e-commerce modules | Data foundation now; workflow deferred | Create inactive future-use tables linked to finished items/customers; do not enable screens, automatic discounts, or points in the first release. |
@@ -279,6 +279,7 @@ These four documents, including this plan, are the authoritative project set. Th
 | 1.1 | 8 October 2026 | Recorded Phase 1 implementation decisions: separate category modules and Raw Material Master; stock, rates, alternate units and supplier mappings remain separate downstream modules. |
 | 1.2 | 8 November 2026 | Synced the plan with completed inventory, purchasing and operational Finance delivery; confirmed Part BOM / Production as the next implementation sequence. |
 | 1.3 | 8 November 2026 | Recorded completed Part BOM / Recipe Master and moved the next implementation gate to Internal Part Production. |
-| 1.4 | 9 November 2026 | Recorded Internal Part Production completion with atomic material consumption, Part output, QC, expense allocation and Draft production journal; moved the next gate to Finished Product BOM / Assembly. |
+| 1.4 | 9 November 2026 | Recorded Internal Part Production completion with atomic material consumption, Part output, QC and batch cost estimates; moved the next gate to Finished Product BOM / Assembly. |
 | 1.5 | 10 November 2026 | Added controlled Expense Payment accounting for production allocations and general period expenses. |
-| 1.6 | 11 November 2026 | Replaced per-line direct production payments with one mapped Production Expense Payable account, independent production/payment journals, multi-line settlement and partial payment support. |
+| 1.6 | 11 November 2026 | Implemented the initial payable-based production settlement design; later superseded by the 12 November business decision. |
+| 1.7 | 12 November 2026 | Adopted simple stock-only production: BOM/recipe, consumption, QC and cost estimates remain; production journals, Production Expense Payable and settlement payments were removed. Actual expenses are recorded once through General Expense. |

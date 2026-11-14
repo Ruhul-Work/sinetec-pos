@@ -107,11 +107,11 @@ Development is progressing according to the approved roadmap. Core master data, 
 20. Part BOM / Recipe Master
 21. Internal Part Production with QC, Stock Posting and Costing
 22. Production Cost Categories
-23. Production Expense Payable and Partial Cost Settlement
+23. Report-only Production Cost Recording
 
 ### Currently In Progress
 
-- Production settlement smoke testing and user verification
+- Stock-only Part Production smoke testing and user verification
 - Finished Product BOM / Assembly design alignment
 
 ### Next Steps
@@ -134,6 +134,6 @@ Development is progressing according to the approved roadmap. Core master data, 
 
 ### Current Status
 
-Purchasing, stock-control workflows, the operational Finance foundation, Part BOM, Internal Part Production and
-payable-based partial Production Cost Settlement are complete. Finished Product BOM and Assembly are next.
+Purchasing, stock-control workflows, the operational Finance foundation, Part BOM and stock-only Internal Part
+Production are complete. Production cost values remain report-only; Finished Product BOM and Assembly are next.
 

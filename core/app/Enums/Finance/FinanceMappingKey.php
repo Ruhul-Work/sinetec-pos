@@ -9,8 +9,22 @@ enum FinanceMappingKey: string
     case SupplierPayable = 'SUPPLIER_PAYABLE';
     case InputTax = 'INPUT_TAX';
     case PurchaseDiscount = 'PURCHASE_DISCOUNT';
+    /** @deprecated Production costs are operational/reporting-only and no longer post to Finance. */
     case ProductionExpensePayable = 'PRODUCTION_EXPENSE_PAYABLE';
+    /** @deprecated Production costs are operational/reporting-only and no longer post to Finance. */
     case ProductionLoss = 'PRODUCTION_LOSS';
+
+    /** @return array<int, self> */
+    public static function configurableCases(): array
+    {
+        return [
+            self::RawMaterialInventory,
+            self::PartInventory,
+            self::SupplierPayable,
+            self::InputTax,
+            self::PurchaseDiscount,
+        ];
+    }
 
     public function label(): string
     {
@@ -28,13 +42,13 @@ enum FinanceMappingKey: string
     public function purpose(): string
     {
         return match ($this) {
-            self::RawMaterialInventory => 'Stores the accounting value of received raw materials and production consumption.',
-            self::PartInventory => 'Stores the accounting value of purchased and internally produced parts.',
+            self::RawMaterialInventory => 'Stores the accounting value of purchased raw materials.',
+            self::PartInventory => 'Stores the accounting value of purchased parts.',
             self::SupplierPayable => 'Tracks amounts owed to suppliers.',
             self::InputTax => 'Tracks recoverable purchase tax.',
             self::PurchaseDiscount => 'Tracks supplier discounts separately from inventory.',
-            self::ProductionExpensePayable => 'Tracks direct production costs recorded but not yet paid.',
-            self::ProductionLoss => 'Records raw-material and allocated batch cost when a production batch fully fails QC.',
+            self::ProductionExpensePayable => 'Legacy production payable mapping retained only for historical data compatibility.',
+            self::ProductionLoss => 'Legacy production loss mapping retained only for historical data compatibility.',
         };
     }
 

@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers\backend;
 
 use App\Exceptions\Finance\FinanceConfigurationException;
@@ -30,7 +29,7 @@ class LoanRepaymentController extends Controller
     {
         $receipts = LoanReceipt::query()
             ->where('status', 'POSTED')
-            ->when(current_branch_id(), fn ($query, int $branchId) => $query->where('branch_id', $branchId))
+            ->when(current_branch_id(), fn($query, int $branchId) => $query->where('branch_id', $branchId))
             ->orderByDesc('receipt_date')
             ->get();
 
@@ -39,7 +38,7 @@ class LoanRepaymentController extends Controller
             ->where('assignment.is_active', true)
             ->where('account.is_active', true)
             ->where('account.is_cash_bank_account', true)
-            ->when(current_branch_id(), fn ($query, int $branchId) => $query->where('assignment.branch_id', $branchId))
+            ->when(current_branch_id(), fn($query, int $branchId) => $query->where('assignment.branch_id', $branchId))
             ->distinct()
             ->orderBy('account.code')
             ->get(['account.id', 'account.code', 'account.name']);
@@ -54,15 +53,15 @@ class LoanRepaymentController extends Controller
         ]);
     }
 
-    public function store(Request $request): JsonResponse|RedirectResponse
+    public function store(Request $request): JsonResponse | RedirectResponse
     {
         $data = $request->validate([
-            'loan_receipt_id' => ['required', 'integer', Rule::exists('finance_loan_receipts', 'id')],
+            'loan_receipt_id'      => ['required', 'integer', Rule::exists('finance_loan_receipts', 'id')],
             'cash_bank_account_id' => ['required', 'integer', Rule::exists('accounts', 'id')],
-            'repayment_date' => ['required', 'date'],
-            'amount' => ['required', 'numeric', 'gt:0'],
-            'reference_no' => ['nullable', 'string', 'max:100'],
-            'note' => ['nullable', 'string', 'max:5000'],
+            'repayment_date'       => ['required', 'date'],
+            'amount'               => ['required', 'numeric', 'gt:0'],
+            'reference_no'         => ['nullable', 'string', 'max:100'],
+            'note'                 => ['nullable', 'string', 'max:5000'],
         ]);
 
         // Protect against a crafted receipt ID from a different branch.
@@ -70,7 +69,7 @@ class LoanRepaymentController extends Controller
 
         try {
             $repayment = $this->repayments->create($data, (int) $request->user()->id);
-        } catch (FinanceConfigurationException|InvalidJournalDraftException $exception) {
+        } catch (FinanceConfigurationException | InvalidJournalDraftException $exception) {
             if ($request->expectsJson()) {
                 return response()->json(['msg' => $exception->getMessage()], 422);
             }
@@ -80,7 +79,7 @@ class LoanRepaymentController extends Controller
 
         if ($request->expectsJson()) {
             return response()->json([
-                'success' => true,
+                'success'      => true,
                 'redirect_url' => route('finance.loan-repayments.show', $repayment),
             ]);
         }
@@ -91,7 +90,7 @@ class LoanRepaymentController extends Controller
     public function show(int $repayment): View
     {
         $repayment = $this->repayment($repayment)->load(['loanReceipt', 'cashBankAccount']);
-        $journal = DB::table('journal_entries')
+        $journal   = DB::table('journal_entries')
             ->where('source_type', 'loan_repayment')
             ->where('source_id', $repayment->id)
             ->first();
@@ -106,7 +105,7 @@ class LoanRepaymentController extends Controller
                 $this->repayment($repayment),
                 (int) $request->user()->id,
             );
-        } catch (FinanceConfigurationException|InvalidJournalDraftException $exception) {
+        } catch (FinanceConfigurationException | InvalidJournalDraftException $exception) {
             return back()->with('error', $exception->getMessage());
         }
 
@@ -119,46 +118,46 @@ class LoanRepaymentController extends Controller
     {
         $rows = LoanRepayment::query()
             ->with(['loanReceipt', 'cashBankAccount'])
-            ->when(current_branch_id(), fn ($query, int $branchId) => $query->where('branch_id', $branchId))
+            ->when(current_branch_id(), fn($query, int $branchId) => $query->where('branch_id', $branchId))
             ->latest()
             ->get();
 
-        $data = $rows->map(fn (LoanRepayment $repayment): array => [
+        $data = $rows->map(fn(LoanRepayment $repayment): array=> [
             $repayment->id,
             '<a class="fw-semibold text-primary-600" '
-                .'href="'.e(route('finance.loan-repayments.show', $repayment)).'">'
-                .e($repayment->repayment_no)
-                .'</a>',
+            . 'href="' . e(route('finance.loan-repayments.show', $repayment)) . '">'
+            . e($repayment->repayment_no)
+            . '</a>',
             e($repayment->loanReceipt->loan_no),
             e($repayment->repayment_date->format('d M Y')),
-            e($repayment->cashBankAccount->code.' — '.$repayment->cashBankAccount->name),
-            '<div class="text-end">'.number_format((float) $repayment->amount, 2).'</div>',
+            e($repayment->cashBankAccount->code . ' — ' . $repayment->cashBankAccount->name),
+            '<div class="text-end">' . number_format((float) $repayment->amount, 2) . '</div>',
             '<span class="badge '
-                .($repayment->status === 'POSTED'
+            . ($repayment->status === 'POSTED'
                     ? 'bg-dark-success-gradient'
                     : 'bg-dark-warning-gradient')
-                .' text-white">'.e($repayment->status).'</span>',
+            . ' text-white">' . e($repayment->status) . '</span>',
         ])->all();
 
         return response()->json([
-            'draw' => (int) $request->input('draw'),
-            'iTotalRecords' => count($data),
+            'draw'                 => (int) $request->input('draw'),
+            'iTotalRecords'        => count($data),
             'iTotalDisplayRecords' => count($data),
-            'aaData' => $data,
+            'aaData'               => $data,
         ]);
     }
 
     private function receipt(int $id): LoanReceipt
     {
         return LoanReceipt::query()
-            ->when(current_branch_id(), fn ($query, int $branchId) => $query->where('branch_id', $branchId))
+            ->when(current_branch_id(), fn($query, int $branchId) => $query->where('branch_id', $branchId))
             ->findOrFail($id);
     }
 
     private function repayment(int $id): LoanRepayment
     {
         return LoanRepayment::query()
-            ->when(current_branch_id(), fn ($query, int $branchId) => $query->where('branch_id', $branchId))
+            ->when(current_branch_id(), fn($query, int $branchId) => $query->where('branch_id', $branchId))
             ->findOrFail($id);
     }
 }

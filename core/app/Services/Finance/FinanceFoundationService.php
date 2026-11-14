@@ -27,14 +27,12 @@ final class FinanceFoundationService
         ['code' => '1110', 'name' => 'Part Inventory', 'type' => 'ASSET'],
         ['code' => '1200', 'name' => 'Input Tax Receivable', 'type' => 'ASSET'],
         ['code' => '2000', 'name' => 'Supplier Payable', 'type' => 'LIABILITY'],
-        ['code' => '2050', 'name' => 'Production Expense Payable', 'type' => 'LIABILITY'],
         ['code' => '2100', 'name' => 'Director / Partner Loan', 'type' => 'LIABILITY'],
         ['code' => '3000', 'name' => 'Owner Capital', 'type' => 'EQUITY'],
         ['code' => '3010', 'name' => 'Partner Capital', 'type' => 'EQUITY'],
         ['code' => '3020', 'name' => 'Owner Drawings', 'type' => 'EQUITY'],
         ['code' => '3030', 'name' => 'Partner Drawings', 'type' => 'EQUITY'],
         ['code' => '4100', 'name' => 'Purchase Discount', 'type' => 'INCOME'],
-        ['code' => '5100', 'name' => 'Production Loss', 'type' => 'EXPENSE'],
     ];
 
     private const VOUCHER_TYPES = [

@@ -55,7 +55,7 @@ class FinanceAccountMappingController extends Controller
         $assignedIds = BranchAccount::query()->where('branch_id', $branch->id)->where('is_active', true)->pluck('account_id');
 
         return response()->json([
-            'overrides' => collect(FinanceMappingKey::cases())->mapWithKeys(fn (FinanceMappingKey $key) => [
+            'overrides' => collect(FinanceMappingKey::configurableCases())->mapWithKeys(fn (FinanceMappingKey $key) => [
                 $key->value => $overrides->get($key->value)?->account_id,
             ]),
             'effective' => collect($effective)->map(fn (array $row) => [
@@ -99,7 +99,7 @@ class FinanceAccountMappingController extends Controller
         $request->validate(['mappings' => ['nullable', 'array']]);
         $input = (array) $request->input('mappings', []);
         $mappings = [];
-        foreach (FinanceMappingKey::cases() as $key) {
+        foreach (FinanceMappingKey::configurableCases() as $key) {
             $value = $input[$key->value] ?? null;
             if ($value !== null && $value !== '') {
                 $request->validate(["mappings.{$key->value}" => ['integer', 'exists:accounts,id']]);
@@ -117,7 +117,7 @@ class FinanceAccountMappingController extends Controller
             ->when($accountIds !== null, fn ($query) => $query->whereKey($accountIds))
             ->orderBy('code')->get();
         $result = [];
-        foreach (FinanceMappingKey::cases() as $key) {
+        foreach (FinanceMappingKey::configurableCases() as $key) {
             $result[$key->value] = $accounts->filter(fn (Account $account) => $this->mappingService->isCompatible($key, $account))
                 ->map(fn (Account $account) => ['id' => $account->id, 'text' => $account->code.' - '.$account->name])->values()->all();
         }

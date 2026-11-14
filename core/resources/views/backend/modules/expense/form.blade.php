@@ -1,14 +1,8 @@
-@php($isProductionSettlement = (bool) $selectedProductionBatchId)
-
 <div class="modal-header py-16 px-24 border-0">
     <div>
-        <h5 class="modal-title">
-            {{ $isProductionSettlement ? 'Settle Production Costs' : 'New General Expense Payment' }}
-        </h5>
+        <h5 class="modal-title">New General Expense Payment</h5>
         <small class="text-muted">
-            {{ $isProductionSettlement
-                ? 'Choose one or more unpaid cost lines and enter the amount being paid now.'
-                : 'Save a Draft first, then record it to create the finance Journal Draft.' }}
+            Record an actual business expense. Saving creates a Draft document; posting it creates a Finance Journal Draft.
         </small>
     </div>
     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -17,107 +11,11 @@
 <form method="POST" action="{{ route('finance.expenses.store') }}" data-ajax="true">
     @csrf
 
-    <input type="hidden" name="source_mode" value="{{ $isProductionSettlement ? 'PRODUCTION' : 'GENERAL' }}">
-
-    @if ($isProductionSettlement)
-        <input type="hidden" name="part_production_batch_id" value="{{ $productionBatch->id }}">
-    @endif
-
     <div class="modal-body p-24">
         <div class="alert alert-light-info border-info-subtle text-sm py-10 mb-20">
-            @if ($isProductionSettlement)
-                Production completion already recorded the cost in Production Expense Payable. This payment will
-                debit that payable and credit the selected Cash / Bank account after its Journal is posted.
-            @else
-                General expense payment: Debit the category Expense account and credit the selected Cash / Bank account.
-            @endif
+            The selected Expense account will be debited and the selected Cash / Bank account will be credited.
+            Production estimates are recorded separately and are never paid from this screen.
         </div>
-
-        @if ($isProductionSettlement)
-            <div class="production-settlement-source radius-8 p-16 mb-20">
-                <div class="row g-3">
-                    <div class="col-md-4">
-                        <small class="text-muted d-block">Production Batch</small>
-                        <strong>{{ $productionBatch->batch_no }}</strong>
-                    </div>
-                    <div class="col-md-5">
-                        <small class="text-muted d-block">Output Part</small>
-                        <strong>{{ $productionBatch->part_name }}</strong>
-                        <code class="ms-1">{{ $productionBatch->part_code }}</code>
-                    </div>
-                    <div class="col-md-3">
-                        <small class="text-muted d-block">Production Date</small>
-                        <strong>{{ date('d M Y', strtotime($productionBatch->production_date)) }}</strong>
-                    </div>
-                </div>
-            </div>
-
-            <div class="table-responsive mb-20">
-                <table class="table bordered-table align-middle mb-0">
-                    <thead>
-                        <tr>
-                            <th style="width: 52px">Pay</th>
-                            <th>Production Cost Category</th>
-                            <th class="text-end">Total</th>
-                            <th class="text-end">Already Booked</th>
-                            <th class="text-end">Remaining</th>
-                            <th style="width: 170px" class="text-end">Pay Now</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse ($productionAllocations as $index => $allocation)
-                            @php($remaining = max((float) $allocation->amount - (float) $allocation->booked_amount, 0))
-                            <tr>
-                                <td class="text-center">
-                                    <input
-                                        type="checkbox"
-                                        name="production_items[{{ $index }}][selected]"
-                                        value="1"
-                                        class="form-check-input js-settlement-item"
-                                        data-target="#productionSettlementAmount{{ $index }}"
-                                    >
-                                    <input
-                                        type="hidden"
-                                        name="production_items[{{ $index }}][part_production_expense_id]"
-                                        value="{{ $allocation->id }}"
-                                    >
-                                </td>
-                                <td>
-                                    <strong>{{ $allocation->category_name }}</strong>
-                                    @if ($allocation->note)
-                                        <small class="text-muted d-block">{{ $allocation->note }}</small>
-                                    @endif
-                                </td>
-                                <td class="text-end">{{ number_format((float) $allocation->amount, 2) }}</td>
-                                <td class="text-end">{{ number_format((float) $allocation->booked_amount, 2) }}</td>
-                                <td class="text-end fw-semibold text-warning-main">
-                                    {{ number_format($remaining, 2) }}
-                                </td>
-                                <td>
-                                    <input
-                                        type="number"
-                                        name="production_items[{{ $index }}][amount]"
-                                        id="productionSettlementAmount{{ $index }}"
-                                        class="form-control form-control-sm text-end js-settlement-amount"
-                                        min="0.0001"
-                                        max="{{ number_format($remaining, 4, '.', '') }}"
-                                        step="0.0001"
-                                        value="{{ number_format($remaining, 4, '.', '') }}"
-                                        disabled
-                                    >
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="6" class="text-center text-muted py-20">
-                                    Every production cost line in this batch is already booked.
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-        @endif
 
         <div class="row g-3">
             <div class="col-lg-4">
@@ -126,7 +24,7 @@
                     name="branch_id"
                     id="expenseBranch"
                     class="form-select form-select-sm js-s2"
-                    @disabled(current_branch_id() || $isProductionSettlement)
+                    @disabled(current_branch_id())
                     required
                 >
                     @foreach ($branches as $branch)
@@ -135,7 +33,7 @@
                         </option>
                     @endforeach
                 </select>
-                @if (current_branch_id() || $isProductionSettlement)
+                @if (current_branch_id())
                     <input type="hidden" name="branch_id" value="{{ $branchId }}">
                 @endif
             </div>
@@ -161,25 +59,22 @@
                     min="0.0001"
                     step="0.0001"
                     value="{{ old('amount') }}"
-                    @readonly($isProductionSettlement)
                     required
                 >
             </div>
 
-            @unless ($isProductionSettlement)
-                <div class="col-lg-8">
-                    <label class="form-label">Expense Category <span class="text-danger">*</span></label>
-                    <select name="expense_category_id" id="generalExpenseCategory" class="form-select form-select-sm js-s2" required>
-                        <option value="">Select expense category</option>
-                        @foreach ($options['categories'] as $category)
-                            <option value="{{ $category->id }}">
-                                {{ $category->name }} — {{ $category->account_code }} {{ $category->account_name }}
-                            </option>
-                        @endforeach
-                    </select>
-                    <small class="text-muted">General expenses are not included in production inventory cost.</small>
-                </div>
-            @endunless
+            <div class="col-lg-8">
+                <label class="form-label">Expense Category <span class="text-danger">*</span></label>
+                <select name="expense_category_id" id="generalExpenseCategory" class="form-select form-select-sm js-s2" required>
+                    <option value="">Select expense category</option>
+                    @foreach ($options['categories'] as $category)
+                        <option value="{{ $category->id }}">
+                            {{ $category->name }} — {{ $category->account_code }} {{ $category->account_name }}
+                        </option>
+                    @endforeach
+                </select>
+                <small class="text-muted">Use this for actual salary, electricity, rent, transport and other paid expenses.</small>
+            </div>
 
             <div class="col-lg-4">
                 <label class="form-label">Cash / Bank Account <span class="text-danger">*</span></label>
@@ -232,7 +127,6 @@
 <script>
     (function ($) {
         const $modal = $('#AjaxModal');
-        const isProductionSettlement = @json($isProductionSettlement);
         const optionsUrl = @json(route('finance.expenses.branch-options', '__branch__'));
 
         function appendOptions($select, placeholder, rows, labelCallback) {
@@ -245,66 +139,43 @@
             $select.trigger('change');
         }
 
-        function updateSettlementTotal() {
-            let total = 0;
-
-            $('.js-settlement-item:checked').each(function () {
-                const $amount = $($(this).data('target'));
-                total += Number($amount.val()) || 0;
-            });
-
-            $('#expenseAmount').val(total > 0 ? total.toFixed(4) : '');
-        }
-
         S2.auto($modal);
 
         $modal
-            .off('change.productionSettlement', '.js-settlement-item')
-            .on('change.productionSettlement', '.js-settlement-item', function () {
-                const $amount = $($(this).data('target'));
-                $amount.prop('disabled', !this.checked);
-                updateSettlementTotal();
-            })
-            .off('input.productionSettlement', '.js-settlement-amount')
-            .on('input.productionSettlement', '.js-settlement-amount', updateSettlementTotal);
+            .off('change.generalExpenseBranch', '#expenseBranch')
+            .on('change.generalExpenseBranch', '#expenseBranch', function () {
+                const branchId = $(this).val();
 
-        if (!isProductionSettlement) {
-            $modal
-                .off('change.generalExpenseBranch', '#expenseBranch')
-                .on('change.generalExpenseBranch', '#expenseBranch', function () {
-                    const branchId = $(this).val();
+                if (!branchId) {
+                    return;
+                }
 
-                    if (!branchId) {
-                        return;
-                    }
-
-                    $.get(optionsUrl.replace('__branch__', branchId), function (response) {
-                        appendOptions(
-                            $('#generalExpenseCategory'),
-                            'Select expense category',
-                            response.categories || [],
-                            function (row) {
-                                return `${row.name} — ${row.account_code} ${row.account_name}`;
-                            },
-                        );
-                        appendOptions(
-                            $('#expenseCashAccount'),
-                            'Select Cash / Bank account',
-                            response.cash_accounts || [],
-                            function (row) {
-                                return `${row.code} — ${row.name}`;
-                            },
-                        );
-                        appendOptions(
-                            $('#expensePaymentType'),
-                            'Select payment type',
-                            response.payment_types || [],
-                            function (row) {
-                                return row.name;
-                            },
-                        );
-                    });
+                $.get(optionsUrl.replace('__branch__', branchId), function (response) {
+                    appendOptions(
+                        $('#generalExpenseCategory'),
+                        'Select expense category',
+                        response.categories || [],
+                        function (row) {
+                            return `${row.name} — ${row.account_code} ${row.account_name}`;
+                        },
+                    );
+                    appendOptions(
+                        $('#expenseCashAccount'),
+                        'Select Cash / Bank account',
+                        response.cash_accounts || [],
+                        function (row) {
+                            return `${row.code} — ${row.name}`;
+                        },
+                    );
+                    appendOptions(
+                        $('#expensePaymentType'),
+                        'Select payment type',
+                        response.payment_types || [],
+                        function (row) {
+                            return row.name;
+                        },
+                    );
                 });
-        }
+            });
     })(jQuery);
 </script>

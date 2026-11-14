@@ -15,7 +15,6 @@ use App\Models\Production\PartBom;
 use App\Models\Production\PartBomItem;
 use App\Models\Production\PartProductionBatch;
 use App\Models\Production\ProductionExpenseCategory;
-use App\Services\Finance\PartProductionJournalService;
 use App\Services\Inventory\PartStockPostingService;
 use App\Services\Inventory\RawMaterialStockPostingService;
 use Illuminate\Support\Facades\DB;
@@ -26,7 +25,6 @@ final class PartProductionService
     public function __construct(
         private readonly RawMaterialStockPostingService $rawMaterialStock,
         private readonly PartStockPostingService $partStock,
-        private readonly PartProductionJournalService $productionJournals,
     ) {}
 
     /**
@@ -179,8 +177,6 @@ final class PartProductionService
                 'completed_by' => $userId,
                 'completed_at' => now(),
             ]);
-
-            $this->productionJournals->createDraft($batch->fresh(), $userId);
 
             return $this->load($batch);
         }, 3);

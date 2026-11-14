@@ -2,12 +2,8 @@
 
 namespace App\Http\Controllers\backend;
 
-use App\Enums\Finance\ExpenseStatus;
-use App\Enums\Finance\JournalStatus;
 use App\Enums\Production\PartProductionStatus;
 use App\Enums\Production\ProductionQcStatus;
-use App\Exceptions\Finance\FinanceConfigurationException;
-use App\Exceptions\Finance\InvalidJournalDraftException;
 use App\Exceptions\Inventory\StockPostingException;
 use App\Exceptions\Production\InvalidPartProductionException;
 use App\Http\Controllers\Controller;
@@ -44,7 +40,7 @@ class PartProductionController extends Controller
             'batch.planned_quantity',
             'batch.good_quantity',
             'batch.qc_status',
-            'production_cost.total_cost',
+            'batch.id',
             'batch.status',
         ];
         $draw = (int) $request->input('draw');
@@ -63,16 +59,16 @@ class PartProductionController extends Controller
             ->join('warehouses as output_warehouse', 'output_warehouse.id', '=', 'batch.output_warehouse_id')
             ->join('branches as branch', 'branch.id', '=', 'batch.branch_id')
             ->leftJoinSub(
-                $this->productionCostTotalsQuery(),
-                'production_cost',
-                'production_cost.part_production_batch_id',
+                $this->materialCostTotalsQuery(),
+                'material_cost',
+                'material_cost.part_production_batch_id',
                 '=',
                 'batch.id',
             )
             ->leftJoinSub(
-                $this->productionSettlementTotalsQuery(),
-                'settlement',
-                'settlement.part_production_batch_id',
+                $this->directCostTotalsQuery(),
+                'direct_cost',
+                'direct_cost.part_production_batch_id',
                 '=',
                 'batch.id',
             )
@@ -94,9 +90,8 @@ class PartProductionController extends Controller
                 'input_warehouse.code as input_warehouse_code',
                 'output_warehouse.name as output_warehouse_name',
                 'output_warehouse.code as output_warehouse_code',
-                DB::raw('COALESCE(production_cost.total_cost, 0) as production_cost'),
-                DB::raw('COALESCE(settlement.booked_amount, 0) as booked_amount'),
-                DB::raw('COALESCE(settlement.paid_amount, 0) as paid_amount'),
+                DB::raw('COALESCE(material_cost.total_cost, 0) as material_cost'),
+                DB::raw('COALESCE(direct_cost.total_cost, 0) as direct_cost'),
             ]);
 
         $total = (clone $query)->count();
@@ -127,12 +122,10 @@ class PartProductionController extends Controller
         $canShow = $user?->canDo('production.part-productions.show', 'show') ?? false;
         $canEdit = $user?->canDo('production.part-productions.edit', 'edit') ?? false;
         $canDelete = $user?->canDo('production.part-productions.destroy', 'delete') ?? false;
-        $canSettle = $user?->canDo('finance.expenses.create', 'add') ?? false;
 
-        $data = $rows->map(function (object $row) use ($canShow, $canEdit, $canDelete, $canSettle): array {
+        $data = $rows->map(function (object $row) use ($canShow, $canEdit, $canDelete): array {
             $status = PartProductionStatus::from($row->status);
             $qcStatus = ProductionQcStatus::from($row->qc_status);
-            $settlement = $this->productionSettlementSummary($row);
             $actions = '<div class="d-inline-flex justify-content-end align-items-center gap-1 w-100">';
 
             if ($canShow) {
@@ -158,22 +151,6 @@ class PartProductionController extends Controller
                     .'<iconify-icon icon="solar:trash-bin-minimalistic-outline"></iconify-icon></button>';
             }
 
-            if (
-                $status === PartProductionStatus::Completed
-                && $canSettle
-                && bccomp($settlement['bookable'], '0.0000', 4) > 0
-            ) {
-                $actions .= '<button type="button" '
-                    .'class="btn w-32-px h-32-px rounded-circle d-inline-flex align-items-center '
-                    .'justify-content-center bg-primary-focus text-primary-main AjaxModal" '
-                    .'data-ajax-modal="'.e(route('finance.expenses.create', [
-                        'production_batch' => $row->id,
-                    ])).'" '
-                    .'data-size="xl" data-onsuccess="PartProductionIndex.onSettlementSaved" '
-                    .'title="Settle production costs">'
-                    .'<iconify-icon icon="mdi:cash-multiple"></iconify-icon></button>';
-            }
-
             $actions .= '</div>';
 
             return [
@@ -190,7 +167,7 @@ class PartProductionController extends Controller
                 '<span class="text-end d-block">'.$this->formatQuantity($row->planned_quantity).'</span>',
                 '<span class="text-end d-block fw-semibold">'.$this->formatQuantity($row->good_quantity).'</span>',
                 $this->qcBadge($qcStatus),
-                $this->productionSettlementHtml($settlement),
+                $this->productionCostHtml($row),
                 $this->statusBadge($status),
                 $actions,
             ];
@@ -284,17 +261,15 @@ class PartProductionController extends Controller
                 $this->record($partProduction),
                 $request->user()?->id,
             );
-        } catch (
-            InvalidPartProductionException|StockPostingException|FinanceConfigurationException|InvalidJournalDraftException $exception
-        ) {
+        } catch (InvalidPartProductionException|StockPostingException $exception) {
             return back()->with('error', $exception->getMessage());
         }
 
-        $message = $batch->journal
-            ? 'Production completed. Raw materials were consumed, good Part stock was received, and a Draft journal was created.'
-            : 'Production completed. Stock was updated; no journal was created because the recorded production cost was zero.';
-
-        return back()->with('success', $message);
+        return back()->with(
+            'success',
+            'Production completed. Raw Material stock was consumed and good Part stock was received. '
+            .'Recorded costs remain for reporting only; no Finance journal was created.',
+        );
     }
 
     public function destroy(int $partProduction): JsonResponse
@@ -464,11 +439,8 @@ class PartProductionController extends Controller
                 'consumptions.rawMaterial.baseUnit',
                 'consumptions.unit',
                 'expenses.category',
-                'expenses.settlementItems.expense.journal',
-                'settlements.journal',
                 'creator',
                 'completedBy',
-                'journal',
             ])
             ->first();
 
@@ -477,7 +449,16 @@ class PartProductionController extends Controller
         return $batch;
     }
 
-    private function productionCostTotalsQuery(): Builder
+    private function materialCostTotalsQuery(): Builder
+    {
+        return DB::table('part_production_consumptions')
+            ->groupBy('part_production_batch_id')
+            ->selectRaw(
+                'part_production_batch_id, SUM(total_cost) as total_cost',
+            );
+    }
+
+    private function directCostTotalsQuery(): Builder
     {
         return DB::table('part_production_expenses')
             ->groupBy('part_production_batch_id')
@@ -486,138 +467,33 @@ class PartProductionController extends Controller
             );
     }
 
-    private function productionSettlementTotalsQuery(): Builder
+    private function productionCostHtml(object $row): string
     {
-        $journalStatus = DB::table('journal_entries')
-            ->where('source_type', 'expense')
-            ->groupBy('source_id')
-            ->selectRaw(
-                'source_id as expense_id, '
-                .'MAX(CASE WHEN status = ? THEN 1 ELSE 0 END) as is_posted',
-                [JournalStatus::Posted->value],
-            );
+        $materialCost = max((float) $row->material_cost, 0);
+        $directCost = max((float) $row->direct_cost, 0);
 
-        return DB::table('expense_items as item')
-            ->join('expenses as expense', 'expense.id', '=', 'item.expense_id')
-            ->leftJoinSub(
-                $journalStatus,
-                'journal_status',
-                'journal_status.expense_id',
-                '=',
-                'expense.id',
-            )
-            ->where('expense.status', '!=', ExpenseStatus::Void->value)
-            ->whereNotNull('expense.part_production_batch_id')
-            ->groupBy('expense.part_production_batch_id')
-            ->selectRaw(
-                'expense.part_production_batch_id, '
-                .'SUM(item.amount) as booked_amount, '
-                .'SUM(CASE WHEN COALESCE(journal_status.is_posted, 0) = 1 '
-                .'THEN item.amount ELSE 0 END) as paid_amount',
-            );
-    }
-
-    /**
-     * @return array{
-     *     total: string,
-     *     booked: string,
-     *     paid: string,
-     *     pending: string,
-     *     outstanding: string,
-     *     bookable: string,
-     *     label: string,
-     *     badge_class: string
-     * }
-     */
-    private function productionSettlementSummary(object $row): array
-    {
-        $total = $this->decimalAmount($row->production_cost);
-        $booked = $this->cappedAmount($row->booked_amount, $total);
-        $paid = $this->cappedAmount($row->paid_amount, $total);
-        $pending = $this->positiveDifference($booked, $paid);
-        $outstanding = $this->positiveDifference($total, $paid);
-        $bookable = $this->positiveDifference($total, $booked);
-
-        [$label, $badgeClass] = match (true) {
-            bccomp($total, '0.0000', 4) === 0 => [
-                'No Payment Required',
-                'bg-secondary-focus text-secondary-main',
-            ],
-            bccomp($paid, $total, 4) >= 0 => [
-                'Paid',
-                'bg-success-focus text-success-main',
-            ],
-            bccomp($paid, '0.0000', 4) > 0 && bccomp($pending, '0.0000', 4) > 0 => [
-                'Partially Paid · Pending',
-                'bg-info-focus text-info-main',
-            ],
-            bccomp($paid, '0.0000', 4) > 0 => [
-                'Partially Paid',
-                'bg-warning-focus text-warning-main',
-            ],
-            bccomp($pending, '0.0000', 4) > 0 => [
-                'Payment Pending',
-                'bg-info-focus text-info-main',
-            ],
-            default => [
-                'Unpaid',
-                'bg-secondary-focus text-secondary-main',
-            ],
-        };
-
-        return [
-            'total' => $total,
-            'booked' => $booked,
-            'paid' => $paid,
-            'pending' => $pending,
-            'outstanding' => $outstanding,
-            'bookable' => $bookable,
-            'label' => $label,
-            'badge_class' => $badgeClass,
-        ];
-    }
-
-    /** @param array<string, string> $summary */
-    private function productionSettlementHtml(array $summary): string
-    {
-        if (bccomp($summary['total'], '0.0000', 4) === 0) {
-            return '<span class="badge '.$summary['badge_class'].' px-10 py-6 radius-4">'
-                .e($summary['label']).'</span>';
+        if ($row->status === PartProductionStatus::Draft->value) {
+            return '<div class="d-flex flex-column align-items-end">'
+                .'<strong class="text-muted">Pending completion</strong>'
+                .'<small class="text-muted">Other estimate '.number_format($directCost, 2).'</small>'
+                .$this->reportOnlyBadge()
+                .'</div>';
         }
 
-        $amounts = '<span class="fw-semibold">Paid '.number_format((float) $summary['paid'], 2)
-            .' / '.number_format((float) $summary['total'], 2).'</span>'
-            .'<small class="text-muted d-block">Outstanding '
-            .number_format((float) $summary['outstanding'], 2).'</small>';
+        $totalCost = $materialCost + $directCost;
 
-        if (bccomp($summary['pending'], '0.0000', 4) > 0) {
-            $amounts .= '<small class="text-info-main d-block">Pending '
-                .number_format((float) $summary['pending'], 2).'</small>';
-        }
-
-        return '<div class="d-flex flex-column align-items-start gap-1">'
-            .$amounts
-            .'<span class="badge '.$summary['badge_class'].' px-10 py-6 radius-4">'
-            .e($summary['label']).'</span></div>';
+        return '<div class="d-flex flex-column align-items-end">'
+            .'<strong>'.number_format($totalCost, 2).'</strong>'
+            .'<small class="text-muted">Material '.number_format($materialCost, 2)
+            .' + Other '.number_format($directCost, 2).'</small>'
+            .$this->reportOnlyBadge()
+            .'</div>';
     }
 
-    private function decimalAmount(mixed $amount): string
+    private function reportOnlyBadge(): string
     {
-        return number_format(max((float) $amount, 0), 4, '.', '');
-    }
-
-    private function cappedAmount(mixed $amount, string $maximum): string
-    {
-        $amount = $this->decimalAmount($amount);
-
-        return bccomp($amount, $maximum, 4) > 0 ? $maximum : $amount;
-    }
-
-    private function positiveDifference(string $amount, string $deduction): string
-    {
-        $difference = bcsub($amount, $deduction, 4);
-
-        return bccomp($difference, '0.0000', 4) > 0 ? $difference : '0.0000';
+        return '<span class="badge text-xxs fw-semibold bg-info-focus text-info-main '
+            .'px-6 py-3 radius-4 mt-1 lh-1">Report only</span>';
     }
 
     private function statusBadge(PartProductionStatus $status): string

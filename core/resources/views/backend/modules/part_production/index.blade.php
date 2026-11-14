@@ -71,7 +71,7 @@
               <th class="text-end">Planned Qty</th>
               <th class="text-end">Good Qty</th>
               <th>QC</th>
-              <th>Cost Settlement</th>
+              <th class="text-end">Cost Snapshot</th>
               <th>Status</th>
               <th class="text-end">Action</th>
             </tr>
@@ -86,19 +86,6 @@
 @section('script')
 <script>
   var DATATABLE_URL = @json(route('production.part-productions.list.ajax'));
-
-  window.PartProductionIndex = {
-    onSettlementSaved: function(response) {
-      if (response && response.redirect_url) {
-        window.location.href = response.redirect_url;
-        return;
-      }
-
-      if ($.fn.DataTable.isDataTable('#partProductionsTable')) {
-        $('#partProductionsTable').DataTable().ajax.reload(null, false);
-      }
-    },
-  };
 
   $(document).on('preXhr.dt', '#partProductionsTable', function(event, settings, data) {
     data.status = $('#partProductionStatusFilter').val();

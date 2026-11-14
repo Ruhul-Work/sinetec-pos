@@ -43,6 +43,7 @@ class PartProductionExpense extends Model
 
     public function settlementItems(): HasMany
     {
+        // Historical compatibility only. Recorded production costs are now report-only.
         return $this->hasMany(ExpenseItem::class, 'part_production_expense_id');
     }
 }

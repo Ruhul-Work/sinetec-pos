@@ -194,8 +194,6 @@ project:Sinetec Pos
 
 **Total:** 8.25 hours
 
----
-
 ## Date: 2026-11-08
 
 **ID:** BFT4
@@ -272,5 +270,23 @@ project:DK Fashion & Toyo
 1. dk product details page image requerment collect and discuss and toyo deploy -30min 
 
 **Total:** 8.25 hours
+
+---
+
+## Date: 2026-11-12
+
+**ID:** BFT4
+
+project: Sinetec POS
+
+1. Production accounting policy review and final stock-only/report-only workflow confirmation to prevent duplicate salary, electricity and operational expense recognition — 45 min
+2. Part Production finance refactor: production journal generation, payable settlement dependency and Finance posting actions removed while preserving BOM, QC, stock and estimated costing — 2 hours
+3. Production Cost Categories converted to report-only records and General Expense restored as the single source for actual Cash/Bank expense accounting — 1.25 hours
+4. Legacy `Production Expense Payable` and `Production Loss` mappings/accounts safely deactivated through a forward migration with historical compatibility retained — 45 min
+5. Safe Part Production test-data purge command with dry-run audit, JSON recovery snapshot, journal/settlement cleanup and Raw Material/Part stock-balance recalculation — 1 hour
+6. Production Batch List/details cleanup, settlement/payment indicators removal and compact `Report only` badge UI polish — 45 min
+7. Fresh stock-only production and General Expense smoke-test support, focused production/finance regression verification and project roadmap/status/design documentation sync — 1.5 hours
+
+**Total:** 8 hours
 
 

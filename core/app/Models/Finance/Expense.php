@@ -60,11 +60,13 @@ class Expense extends Model
 
     public function productionBatch(): BelongsTo
     {
+        // Historical compatibility for production settlements created before the stock-only policy.
         return $this->belongsTo(PartProductionBatch::class, 'part_production_batch_id');
     }
 
     public function items(): HasMany
     {
+        // Historical settlement lines remain readable, but new General Expenses do not create them.
         return $this->hasMany(ExpenseItem::class);
     }
 

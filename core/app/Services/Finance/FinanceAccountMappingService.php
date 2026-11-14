@@ -23,7 +23,7 @@ final class FinanceAccountMappingService
             'purpose' => $key->purpose(),
             'expected_type' => $key->expectedTypeCode(),
             'normal_balance' => $key->expectedNormalBalance()->value,
-        ], FinanceMappingKey::cases());
+        ], FinanceMappingKey::configurableCases());
     }
 
     /** @param array<string, int|string|null> $mappings */
@@ -42,6 +42,7 @@ final class FinanceAccountMappingService
         $accountIds = FinanceAccountMapping::query()
             ->where('scope', FinanceMappingScope::Company)
             ->where('is_active', true)
+            ->whereIn('mapping_key', $this->configurableKeyValues())
             ->pluck('account_id');
 
         foreach ($accountIds as $accountId) {
@@ -91,7 +92,7 @@ final class FinanceAccountMappingService
         $company = $this->mappingsForScope(FinanceMappingScope::Company)->keyBy(fn (FinanceAccountMapping $mapping) => $mapping->mapping_key->value);
         $branch = $this->mappingsForScope(FinanceMappingScope::Branch, $branchId)->keyBy(fn (FinanceAccountMapping $mapping) => $mapping->mapping_key->value);
         $result = [];
-        foreach (FinanceMappingKey::cases() as $key) {
+        foreach (FinanceMappingKey::configurableCases() as $key) {
             $mapping = $branch->get($key->value) ?? $company->get($key->value);
             $result[$key->value] = [
                 'account' => $mapping?->account,
@@ -131,7 +132,7 @@ final class FinanceAccountMappingService
     /** @param array<string, int|string|null> $mappings */
     private function saveScope(FinanceMappingScope $scope, ?Branch $branch, array $mappings): void
     {
-        foreach (FinanceMappingKey::cases() as $key) {
+        foreach (FinanceMappingKey::configurableCases() as $key) {
             $accountId = (int) ($mappings[$key->value] ?? 0);
             $scopeKey = $scope->scopeKey($branch?->id);
             if ($accountId === 0) {
@@ -169,5 +170,14 @@ final class FinanceAccountMappingService
                 ],
             );
         }
+    }
+
+    /** @return array<int, string> */
+    private function configurableKeyValues(): array
+    {
+        return array_map(
+            fn (FinanceMappingKey $key): string => $key->value,
+            FinanceMappingKey::configurableCases(),
+        );
     }
 }

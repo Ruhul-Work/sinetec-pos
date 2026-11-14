@@ -45,19 +45,22 @@ class ProductionExpenseCategoryTest extends TestCase
         ]);
     }
 
-    public function test_foundation_maps_the_production_expense_payable_control_account(): void
+    public function test_foundation_keeps_production_categories_report_only(): void
     {
         $this->seed(FinanceFoundationSeeder::class);
         $this->seed(ProductionFoundationSeeder::class);
 
-        $this->assertDatabaseHas('accounts', [
-            'code' => '2050',
-            'name' => 'Production Expense Payable',
+        $this->assertDatabaseHas('production_expense_categories', [
+            'code' => 'PRODUCTION_POWER',
+            'name' => 'Production Electricity / Power',
+            'expense_account_id' => null,
+            'is_active' => true,
         ]);
-        $this->assertDatabaseHas('finance_account_mappings', [
-            'scope_key' => 'COMPANY',
+        $this->assertDatabaseMissing('finance_account_mappings', [
             'mapping_key' => 'PRODUCTION_EXPENSE_PAYABLE',
             'is_active' => true,
         ]);
+        $this->assertDatabaseMissing('accounts', ['code' => '2050']);
+        $this->assertDatabaseMissing('accounts', ['code' => '5100']);
     }
 }

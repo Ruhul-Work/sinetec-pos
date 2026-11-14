@@ -10,11 +10,11 @@
       <div class="d-flex align-items-center gap-2">
         <h6 class="fw-semibold mb-0">Production Cost Categories</h6>
         <x-backend.page-note title="How production cost categories work" label="View category rules" align="start">
-          These categories classify direct production costs such as labour, power and handling. Accounting uses
-          the single Production Expense Payable control account, so no separate ledger account is required here.
+          These categories classify optional labour, power, packing, transport and other batch-cost estimates.
+          They are used only for production costing and reports; they do not use ledger accounts or create journals.
         </x-backend.page-note>
       </div>
-      <p class="text-muted m-0">Configure labour, power, handling and other direct production costs.</p>
+      <p class="text-muted m-0">Configure report-only labour, power, handling and other production cost estimates.</p>
     </div>
   </div>
 

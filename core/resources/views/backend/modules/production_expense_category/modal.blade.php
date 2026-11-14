@@ -1,7 +1,7 @@
 <div class="modal-header py-16 px-24 border-0">
   <div>
     <h5 class="modal-title mb-1">{{ $title }}</h5>
-    <p class="text-muted text-sm mb-0">Classify direct costs used while preparing a production batch.</p>
+    <p class="text-muted text-sm mb-0">Classify report-only cost estimates used while preparing a production batch.</p>
   </div>
   <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 </div>
@@ -14,8 +14,8 @@
     @endif
 
     <div class="alert alert-light-info border-info-subtle text-sm py-10 mb-20">
-      Production cost categories do not need individual ledger accounts. All unpaid direct production costs use
-      the Production Expense Payable control account configured in Finance Account Mapping.
+      Production cost categories do not need ledger accounts. Values entered against them are retained only for
+      batch costing and reports; actual paid expenses must be recorded separately through General Expense.
     </div>
 
     <div class="row g-3">

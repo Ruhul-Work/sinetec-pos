@@ -89,12 +89,14 @@ class PartProductionBatch extends Model
 
     public function journal(): HasOne
     {
+        // Historical compatibility only. New production batches never create Finance journals.
         return $this->hasOne(JournalEntry::class, 'source_id')
             ->where('source_type', 'part_production_batch');
     }
 
     public function settlements(): HasMany
     {
+        // Historical compatibility only. Production cost settlement is no longer an active workflow.
         return $this->hasMany(Expense::class, 'part_production_batch_id');
     }
 }

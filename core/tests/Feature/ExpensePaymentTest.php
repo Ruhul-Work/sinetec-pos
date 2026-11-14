@@ -4,7 +4,9 @@ namespace Tests\Feature;
 
 use App\Enums\Finance\ExpenseStatus;
 use App\Models\backend\Account;
+use App\Models\backend\AccountType;
 use App\Models\backend\Branch;
+use App\Models\backend\BranchAccount;
 use App\Models\backend\FiscalYear;
 use App\Models\backend\PaymentType;
 use App\Models\backend\User;
@@ -48,7 +50,18 @@ class ExpensePaymentTest extends TestCase
             'is_active' => true,
         ]);
         $cashAccount = Account::query()->where('code', '1000')->firstOrFail();
-        $expenseAccount = Account::query()->where('code', '5100')->firstOrFail();
+        $expenseAccount = Account::query()->create([
+            'account_type_id' => AccountType::query()->where('code', 'EXPENSE')->value('id'),
+            'name' => 'General Expense',
+            'code' => '5900',
+            'currency' => 'BDT',
+            'is_active' => true,
+        ]);
+        BranchAccount::query()->create([
+            'branch_id' => $branch->id,
+            'account_id' => $expenseAccount->id,
+            'is_active' => true,
+        ]);
         $category = ExpenseCategory::query()->create([
             'code' => 'TEST_EXPENSE',
             'name' => 'Test Expense',
