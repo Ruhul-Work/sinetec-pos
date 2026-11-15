@@ -1,7 +1,10 @@
 <div class="modal-header border-0 px-24 py-16">
-    <div>
-        <h5 class="modal-title">New Director / Partner Loan</h5>
-        <small class="text-muted">Record temporary money received after Opening Balance</small>
+    <div class="d-flex align-items-center gap-2">
+        <h5 class="modal-title mb-0">New Director / Partner Loan</h5>
+        <x-backend.field-note label="Loan receipt information">
+            Record temporary money received after Opening Balance. This is a Liability, not Capital. Posting creates
+            a Finance Journal Draft that debits Cash / Bank and credits Loan Payable.
+        </x-backend.field-note>
     </div>
     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
 </div>
@@ -10,11 +13,6 @@
     @csrf
 
     <div class="modal-body p-24">
-        <div class="alert alert-light-info border-info-subtle text-sm py-10 mb-20">
-            This is a liability, not Capital. Posting creates a finance Journal Draft:
-            Debit Cash / Bank and Credit Loan Payable.
-        </div>
-
         <div class="row g-3">
             <div class="col-md-4">
                 <label class="form-label">Branch <span class="text-danger">*</span></label>
@@ -60,7 +58,12 @@
             </div>
 
             <div class="col-md-6">
-                <label class="form-label">Cash / Bank Received Into <span class="text-danger">*</span></label>
+                <div class="d-flex align-items-center gap-1 mb-8">
+                    <label class="form-label mb-0">Cash / Bank Received Into <span class="text-danger">*</span></label>
+                    <x-backend.field-note label="Available Cash and Bank accounts">
+                        Only Cash / Bank accounts assigned to the selected branch appear.
+                    </x-backend.field-note>
+                </div>
                 <select
                     name="cash_bank_account_id"
                     id="loanCashBankAccount"
@@ -74,11 +77,15 @@
                         </option>
                     @endforeach
                 </select>
-                <small class="text-muted">Only assigned Cash / Bank accounts appear.</small>
             </div>
 
             <div class="col-md-6">
-                <label class="form-label">Loan Liability Account <span class="text-danger">*</span></label>
+                <div class="d-flex align-items-center gap-1 mb-8">
+                    <label class="form-label mb-0">Loan Liability Account <span class="text-danger">*</span></label>
+                    <x-backend.field-note label="Loan account selection">
+                        Use a Director / Partner Loan Liability account assigned to the selected branch.
+                    </x-backend.field-note>
+                </div>
                 <select
                     name="loan_account_id"
                     id="loanAccount"
@@ -92,7 +99,6 @@
                         </option>
                     @endforeach
                 </select>
-                <small class="text-muted">Use an assigned Director / Partner Loan Liability account.</small>
             </div>
 
             <div class="col-md-4">

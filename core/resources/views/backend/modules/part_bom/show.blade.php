@@ -11,6 +11,7 @@
       'INACTIVE' => 'bg-dark-secondary-gradient',
       default => 'bg-dark-warning-gradient',
     };
+    $canExtendValidity = $partBom->status !== 'DRAFT' && $partBom->effective_to !== null;
   @endphp
 
   <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
@@ -18,11 +19,30 @@
       <div class="d-flex align-items-center gap-2 flex-wrap">
         <h6 class="fw-semibold mb-0">{{ $partBom->part?->name }} — {{ $partBom->version }}</h6>
         <span class="badge text-sm fw-semibold {{ $statusClass }} px-12 py-7 radius-4 text-white">{{ ucfirst(strtolower($partBom->status)) }}</span>
+        @if($partBom->isExpired())
+          <span class="badge text-sm fw-semibold bg-dark-danger-gradient text-white px-12 py-7 radius-4">Expired</span>
+        @elseif($partBom->isScheduled())
+          <span class="badge text-sm fw-semibold bg-dark-info-gradient text-white px-12 py-7 radius-4">Scheduled</span>
+        @endif
       </div>
       <p class="text-muted m-0">{{ $partBom->part?->part_code }} · Output: {{ rtrim(rtrim(number_format((float) $partBom->output_quantity, 6, '.', ''), '0'), '.') }} {{ $partBom->part?->baseUnit?->code }}</p>
     </div>
     <div class="d-flex align-items-center gap-2 flex-wrap">
       <a href="{{ route('production.part-boms.index') }}" class="btn btn-outline-secondary btn-sm px-14 py-8 radius-8 app-action-button"><iconify-icon icon="mdi:arrow-left"></iconify-icon><span>Back</span></a>
+      @if($canExtendValidity)
+        @perm('production.part-boms.extend-validity', 'edit')
+          <button
+            type="button"
+            class="btn btn-outline-info btn-sm px-14 py-8 radius-8 app-action-button AjaxModal"
+            data-ajax-modal="{{ route('production.part-boms.validityModal', $partBom) }}"
+            data-size="md"
+            data-onsuccess="PartBomShow.onValiditySaved"
+          >
+            <iconify-icon icon="mdi:calendar-refresh-outline"></iconify-icon>
+            <span>Extend Validity</span>
+          </button>
+        @endperm
+      @endif
       @if($partBom->status === 'DRAFT')
         @perm('production.part-boms.edit')<a href="{{ route('production.part-boms.edit', $partBom) }}" class="btn btn-outline-success btn-sm px-14 py-8 radius-8 app-action-button"><iconify-icon icon="lucide:edit"></iconify-icon><span>Edit Draft</span></a>@endperm
         @perm('production.part-boms.activate')
@@ -45,7 +65,20 @@
         <div class="col-md-3"><span class="text-muted d-block">Part</span><strong>{{ $partBom->part?->name }}</strong></div>
         <div class="col-md-2"><span class="text-muted d-block">Version</span><code>{{ $partBom->version }}</code></div>
         <div class="col-md-2"><span class="text-muted d-block">Output Quantity</span><strong>{{ rtrim(rtrim(number_format((float) $partBom->output_quantity, 6, '.', ''), '0'), '.') }} {{ $partBom->part?->baseUnit?->code }}</strong></div>
-        <div class="col-md-3"><span class="text-muted d-block">Effective Dates</span>{{ $partBom->effective_from?->format('d M Y') ?? '—' }} to {{ $partBom->effective_to?->format('d M Y') ?? '—' }}</div>
+        <div class="col-md-3">
+          <span class="text-muted d-block">Effective Dates</span>
+          {{ $partBom->effective_from?->format('d M Y') ?? '—' }}
+          to
+          {{ $partBom->effective_to?->format('d M Y') ?? 'No expiry' }}
+          @if($partBom->validity_updated_at)
+            <small class="text-muted d-block mt-1">
+              Extended {{ $partBom->validity_updated_at->format('d M Y, h:i A') }}
+              @if($partBom->validityUpdater)
+                by {{ $partBom->validityUpdater->name }}
+              @endif
+            </small>
+          @endif
+        </div>
         <div class="col-md-2"><span class="text-muted d-block">Created By</span>{{ $partBom->creator?->name ?? 'System' }}</div>
       </div>
     </div>
@@ -74,6 +107,12 @@
 
 @section('script')
 <script>
+  window.PartBomShow = {
+    onValiditySaved: function() {
+      window.location.reload();
+    },
+  };
+
   $(document).on('submit', '.bom-activate-form', function(event) {
     if (!window.Swal) return;
     event.preventDefault();

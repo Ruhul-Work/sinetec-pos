@@ -14,7 +14,14 @@
 </div>
 
 <div class="mb-3">
-    <label class="form-label">Code <span class="text-danger">*</span></label>
+    <div class="d-flex align-items-center gap-1 mb-8">
+        <label class="form-label mb-0">Code <span class="text-danger">*</span></label>
+        @if ($isSystemType)
+            <x-backend.field-note label="Protected account type code">
+                System type code is protected.
+            </x-backend.field-note>
+        @endif
+    </div>
     <input
         type="text"
         name="code"
@@ -25,9 +32,6 @@
         @readonly($isSystemType)
         required
     >
-    @if ($isSystemType)
-        <small class="text-muted">System type code is protected.</small>
-    @endif
 </div>
 
 <div class="mb-3">

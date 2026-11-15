@@ -1,7 +1,9 @@
 <div class="modal-header py-16 px-24 border-0">
-  <div>
-    <h5 class="modal-title mb-1">{{ $title }}</h5>
-    <p class="text-muted text-sm mb-0">Link an approved supplier and record expected delivery information.</p>
+  <div class="d-flex align-items-center gap-2">
+    <h5 class="modal-title mb-0">{{ $title }}</h5>
+    <x-backend.field-note label="Supplier mapping information">
+      Link an approved supplier and record expected delivery information.
+    </x-backend.field-note>
   </div>
   <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
 </div>

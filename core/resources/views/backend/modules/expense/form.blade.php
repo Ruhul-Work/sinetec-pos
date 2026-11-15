@@ -1,9 +1,11 @@
 <div class="modal-header py-16 px-24 border-0">
-    <div>
-        <h5 class="modal-title">New General Expense Payment</h5>
-        <small class="text-muted">
-            Record an actual business expense. Saving creates a Draft document; posting it creates a Finance Journal Draft.
-        </small>
+    <div class="d-flex align-items-center gap-2">
+        <h5 class="modal-title mb-0">New General Expense Payment</h5>
+        <x-backend.field-note label="General expense payment information">
+            Record an actual business expense. Saving creates a Draft document; posting it creates a Finance Journal
+            Draft that debits the Expense account and credits Cash / Bank. Production estimates are recorded
+            separately and are never paid from this screen.
+        </x-backend.field-note>
     </div>
     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
 </div>
@@ -12,11 +14,6 @@
     @csrf
 
     <div class="modal-body p-24">
-        <div class="alert alert-light-info border-info-subtle text-sm py-10 mb-20">
-            The selected Expense account will be debited and the selected Cash / Bank account will be credited.
-            Production estimates are recorded separately and are never paid from this screen.
-        </div>
-
         <div class="row g-3">
             <div class="col-lg-4">
                 <label class="form-label">Branch <span class="text-danger">*</span></label>
@@ -64,7 +61,12 @@
             </div>
 
             <div class="col-lg-8">
-                <label class="form-label">Expense Category <span class="text-danger">*</span></label>
+                <div class="d-flex align-items-center gap-1 mb-8">
+                    <label class="form-label mb-0">Expense Category <span class="text-danger">*</span></label>
+                    <x-backend.field-note label="Expense category usage">
+                        Use this for actual salary, electricity, rent, transport and other paid expenses.
+                    </x-backend.field-note>
+                </div>
                 <select name="expense_category_id" id="generalExpenseCategory" class="form-select form-select-sm js-s2" required>
                     <option value="">Select expense category</option>
                     @foreach ($options['categories'] as $category)
@@ -73,7 +75,6 @@
                         </option>
                     @endforeach
                 </select>
-                <small class="text-muted">Use this for actual salary, electricity, rent, transport and other paid expenses.</small>
             </div>
 
             <div class="col-lg-4">

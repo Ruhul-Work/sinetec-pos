@@ -5,6 +5,7 @@ namespace App\Services\Production;
 use App\Models\backend\Part;
 use App\Models\backend\RawMaterial;
 use App\Models\Production\PartBom;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -61,6 +62,12 @@ class PartBomService
             $bom = $this->lock($bom);
             $this->produciblePart($bom->part_id);
 
+            if ($bom->isExpired()) {
+                throw ValidationException::withMessages([
+                    'effective_to' => 'This BOM has expired. Extend its validity before activating it.',
+                ]);
+            }
+
             if ($bom->items()->doesntExist()) {
                 throw ValidationException::withMessages([
                     'lines' => 'Add at least one raw material before activating this BOM.',
@@ -91,6 +98,55 @@ class PartBomService
             }
 
             $bom->update(['status' => 'INACTIVE']);
+
+            return $this->load($bom);
+        });
+    }
+
+    public function extendValidity(
+        PartBom $bom,
+        ?string $effectiveTo,
+        ?int $userId,
+    ): PartBom {
+        return DB::transaction(function () use ($bom, $effectiveTo, $userId): PartBom {
+            $bom = $this->lock($bom);
+
+            if ($bom->status === 'DRAFT') {
+                throw ValidationException::withMessages([
+                    'status' => 'Edit the Draft BOM directly instead of extending its validity.',
+                ]);
+            }
+
+            if ($bom->effective_to === null) {
+                throw ValidationException::withMessages([
+                    'effective_to' => 'This BOM already has no expiry date.',
+                ]);
+            }
+
+            $newEffectiveTo = $effectiveTo
+                ? CarbonImmutable::parse($effectiveTo)->startOfDay()
+                : null;
+
+            if ($newEffectiveTo !== null && $newEffectiveTo->isBefore(today())) {
+                throw ValidationException::withMessages([
+                    'effective_to' => 'The new validity date cannot be in the past.',
+                ]);
+            }
+
+            if (
+                $newEffectiveTo !== null
+                && ! $newEffectiveTo->isAfter($bom->effective_to)
+            ) {
+                throw ValidationException::withMessages([
+                    'effective_to' => 'Choose a date after the current expiry date, or leave it blank for no expiry.',
+                ]);
+            }
+
+            $bom->update([
+                'effective_to' => $newEffectiveTo?->toDateString(),
+                'validity_updated_by' => $userId,
+                'validity_updated_at' => now(),
+            ]);
 
             return $this->load($bom);
         });

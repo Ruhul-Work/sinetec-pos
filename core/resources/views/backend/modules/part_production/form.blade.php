@@ -48,7 +48,7 @@
       <div class="d-flex align-items-center gap-2">
         <h6 class="fw-semibold mb-0">{{ $title }}</h6>
         <x-backend.page-note title="How Part Production works" label="View production rules" align="start">
-          Select an active Part BOM and planned output. The system scales its raw-material recipe.
+          Select an active Part Recipe and planned output. The system scales its raw-material recipe.
           Saving a Draft changes no stock. Complete Production permanently posts Raw Material OUT,
           good Part IN and a Draft finance journal.
         </x-backend.page-note>
@@ -92,9 +92,9 @@
       <div class="card-body">
         <div class="row g-3 part-production-header-grid">
           <div class="col-lg-5">
-            <label class="form-label">Active Part BOM <span class="text-danger">*</span></label>
+            <label class="form-label">Active Part Recipe <span class="text-danger">*</span></label>
             <select name="part_bom_id" id="productionBom" class="form-select form-select-sm js-s2" required>
-              <option value="">Select active Part BOM</option>
+              <option value="">Select active Part Recipe</option>
               @foreach ($boms as $bom)
                 <option value="{{ $bom->id }}" @selected((int) old('part_bom_id', $batch->part_bom_id) === $bom->id)>
                   {{ $bom->part?->name }} ({{ $bom->part?->part_code }}) — {{ $bom->version }}
@@ -136,7 +136,7 @@
                 app-action-button d-inline-flex align-items-center justify-content-center gap-2"
             >
               <iconify-icon icon="mdi:reload"></iconify-icon>
-              <span>Load BOM</span>
+              <span>Load Recipe</span>
             </button>
           </div>
 
@@ -179,9 +179,9 @@
       <div class="card-header d-flex align-items-center justify-content-between gap-3 flex-wrap">
         <div>
           <h5 class="card-title mb-0">Actual Raw Material Consumption</h5>
-          <p class="text-muted text-sm mb-0">BOM quantities include its expected wastage. Adjust only when actual consumption differs.</p>
+          <p class="text-muted text-sm mb-0">Recipe quantities include expected wastage. Adjust only when actual consumption differs.</p>
         </div>
-        <span id="productionPartLabel" class="badge bg-primary-focus text-primary-600 px-12 py-7 radius-6">Select a BOM</span>
+        <span id="productionPartLabel" class="badge bg-primary-focus text-primary-600 px-12 py-7 radius-6">Select a Recipe</span>
       </div>
       <div class="card-body">
         <div class="table-responsive">
@@ -203,32 +203,32 @@
             icon="mdi:flask-empty-outline"
             class="text-3xl part-production-empty-icon mb-2"
           ></iconify-icon>
-          Select an active BOM and click Load BOM.
+          Select an active Recipe and click Load Recipe.
         </div>
       </div>
     </div>
 
     <div class="card mb-24">
-      <div class="card-header d-flex align-items-center justify-content-between gap-3 flex-wrap">
+      <div class="card-header d-flex align-items-center justify-content-between gap-2">
         <div>
-          <h5 class="card-title mb-0">Direct Production Expenses</h5>
-          <p class="text-muted text-sm mb-0">Optional batch costs such as labour, production power or transport.</p>
+          <h5 class="card-title mb-0">Recorded Part Production Costs</h5>
+          <small class="text-muted">Optional batch costs such as labour, production power or transport.</small>
         </div>
-        <button type="button" id="addProductionExpense" class="btn btn-outline-primary btn-sm px-14 py-8 radius-8 app-action-button">
+        <button type="button" id="addProductionExpense" class="btn btn-outline-primary btn-sm app-action-button">
           <iconify-icon icon="mdi:plus"></iconify-icon>
-          <span>Add Expense</span>
+          <span>Add Cost</span>
         </button>
       </div>
       <div class="card-body">
-        <div id="productionExpenseHeader" class="row g-2 production-expense-header">
-          <div class="col-lg-5">Expense Category</div>
-          <div class="col-lg-2 text-lg-end">Amount</div>
+        <div id="productionExpenseHeader" class="row g-2 fw-semibold text-sm mb-2 production-expense-header">
+          <div class="col-lg-5">Category</div>
+          <div class="col-lg-2 text-end">Amount</div>
           <div class="col-lg-4">Note</div>
           <div class="col-lg-1 text-center">Action</div>
         </div>
         <div id="productionExpenses" class="d-grid gap-2"></div>
-        <div id="emptyProductionExpenses" class="text-center text-muted py-20">No direct expense added.</div>
-        <small class="text-muted d-block mt-2">A category must have an assigned expense account before this batch can be completed.</small>
+        <div id="emptyProductionExpenses" class="text-center text-muted py-20">No direct cost added.</div>
+        <small class="text-muted d-block mt-2">Each category must have an assigned account before this batch can be completed.</small>
       </div>
     </div>
 
@@ -339,7 +339,7 @@
 
     lines.forEach(function(line, index) {
       const available = line.available_quantity === null || line.available_quantity === undefined
-        ? 'Refresh BOM to check'
+        ? 'Refresh Recipe to check'
         : `${formatQuantity(line.available_quantity)} ${escapeHtml(line.base_unit_code || '')}`;
       const shortage = line.available_quantity !== null
         && line.available_quantity !== undefined
@@ -383,8 +383,8 @@
 
     if (!bomId || !plannedQuantity || Number(plannedQuantity) <= 0) {
       window.Swal
-        ? Swal.fire({ icon: 'info', title: 'Select BOM and quantity', text: 'Choose an active BOM and enter a planned output quantity first.' })
-        : alert('Choose an active BOM and enter a planned output quantity first.');
+        ? Swal.fire({ icon: 'info', title: 'Select Recipe and quantity', text: 'Choose an active Recipe and enter a planned output quantity first.' })
+        : alert('Choose an active Recipe and enter a planned output quantity first.');
       return;
     }
 
@@ -397,9 +397,9 @@
       renderConsumptions(response.consumptions || []);
       $('#productionPartLabel').text(`${response.bom.part_name} · ${response.bom.version}`);
     }).fail(function(xhr) {
-      const message = xhr.responseJSON?.message || 'The BOM plan could not be loaded.';
+      const message = xhr.responseJSON?.message || 'The Recipe plan could not be loaded.';
       window.Swal
-        ? Swal.fire({ icon: 'error', title: 'Unable to load BOM', text: message })
+        ? Swal.fire({ icon: 'error', title: 'Unable to load Recipe', text: message })
         : alert(message);
     }).always(function() {
       button.prop('disabled', false);
@@ -415,7 +415,7 @@
 
   function addExpenseRow(expense = {}) {
     const index = expenseIndex++;
-    const options = ['<option value="">Select expense category</option>'];
+    const options = ['<option value="">Select category</option>'];
 
     expenseCategories.forEach(function(category) {
       const selected = Number(expense.production_expense_category_id) === Number(category.id)
@@ -431,7 +431,7 @@
           <select
             name="expenses[${index}][production_expense_category_id]"
             class="form-select form-select-sm js-s2"
-            aria-label="Expense Category"
+            aria-label="Category"
           >${options.join('')}</select>
         </div>
         <div class="col-lg-2">
@@ -443,7 +443,7 @@
             min="0.0001"
             step="0.0001"
             placeholder="0.00"
-            aria-label="Expense Amount"
+            aria-label="Cost Amount"
           >
         </div>
         <div class="col-lg-4">
@@ -454,15 +454,15 @@
             value="${escapeHtml(expense.note || '')}"
             maxlength="1000"
             placeholder="Optional allocation note"
-            aria-label="Expense Note"
+            aria-label="Cost Note"
           >
         </div>
         <div class="col-lg-1 text-center">
           <button
             type="button"
-            class="btn w-32-px h-32-px rounded-circle d-inline-flex align-items-center
+            class="btn p-0 w-32-px h-32-px rounded-circle d-inline-flex align-items-center
               justify-content-center bg-danger-focus text-danger-main remove-production-expense"
-            title="Remove expense"
+            title="Remove cost"
           >
             <iconify-icon icon="solar:trash-bin-minimalistic-outline"></iconify-icon>
           </button>
@@ -509,7 +509,7 @@
   if (initialConsumptions.length > 0) {
     renderConsumptions(initialConsumptions);
     const selectedBomText = $('#productionBom option:selected').text().trim();
-    $('#productionPartLabel').text(selectedBomText || 'Selected BOM');
+    $('#productionPartLabel').text(selectedBomText || 'Selected Recipe');
   } else {
     toggleConsumptionEmptyState();
   }

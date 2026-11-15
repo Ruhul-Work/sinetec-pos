@@ -343,7 +343,16 @@ class PartProductionController extends Controller
         $boms = PartBom::query()
             ->with('part.baseUnit')
             ->where(function (EloquentBuilder $query) use ($batch): void {
-                $query->where('status', 'ACTIVE');
+                $query->where(function (EloquentBuilder $activeQuery): void {
+                    $activeQuery
+                        ->where('status', 'ACTIVE')
+                        ->where(function (EloquentBuilder $validityQuery): void {
+                            $validityQuery
+                                ->whereNull('effective_to')
+                                ->orWhereDate('effective_to', '>=', today());
+                        });
+                });
+
                 if ($batch->exists) {
                     $query->orWhereKey($batch->part_bom_id);
                 }

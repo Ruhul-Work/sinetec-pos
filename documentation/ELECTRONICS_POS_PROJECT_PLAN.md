@@ -1,8 +1,8 @@
 # Electronics Manufacturing, Inventory & Sales System — Project Plan
 
-**Status:** Business scope approved; Purchasing, Inventory Core, operational Finance foundation, Part BOM and stock-only/report-only Internal Part Production complete; Finished Product BOM / Assembly is next
-**Version:** 1.4
-**Updated:** 10 November 2026
+**Status:** Business scope approved; Purchasing, Inventory Core, operational Finance foundation and the complete BOM/Production/Final Assembly flow are ready; Finished Product Sales is next
+**Version:** 1.5
+**Updated:** 14 November 2026
 **Purpose:** This is the authoritative business-scope and decision-history document. Physical implementation details and current progress are tracked in the linked design, roadmap and status documents.
 
 ## 1. Project objective
@@ -121,7 +121,7 @@ The approved scope remains unchanged. The following foundation is now complete a
 - Purchase Order, direct/PO-based Purchase Receipt, Purchase Return, Supplier Payment/Due and Purchase Price History.
 - Operational Finance foundation: Chart of Accounts, branch accounts, purchase mapping, Draft Journal workflow, Account Ledger, Cash/Bank Book, capital/loan controls, Trial Balance and Fiscal Year Closing.
 
-Part BOM / Recipe and Internal Part Production are complete. The next delivery is **Finished Product BOM and Assembly**, followed by Sales. Monthly rate/reporting and supply planning remain later release work.
+Part BOM / Recipe, Internal Part Production, Finished Product BOM / Recipe and Final Product Assembly are complete. The next delivery is **Finished Product Sales**, followed by POS/wholesale and returns. Monthly rate/reporting and supply planning remain later release work.
 
 ## 4. Simple operational flows
 
@@ -238,7 +238,9 @@ The final accounting workflow must specify which events automatically create jou
 3. **Complete:** master data, inventory core, purchasing and the purchase/cash-bank Finance foundation.
 4. **Current:** complete Finance smoke testing and correct any critical issue before the next operational module.
 5. **Complete:** Part BOM / Recipe setup with Make/Both Part eligibility, versioning, raw-material component lines and Active-version control.
-6. **Next:** Internal Part Production → Finished Product BOM / Assembly → Sales → monthly reporting and supply planning.
+6. **Complete:** Internal Part Production and Finished Product BOM / Recipe.
+7. **Complete:** Final Product Assembly with atomic mixed-component OUT / Finished Product IN posting.
+8. **Next:** Sales → monthly reporting and supply planning.
 7. **Before go-live:** run branch/warehouse stock, production cost, finance and permission acceptance tests.
 
 ## 11. Approved baseline checklist
@@ -283,3 +285,5 @@ These four documents, including this plan, are the authoritative project set. Th
 | 1.5 | 10 November 2026 | Added controlled Expense Payment accounting for production allocations and general period expenses. |
 | 1.6 | 11 November 2026 | Implemented the initial payable-based production settlement design; later superseded by the 12 November business decision. |
 | 1.7 | 12 November 2026 | Adopted simple stock-only production: BOM/recipe, consumption, QC and cost estimates remain; production journals, Production Expense Payable and settlement payments were removed. Actual expenses are recorded once through General Expense. |
+| 1.8 | 14 November 2026 | Completed Finished Product BOM / Recipe with mixed Raw Material and Part components, unit conversion snapshots, one-active-version control and audited validity extension; moved the next gate to Final Product Assembly. |
+| 1.9 | 14 November 2026 | Completed Final Product Assembly with Draft/Complete workflow, mixed component consumption, QC, report-only costs, atomic stock posting and rollback protection; moved the next gate to Finished Product Sales. |

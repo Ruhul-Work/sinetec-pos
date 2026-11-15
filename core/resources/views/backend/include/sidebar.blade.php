@@ -235,22 +235,28 @@
                 </li>
             @endpermgroup
 
-            @permgroup(['production.part_boms', 'production.expense_categories', 'production.part_productions'])
+            @permgroup(['production.part_boms', 'production.product_boms', 'production.expense_categories', 'production.part_productions'])
                 <li class="sidebar-menu-group-title">Production</li>
-                <li class="dropdown {{ Route::is('production.part-boms.*') || Route::is('production.expense-categories.*') || Route::is('production.part-productions.*') ? 'active' : '' }}">
+                <li class="dropdown {{ Route::is('production.part-boms.*') || Route::is('production.product-boms.*') || Route::is('production.expense-categories.*') || Route::is('production.part-productions.*') || Route::is('production.product-assemblies.*') ? 'active' : '' }}">
                     <a href="javascript:void(0)">
                         <iconify-icon icon="mdi:factory" class="menu-icon"></iconify-icon>
                         <span>Production Management</span>
                     </a>
                     <ul class="sidebar-submenu">
                         @perm('production.part-boms.index')
-                            <li><a class="{{ Route::is('production.part-boms.*') ? 'active' : '' }}" href="{{ route('production.part-boms.index') }}"><iconify-icon icon="mdi:format-list-bulleted-type" class="menu-icon"></iconify-icon><span>Part BOM / Recipe</span></a></li>
+                            <li><a class="{{ Route::is('production.part-boms.*') ? 'active' : '' }}" href="{{ route('production.part-boms.index') }}"><iconify-icon icon="mdi:format-list-bulleted-type" class="menu-icon"></iconify-icon><span>Part Recipe</span></a></li>
+                        @endperm
+                        @perm('production.product-boms.index')
+                            <li><a class="{{ Route::is('production.product-boms.*') ? 'active' : '' }}" href="{{ route('production.product-boms.index') }}"><iconify-icon icon="mdi:clipboard-list-outline" class="menu-icon"></iconify-icon><span>Finished Product Recipe</span></a></li>
                         @endperm
                         @perm('production.expense-categories.index')
                             <li><a class="{{ Route::is('production.expense-categories.*') ? 'active' : '' }}" href="{{ route('production.expense-categories.index') }}"><iconify-icon icon="mdi:cash-multiple" class="menu-icon"></iconify-icon><span>Production Cost Categories</span></a></li>
                         @endperm
                         @perm('production.part-productions.index')
                             <li><a class="{{ Route::is('production.part-productions.*') ? 'active' : '' }}" href="{{ route('production.part-productions.index') }}"><iconify-icon icon="mdi:factory" class="menu-icon"></iconify-icon><span>Part Production</span></a></li>
+                        @endperm
+                        @perm('production.product-assemblies.index')
+                            <li><a class="{{ Route::is('production.product-assemblies.*') ? 'active' : '' }}" href="{{ route('production.product-assemblies.index') }}"><iconify-icon icon="mdi:package-variant-closed-check" class="menu-icon"></iconify-icon><span>Final Product Assembly</span></a></li>
                         @endperm
                     </ul>
                 </li>

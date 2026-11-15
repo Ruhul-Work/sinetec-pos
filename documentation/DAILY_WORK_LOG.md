@@ -289,4 +289,23 @@ project: Sinetec POS
 
 **Total:** 8 hours
 
+---
+
+## Date: 2026-11-14
+
+**ID:** BFT4
+
+project: Sinetec POS
+
+1. Part BOM validity workflow review and audited validity-extension implementation for expired or continuing recipes — 45 min
+2. Part BOM expired/scheduled status badge polish and modal guidance notes converted to reusable field info buttons — 45 min
+3. Existing modal note interfaces reviewed and standardised to keep forms compact and user-friendly — 30 min
+4. Finished Product BOM / Recipe backend with mixed Raw Material and Part components, typed uniqueness and unit/base-quantity validation — 1 hours
+5. Finished Product BOM Draft/Active/Inactive version control, one-active-version rule, validity extension, permissions, routes and sidebar integration — 1.25 hours
+6. Finished Product BOM list/create/details UI, component selection, production-unit mapping and automated feature coverage — 1 hour
+7. Final Product Assembly module with Draft/edit/complete workflow, mixed component consumption, report-only cost recording and basic QC — 1 hours
+8. Atomic Raw Material/Part OUT and Finished Product IN stock posting, shortage rollback, branch scope, permissions, UI, code-quality checks, full regression and project documentation update — 1 hour
+
+**Total:** 8.25 hours
+
 

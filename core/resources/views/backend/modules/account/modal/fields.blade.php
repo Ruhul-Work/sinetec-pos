@@ -7,7 +7,14 @@
 
 <div class="row g-3">
     <div class="col-md-4">
-        <label class="form-label">Account Code <span class="text-danger">*</span></label>
+        <div class="d-flex align-items-center gap-1 mb-8">
+            <label class="form-label mb-0">Account Code <span class="text-danger">*</span></label>
+            @if ($isSystemAccount)
+                <x-backend.field-note label="Protected account code">
+                    Starter account code is protected.
+                </x-backend.field-note>
+            @endif
+        </div>
         <input
             type="text"
             name="code"
@@ -17,9 +24,6 @@
             @readonly($isSystemAccount)
             required
         >
-        @if ($isSystemAccount)
-            <small class="text-muted">Starter account code is protected.</small>
-        @endif
     </div>
 
     <div class="col-md-8">
@@ -114,7 +118,7 @@
     </div>
 
     <div class="col-md-6">
-        <div class="form-switch switch-purple d-flex align-items-center gap-3">
+        <div class="form-switch switch-purple d-flex align-items-center gap-2">
             <input type="hidden" name="is_cash_bank_account" value="0">
             <input
                 class="form-check-input"
@@ -125,10 +129,10 @@
                 @checked($account?->is_cash_bank_account)
             >
             <label for="{{ $cashBankInputId }}">Use as Cash / Bank Account</label>
+            <x-backend.field-note label="Cash and Bank account usage">
+                Only Asset accounts enabled here can be selected for supplier payments and Cash / Bank Book.
+            </x-backend.field-note>
         </div>
-        <small class="text-muted">
-            Only Asset accounts can be selected for supplier payments and Cash/Bank Book.
-        </small>
     </div>
 
     <div class="col-md-6">

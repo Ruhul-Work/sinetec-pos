@@ -1,7 +1,11 @@
 <div class="modal-header py-16 px-24 border-0">
-    <div>
-        <h5 class="modal-title">Prepare Fiscal Year Closing</h5>
-        <small class="text-muted">Close one Drawings balance into its Capital account</small>
+    <div class="d-flex align-items-center gap-2">
+        <h5 class="modal-title mb-0">Prepare Fiscal Year Closing</h5>
+        <x-backend.field-note label="Fiscal year closing information">
+            Close one Drawings balance into its Capital account. The balance comes from Posted opening balances and
+            Posted journals, and the closing date is locked to the fiscal year end. Posting creates a Finance Journal
+            Draft that debits Capital and credits Drawings.
+        </x-backend.field-note>
     </div>
     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
 </div>
@@ -9,12 +13,6 @@
 <form method="POST" action="{{ route('finance.fiscal-year-closings.store') }}" data-ajax="true">
     @csrf
     <div class="modal-body p-24">
-        <div class="alert alert-light-warning border-warning-subtle text-sm py-10 mb-20">
-            The system calculates the selected Drawings balance from Posted opening balances
-            and Posted journals. The closing date is locked to the fiscal year end.
-            Posting creates a Journal Draft: <strong>Debit Capital, Credit Drawings.</strong>
-        </div>
-
         <div class="row g-3">
             <div class="col-md-6">
                 <label class="form-label">Fiscal Year <span class="text-danger">*</span></label>
@@ -104,7 +102,12 @@
             </div>
 
             <div class="col-md-6">
-                <label class="form-label">Calculated Drawings Balance</label>
+                <div class="d-flex align-items-center gap-1 mb-8">
+                    <label class="form-label mb-0">Calculated Drawings Balance</label>
+                    <x-backend.field-note label="Closing balance rule">
+                        Only a positive debit balance can be closed.
+                    </x-backend.field-note>
+                </div>
                 <div class="input-group input-group-sm">
                     <span class="input-group-text">BDT</span>
                     <input
@@ -114,7 +117,6 @@
                         readonly
                     >
                 </div>
-                <small class="text-muted">Only a positive debit balance can be closed.</small>
             </div>
 
             <div class="col-md-6">

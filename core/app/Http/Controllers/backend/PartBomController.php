@@ -77,7 +77,7 @@ class PartBomController extends Controller
             $output = $this->formatQuantity($bom->output_quantity).' '.e($bom->part?->baseUnit?->code ?? '');
             $dates = e($bom->effective_from?->format('d M Y') ?? '—')
             .'<span class="text-muted mx-1">to</span>'
-            .e($bom->effective_to?->format('d M Y') ?? '—');
+            .e($bom->effective_to?->format('d M Y') ?? 'No expiry');
             $actions = '<div class="d-inline-flex justify-content-end align-items-center gap-1 w-100">';
 
             if ($canShow) {
@@ -88,6 +88,16 @@ class PartBomController extends Controller
             if ($bom->status === 'DRAFT' && $canEdit) {
                 $actions .= '<a href="'.e(route('production.part-boms.edit', $bom)).'" class="w-32-px h-32-px rounded-circle d-inline-flex align-items-center justify-content-center bg-success-focus text-success-main" title="Edit draft">'
                     .'<iconify-icon icon="lucide:edit"></iconify-icon></a>';
+            }
+
+            if ($bom->status !== 'DRAFT' && $bom->effective_to && $canEdit) {
+                $actions .= '<button type="button" class="btn w-32-px h-32-px rounded-circle '
+                    .'d-inline-flex align-items-center justify-content-center bg-warning-focus '
+                    .'text-warning-main AjaxModal" '
+                    .'data-ajax-modal="'.e(route('production.part-boms.validityModal', $bom)).'" '
+                    .'data-size="md" data-onsuccess="PartBomIndex.onValiditySaved" '
+                    .'title="Extend validity">'
+                    .'<iconify-icon icon="mdi:calendar-refresh-outline"></iconify-icon></button>';
             }
 
             if ($bom->status === 'DRAFT' && $canDelete) {
@@ -104,7 +114,7 @@ class PartBomController extends Controller
                 '<span class="text-end d-block fw-semibold">'.$output.'</span>',
                 '<span class="badge bg-primary-focus text-primary-600 px-10 py-6 radius-6">'.e((string) $bom->items_count).'</span>',
                 '<span class="text-sm">'.$dates.'</span>',
-                $this->statusBadge($bom->status),
+                $this->statusBadge($bom->status).$this->validityBadge($bom),
                 $actions,
             ];
         })->all();
@@ -119,7 +129,7 @@ class PartBomController extends Controller
 
     public function create(): View
     {
-        return $this->formView(new PartBom(['output_quantity' => 1, 'status' => 'DRAFT']), 'Create Part BOM', 'POST');
+        return $this->formView(new PartBom(['output_quantity' => 1, 'status' => 'DRAFT']), 'Create Part BOM/Recipe', 'POST');
     }
 
     public function store(Request $request): RedirectResponse
@@ -134,7 +144,13 @@ class PartBomController extends Controller
 
     public function show(PartBom $partBom): View
     {
-        $partBom->load(['part.baseUnit', 'items.rawMaterial.baseUnit', 'items.unit', 'creator']);
+        $partBom->load([
+            'part.baseUnit',
+            'items.rawMaterial.baseUnit',
+            'items.unit',
+            'creator',
+            'validityUpdater',
+        ]);
 
         return view('backend.modules.part_bom.show', compact('partBom'));
     }
@@ -144,7 +160,7 @@ class PartBomController extends Controller
         abort_unless($partBom->status === 'DRAFT', 422, 'Only a Draft BOM can be edited. Create a new version for an active or inactive BOM.');
         $partBom->load(['part.baseUnit', 'items.rawMaterial.baseUnit', 'items.unit']);
 
-        return $this->formView($partBom, 'Edit Part BOM', 'PUT');
+        return $this->formView($partBom, 'Edit Part BOM/Recipe', 'PUT');
     }
 
     public function update(Request $request, PartBom $partBom): RedirectResponse
@@ -155,6 +171,46 @@ class PartBomController extends Controller
         return redirect()
             ->route('production.part-boms.show', $partBom)
             ->with('success', 'Part BOM draft updated successfully.');
+    }
+
+    public function validityModal(PartBom $partBom): View
+    {
+        abort_if(
+            $partBom->status === 'DRAFT',
+            422,
+            'Edit the Draft BOM directly instead of extending its validity.',
+        );
+        abort_if(
+            $partBom->effective_to === null,
+            422,
+            'This BOM already has no expiry date.',
+        );
+
+        $partBom->load('part:id,part_code,name');
+
+        return view('backend.modules.part_bom.validity_modal', compact('partBom'));
+    }
+
+    public function extendValidity(Request $request, PartBom $partBom): JsonResponse
+    {
+        $data = $request->validate([
+            'effective_to' => ['nullable', 'date', 'after_or_equal:today'],
+        ], [
+            'effective_to.after_or_equal' => 'The new validity date cannot be in the past.',
+        ]);
+
+        $partBom = $this->partBomService->extendValidity(
+            $partBom,
+            $data['effective_to'] ?? null,
+            $request->user()?->id,
+        );
+
+        $validity = $partBom->effective_to?->format('d M Y') ?? 'No expiry';
+
+        return response()->json([
+            'success' => true,
+            'msg' => "BOM validity extended successfully. Effective To: {$validity}.",
+        ]);
     }
 
     public function activate(PartBom $partBom): RedirectResponse
@@ -342,6 +398,21 @@ class PartBomController extends Controller
 
         return '<span class="badge text-sm fw-semibold '.$class.' px-12 py-7 radius-4 text-white">'
         .e(ucfirst(strtolower($status))).'</span>';
+    }
+
+    private function validityBadge(PartBom $bom): string
+    {
+        if ($bom->isExpired()) {
+            return '<span class="badge text-sm fw-semibold bg-dark-danger-gradient text-white '
+                .'px-12 py-7 radius-4 ms-1">Expired</span>';
+        }
+
+        if ($bom->isScheduled()) {
+            return '<span class="badge text-sm fw-semibold bg-dark-info-gradient text-white '
+                .'px-12 py-7 radius-4 ms-1">Scheduled</span>';
+        }
+
+        return '';
     }
 
     private function formatQuantity(string|float|int $quantity): string

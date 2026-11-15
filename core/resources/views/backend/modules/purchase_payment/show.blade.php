@@ -16,6 +16,9 @@
         $shownDue = $isPosted
             ? $remainingDue['due']
             : ($isDraft ? max(0, $dueBeforePayment['due'] - (float) $payment->amount) : $remainingDue['due']);
+        $dueLabel = $isDraft
+            ? 'Expected Due After Posting'
+            : 'Remaining Due';
     @endphp
 
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-24">

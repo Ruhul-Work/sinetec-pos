@@ -17,6 +17,8 @@ class PartBom extends Model
         'status',
         'effective_from',
         'effective_to',
+        'validity_updated_by',
+        'validity_updated_at',
         'created_by',
     ];
 
@@ -24,6 +26,7 @@ class PartBom extends Model
         'output_quantity' => 'decimal:6',
         'effective_from' => 'date',
         'effective_to' => 'date',
+        'validity_updated_at' => 'datetime',
     ];
 
     public function part(): BelongsTo
@@ -44,5 +47,20 @@ class PartBom extends Model
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function validityUpdater(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'validity_updated_by');
+    }
+
+    public function isExpired(): bool
+    {
+        return $this->effective_to?->isBefore(today()) ?? false;
+    }
+
+    public function isScheduled(): bool
+    {
+        return $this->effective_from?->isAfter(today()) ?? false;
     }
 }

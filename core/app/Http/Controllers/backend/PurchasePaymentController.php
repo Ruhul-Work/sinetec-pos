@@ -51,7 +51,7 @@ class PurchasePaymentController extends Controller
                 'supplier.name as supplier_name',
                 'receipt.receipt_no',
             ]);
-        $rows = $query->orderByDesc('pp.id')->get()->map(function (object $row): array {
+        $rows = $query->orderByDesc('payment.id')->get()->map(function (object $row): array {
             $status = PurchasePaymentStatus::from($row->status);
 
             $badge = match ($status) {
@@ -146,7 +146,10 @@ class PurchasePaymentController extends Controller
         try {
             $payment = $this->payments->create($data, (int) $request->user()->id);
         } catch (InvalidPurchasePaymentException $e) {
-            return back()->withInput()->with('error', $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 422);
         }
 
         return response()->json(['success' => true, 'msg' => 'Supplier payment saved as Draft.', 'id' => $payment->id]);

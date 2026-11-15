@@ -746,6 +746,38 @@ html[data-theme="dark"] .page-note__body code {
   display: inline-flex !important;
 }
 
+.product-bom-lines-table .form-select-sm {
+  height: 36px;
+}
+
+.product-bom-lines-table .bom-line-control {
+  height: 54px;
+  min-height: 54px;
+}
+
+.product-bom-lines-table .bom-line-control > .select2-container {
+  margin-top: 0;
+}
+
+.product-bom-lines-table .select2-container .select2-selection--single {
+  height: 36px !important;
+  min-height: 36px;
+}
+
+.product-bom-lines-table .select2-container .select2-selection__arrow {
+  height: 36px !important;
+}
+
+.product-bom-lines-table .product-bom-base-unit {
+  min-height: 18px;
+  line-height: 18px;
+  margin-top: 0 !important;
+}
+
+.product-bom-lines-table .bom-remove-cell {
+  padding-top: 18px !important;
+}
+
 .part-bom-index-actions .form-select {
   flex: 0 0 118px;
   width: 118px;
@@ -766,6 +798,15 @@ html[data-theme="dark"] .page-note__body code {
 
 .part-production-index-actions {
   justify-content: flex-end;
+}
+
+.product-assembly-toolbar {
+  justify-content: flex-end;
+}
+
+.product-assembly-toolbar .product-assembly-status-filter {
+  flex: 0 0 128px;
+  width: 128px;
 }
 
 .part-production-header-grid .select2-container {
@@ -797,21 +838,6 @@ html[data-theme="dark"] .page-note__body code {
   margin-inline: auto;
   align-items: center;
   justify-content: center;
-}
-
-.production-expense-header {
-  margin-bottom: 0.5rem;
-  padding: 0 0.25rem;
-  color: #475569;
-  font-size: 0.8125rem;
-  font-weight: 600;
-}
-
-.production-expense-row {
-  padding: 0.5rem 0.25rem;
-  border: 1px solid #e5eaf2;
-  border-radius: 0.625rem;
-  background: #fff;
 }
 
 .production-expense-row .select2-container {

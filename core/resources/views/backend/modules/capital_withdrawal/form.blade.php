@@ -1,7 +1,10 @@
 <div class="modal-header border-0 px-24 py-16">
-    <div>
-        <h5 class="modal-title">New Capital Withdrawal</h5>
-        <small class="text-muted">Record Owner / Partner money taken from business</small>
+    <div class="d-flex align-items-center gap-2">
+        <h5 class="modal-title mb-0">New Capital Withdrawal</h5>
+        <x-backend.field-note label="Capital withdrawal information">
+            Record Owner / Partner money taken from the business. It does not overwrite original Capital. Posting
+            creates a Finance Journal Draft that debits Drawings and credits Cash / Bank.
+        </x-backend.field-note>
     </div>
 
     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -11,11 +14,6 @@
     @csrf
 
     <div class="modal-body p-24">
-        <div class="alert alert-light-warning border-warning-subtle text-sm py-10 mb-20">
-            This does not overwrite original Capital. Posting creates a Journal Draft:
-            Debit Drawings and Credit Cash / Bank.
-        </div>
-
         <div class="row g-3">
             <div class="col-md-4">
                 <label class="form-label">Branch <span class="text-danger">*</span></label>

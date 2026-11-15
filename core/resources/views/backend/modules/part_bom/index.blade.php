@@ -38,7 +38,7 @@
         <ul class="table-top-head list-unstyled d-flex align-items-center gap-2 mb-0">@include('backend.include.buttons')</ul>
         @perm('production.part-boms.create', 'add')
           <a href="{{ route('production.part-boms.create') }}" class="btn btn-primary btn-sm px-16 py-8 radius-8 app-action-button app-primary-action">
-            <iconify-icon icon="mdi:playlist-plus"></iconify-icon><span>Create Part BOM</span>
+            <iconify-icon icon="mdi:playlist-plus"></iconify-icon><span>Create Part Recipe</span>
           </a>
         @endperm
       </div>
@@ -69,6 +69,14 @@
 @section('script')
 <script>
   var DATATABLE_URL = @json(route('production.part-boms.list.ajax'));
+
+  window.PartBomIndex = {
+    onValiditySaved: function() {
+      if ($.fn.DataTable.isDataTable('#partBomsTable')) {
+        $('#partBomsTable').DataTable().ajax.reload(null, false);
+      }
+    },
+  };
 
   $(document).on('preXhr.dt', '#partBomsTable', function(event, settings, data) {
     data.status = $('#partBomStatusFilter').val();

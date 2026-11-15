@@ -1,7 +1,10 @@
 <div class="modal-header py-16 px-24 border-0">
-    <div>
-        <h5 class="modal-title">New Owner / Partner Investment</h5>
-        <small class="text-muted">Record a new business fund received after Opening Balance</small>
+    <div class="d-flex align-items-center gap-2">
+        <h5 class="modal-title mb-0">New Owner / Partner Investment</h5>
+        <x-backend.field-note label="Investment entry information">
+            Record business funds received after Opening Balance. The document starts as Draft; posting it creates
+            a Finance Journal Draft that debits Cash / Bank and credits Capital.
+        </x-backend.field-note>
     </div>
     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
 </div>
@@ -10,11 +13,6 @@
     @csrf
 
     <div class="modal-body p-24">
-        <div class="alert alert-light-info border-info-subtle text-sm py-10 mb-20">
-            The entry stays Draft first. Posting it creates a finance Journal Draft:
-            Debit Cash/Bank and Credit Capital.
-        </div>
-
         <div class="row g-3">
             <div class="col-md-4">
                 <label class="form-label">Branch <span class="text-danger">*</span></label>
@@ -63,7 +61,12 @@
             </div>
 
             <div class="col-md-6">
-                <label class="form-label">Cash / Bank Received Into <span class="text-danger">*</span></label>
+                <div class="d-flex align-items-center gap-1 mb-8">
+                    <label class="form-label mb-0">Cash / Bank Received Into <span class="text-danger">*</span></label>
+                    <x-backend.field-note label="Available Cash and Bank accounts">
+                        Only Cash / Bank accounts assigned to the selected branch appear.
+                    </x-backend.field-note>
+                </div>
                 <select
                     name="cash_bank_account_id"
                     id="cashBankAccount"
@@ -80,11 +83,15 @@
                         </option>
                     @endforeach
                 </select>
-                <small class="text-muted">Only assigned Cash / Bank accounts appear.</small>
             </div>
 
             <div class="col-md-6">
-                <label class="form-label">Capital Account <span class="text-danger">*</span></label>
+                <div class="d-flex align-items-center gap-1 mb-8">
+                    <label class="form-label mb-0">Capital Account <span class="text-danger">*</span></label>
+                    <x-backend.field-note label="Capital account selection">
+                        Use Owner / Partner Capital or another Equity account assigned to the selected branch.
+                    </x-backend.field-note>
+                </div>
                 <select
                     name="capital_account_id"
                     id="capitalAccount"
@@ -101,7 +108,6 @@
                         </option>
                     @endforeach
                 </select>
-                <small class="text-muted">Use Owner/Partner Capital or another assigned Equity account.</small>
             </div>
 
             <div class="col-md-4">

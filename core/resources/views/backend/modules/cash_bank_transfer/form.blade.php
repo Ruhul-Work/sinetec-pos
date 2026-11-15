@@ -1,7 +1,10 @@
 <div class="modal-header border-0 px-24 py-16">
-    <div>
-        <h5 class="modal-title">New Cash / Bank Transfer</h5>
-        <small class="text-muted">Same-branch Cash to Bank, Bank to Cash or Bank to Bank</small>
+    <div class="d-flex align-items-center gap-2">
+        <h5 class="modal-title mb-0">New Cash / Bank Transfer</h5>
+        <x-backend.field-note label="Cash and Bank transfer information">
+            Supports same-branch Cash to Bank, Bank to Cash or Bank to Bank transfers. This is not an expense or
+            withdrawal. After its Journal is posted, the source is credited and the destination is debited.
+        </x-backend.field-note>
     </div>
 
     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -11,11 +14,6 @@
     @csrf
 
     <div class="modal-body p-24">
-        <div class="alert alert-light-info border-info-subtle text-sm py-10 mb-20">
-            This is not an expense or withdrawal. Source Cash / Bank is credited and destination
-            Cash / Bank is debited after its Journal is posted.
-        </div>
-
         <div class="row g-3">
             <div class="col-md-4">
                 <label class="form-label">Branch <span class="text-danger">*</span></label>

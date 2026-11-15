@@ -71,8 +71,12 @@ class ProductionCodeQualityTest extends TestCase
     {
         $root = self::projectRoot();
         $files = [
+            $root.'/app/Http/Controllers/backend/ProductBomController.php',
+            $root.'/app/Http/Controllers/backend/ProductAssemblyController.php',
             $root.'/app/Http/Controllers/backend/PartProductionController.php',
             $root.'/app/Http/Controllers/backend/ProductionExpenseCategoryController.php',
+            $root.'/app/Services/Production/ProductBomService.php',
+            $root.'/app/Services/Production/ProductAssemblyService.php',
             $root.'/app/Services/Production/PartProductionService.php',
         ];
 
@@ -85,6 +89,8 @@ class ProductionCodeQualityTest extends TestCase
 
         foreach (self::phpFilesIn($root.'/app/Models/Production') as $path) {
             if (str_contains(basename($path), 'PartProduction')
+                || str_contains(basename($path), 'ProductAssembly')
+                || str_starts_with(basename($path), 'ProductBom')
                 || basename($path) === 'ProductionExpenseCategory.php') {
                 $files[] = $path;
             }
@@ -103,6 +109,12 @@ class ProductionCodeQualityTest extends TestCase
         );
         array_push(
             $files,
+            ...self::phpFilesIn(
+                self::projectRoot().'/resources/views/backend/modules/product_bom',
+            ),
+            ...self::phpFilesIn(
+                self::projectRoot().'/resources/views/backend/modules/product_assembly',
+            ),
             ...self::phpFilesIn(
                 self::projectRoot().'/resources/views/backend/modules/production_expense_category',
             ),

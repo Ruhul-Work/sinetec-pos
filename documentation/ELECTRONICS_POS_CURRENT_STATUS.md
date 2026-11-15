@@ -1,7 +1,7 @@
 # Electronics POS — Current Status and Next Actions
 
-**Status:** Purchasing, the operational Finance foundation, Part BOM and stock-only Internal Part Production are complete. Production costs are report-only and never create Finance journals or payment liabilities. Finished Product BOM and Final Assembly are next.
-**Updated:** 12 November 2026
+**Status:** Purchasing, the operational Finance foundation, Part BOM, stock-only Internal Part Production, Finished Product BOM and Final Product Assembly are complete. Production costs are report-only and never create Finance journals or payment liabilities. Finished Product Sales is next.
+**Updated:** 14 November 2026
 
 ## 1. Current result
 
@@ -144,7 +144,9 @@ Old permission data points to removed routes. Permissions must be created from t
 36. **Complete:** Build Internal Part Production Batch with active-BOM scaling, editable actual consumption, report-only cost allocation, basic QC and atomic Raw Material OUT / Part IN posting. Completion creates no Finance journal.
 37. **Complete:** Build Production Cost Category setup for labour, power, packing, transport and other direct batch costs without per-category ledger-account duplication.
 38. **Superseded (12 Nov 2026):** Production Cost Settlement and `Production Expense Payable` were removed from the active workflow. The Production Batch List now shows estimated material/other/total cost with a Report Only indicator; actual expenses are recorded once through General Expense.
-39. **Next:** Build Finished Product BOM with mixed Part/Raw Material components, followed by Final Product Assembly.
+39. **Complete:** Build Finished Product BOM with mixed Part/Raw Material components, versioning, production-unit validation, one-active-version control and validity extension.
+40. **Complete:** Build Final Product Assembly using the active Product BOM, mixed component consumption, QC and atomic Raw Material/Part OUT plus Finished Product IN stock posting.
+41. **Next:** Build Finished Product Sales foundation, followed by POS/wholesale invoice and sale return.
 
 ## 5. Implementation decision trace
 
@@ -164,6 +166,9 @@ Old permission data points to removed routes. Permissions must be created from t
 | 10 Oct 2026 | Page notes | General instructional notes use the reusable compact `page-note` header control and open on demand instead of occupying permanent space above the page content. | Conditional warnings and validation/security alerts remain visibly inline. |
 | 9 Nov 2026 | Internal Part Production | One permission-controlled Draft → Complete flow scales the active Part BOM, permits actual consumption/QC updates, blocks insufficient stock, and posts Raw Material OUT plus good Part IN atomically. | Batch material/other/unit costs remain operational estimates; production creates no Finance journal. |
 | 12 Nov 2026 | Stock-only production accounting | Removed active production journal, payable mapping, settlement action and payment-status UI. General Expense remains the only actual financial source for salary, power, rent, transport and similar costs. | Prevents duplicate expense recognition while retaining production-cost estimates for reports and future margin analysis. |
+| 14 Nov 2026 | Part BOM validity control | Released BOM recipe/component data remains immutable, while a separately permissioned validity action can extend `effective_to` or remove expiry without changing historical recipe data. Expired and scheduled indicators are derived from the effective dates, expired BOM activation is blocked, and validity changes record user/time audit fields. | Use validity extension when the recipe is unchanged; create a new BOM version whenever output quantity, component, unit or wastage changes. Reuse this rule in Finished Product BOM. |
+| 14 Nov 2026 | Finished Product BOM / Recipe | A Finished Product recipe may mix active Raw Materials and Parts. Each typed component is unique within a version, accepts only its base unit or a mapping enabled for Production, stores normalized base quantity and follows Draft/Active/Inactive plus one-active-version and audited validity-extension rules. | The recipe changes no stock or Finance. Final Product Assembly will consume the active recipe and post component OUT / Finished Product IN atomically. |
+| 14 Nov 2026 | Final Product Assembly | A Draft batch scales an active Finished Product BOM, permits actual mixed-component quantities, report-only costs and basic QC. Completion atomically posts Raw Material/Part OUT and good Finished Product IN; shortages roll back the entire operation. | Assembly creates no Finance journal. The next implementation gate is Finished Product Sales. |
 | 11 Oct 2026 | Supplier mappings | Raw Material Supplier and Part Supplier are separate route/controller/permission modules. They store approved item-supplier links, the supplier's item code, lead days and a single preferred source per item. | Actual prices remain in purchase/history data; warehouse reorder levels are next. |
 | 11 Oct 2026 | Route/RBAC convention | New functionally separate modules use explicit route groups and independent permission keys, even when safe internal implementation code or views are shared. | Existing Item Units remains one approved shared permission unless domain-specific access is later requested. |
 | 18 Oct 2026 | Reorder levels | Raw Material, Part and Finished Product use separate warehouse-wise modules/tables/permissions. Minimum quantity is required; fixed replenishment quantity and maximum/target quantity are optional. A blank replenishment value is stored as zero and means demand-based planning. | The setup only provides thresholds and planning inputs; it never creates purchase, production or stock transactions automatically. |

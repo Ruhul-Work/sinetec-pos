@@ -4,6 +4,7 @@ namespace App\Models\backend;
 
 use App\Models\Inventory\FinishedProductStockBalance;
 use App\Models\Inventory\FinishedProductStockMovement;
+use App\Models\Production\ProductBom;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -57,5 +58,10 @@ class FinishedProduct extends Model
     public function stockBalances(): HasMany
     {
         return $this->hasMany(FinishedProductStockBalance::class);
+    }
+
+    public function boms(): HasMany
+    {
+        return $this->hasMany(ProductBom::class);
     }
 }

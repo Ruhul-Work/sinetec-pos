@@ -84,6 +84,70 @@ class PartBomTest extends TestCase
         ]], null);
     }
 
+    public function test_expired_bom_cannot_be_activated(): void
+    {
+        [$unit, $rawMaterial, $part] = $this->productionSetup('MAKE');
+        $service = app(PartBomService::class);
+
+        $bom = $service->createDraft([
+            'part_id' => $part->id,
+            'version' => 'V1',
+            'output_quantity' => '1',
+            'effective_from' => now()->subMonth()->toDateString(),
+            'effective_to' => now()->subDay()->toDateString(),
+        ], [[
+            'raw_material_id' => $rawMaterial->id,
+            'unit_id' => $unit->id,
+            'required_quantity' => '1',
+            'wastage_percent' => '0',
+        ]], null);
+
+        $this->expectException(ValidationException::class);
+        $this->expectExceptionMessage('This BOM has expired');
+
+        $service->activate($bom);
+    }
+
+    public function test_active_bom_validity_can_be_extended_without_changing_recipe(): void
+    {
+        [$unit, $rawMaterial, $part] = $this->productionSetup('MAKE');
+        $service = app(PartBomService::class);
+
+        $bom = $service->createDraft([
+            'part_id' => $part->id,
+            'version' => 'V1',
+            'output_quantity' => '5',
+            'effective_from' => now()->subMonth()->toDateString(),
+            'effective_to' => now()->addDay()->toDateString(),
+        ], [[
+            'raw_material_id' => $rawMaterial->id,
+            'unit_id' => $unit->id,
+            'required_quantity' => '2.5',
+            'wastage_percent' => '1',
+        ]], null);
+
+        $bom = $service->activate($bom);
+        $originalItem = $bom->items->firstOrFail();
+
+        $this->travel(2)->days();
+        $this->assertTrue($bom->fresh()->isExpired());
+
+        $newEffectiveTo = now()->addMonth()->toDateString();
+        $extendedBom = $service->extendValidity($bom, $newEffectiveTo, null);
+        $extendedItem = $extendedBom->items->firstOrFail();
+
+        $this->assertSame('ACTIVE', $extendedBom->status);
+        $this->assertSame($newEffectiveTo, $extendedBom->effective_to?->toDateString());
+        $this->assertNotNull($extendedBom->validity_updated_at);
+        $this->assertSame($bom->part_id, $extendedBom->part_id);
+        $this->assertSame($bom->version, $extendedBom->version);
+        $this->assertSame($bom->output_quantity, $extendedBom->output_quantity);
+        $this->assertSame($originalItem->raw_material_id, $extendedItem->raw_material_id);
+        $this->assertSame($originalItem->base_quantity, $extendedItem->base_quantity);
+
+        $this->travelBack();
+    }
+
     /** @return array{0: Unit, 1: RawMaterial, 2: Part} */
     private function productionSetup(string $procurementMode): array
     {

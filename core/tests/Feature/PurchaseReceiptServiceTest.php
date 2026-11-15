@@ -7,17 +7,20 @@ use App\Enums\Purchase\PurchaseOrderStatus;
 use App\Enums\Purchase\PurchaseReceiptStatus;
 use App\Exceptions\Finance\FinanceConfigurationException;
 use App\Exceptions\Purchase\InvalidPurchaseReceiptException;
+use App\Http\Controllers\backend\PurchasePaymentController;
 use App\Http\Controllers\backend\PurchaseReceiptController;
 use App\Models\backend\Account;
 use App\Models\backend\Branch;
 use App\Models\backend\FiscalYear;
 use App\Models\backend\Part;
 use App\Models\backend\PartCategory;
+use App\Models\backend\PaymentType;
 use App\Models\backend\RawMaterial;
 use App\Models\backend\RawMaterialCategory;
 use App\Models\backend\Supplier;
 use App\Models\backend\Unit;
 use App\Models\backend\Warehouse;
+use App\Models\Purchase\PurchasePayment;
 use App\Services\Finance\FinanceAccountMappingService;
 use App\Services\Purchase\PurchaseOrderService;
 use App\Services\Purchase\PurchaseReceiptService;
@@ -208,6 +211,46 @@ class PurchaseReceiptServiceTest extends TestCase
         $this->assertSame($raw->id, $items['results'][0]['id']);
         $this->assertSame('PCS', $items['results'][0]['unit_code']);
         $this->assertSame($piece->id, $items['results'][0]['base_unit_id']);
+    }
+
+    public function test_supplier_payment_list_and_details_render_with_valid_aliases_and_due_label(): void
+    {
+        [$raw, , $supplier, $warehouse, $piece] = $this->foundation();
+        $receipt = app(PurchaseReceiptService::class)->createDraft(
+            $this->header($supplier->id, $warehouse->id),
+            [$this->line('raw_material', $raw->id, $piece->id, 1, 100)],
+        );
+        $receipt = app(PurchaseReceiptService::class)->post($receipt);
+        $paymentType = PaymentType::query()->create([
+            'name' => 'Cash',
+            'slug' => 'cash',
+            'is_active' => true,
+        ]);
+        $cashAccount = Account::query()
+            ->where('is_cash_bank_account', true)
+            ->firstOrFail();
+        $payment = PurchasePayment::query()->create([
+            'payment_no' => 'PAY-TEST-001',
+            'branch_id' => $warehouse->branch_id,
+            'supplier_id' => $supplier->id,
+            'purchase_receipt_id' => $receipt->id,
+            'payment_type_id' => $paymentType->id,
+            'account_id' => $cashAccount->id,
+            'payment_date' => '2026-10-31',
+            'amount' => '40.0000',
+            'status' => 'POSTED',
+        ]);
+
+        $controller = app(PurchasePaymentController::class);
+        $list = $controller->listAjax(Request::create('/purchase/payments/list', 'POST', [
+            'draw' => 1,
+        ]))->getData(true);
+        $detailsHtml = $controller->show($payment->id)->render();
+
+        $this->assertSame(1, $list['iTotalRecords']);
+        $this->assertStringContainsString('PAY-TEST-001', implode(' ', $list['aaData'][0]));
+        $this->assertStringContainsString('Remaining Due', $detailsHtml);
+        $this->assertStringContainsString('60.00', $detailsHtml);
     }
 
     private function header(int $supplierId, int $warehouseId, ?int $orderId = null, string $discountType = 'FLAT', int|float|string $discountValue = 0): array

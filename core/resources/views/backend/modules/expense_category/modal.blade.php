@@ -1,7 +1,9 @@
 <div class="modal-header py-16 px-24 border-0">
-  <div>
-    <h5 class="modal-title mb-1">{{ $title }}</h5>
-    <p class="text-muted text-sm mb-0">Connect a general business cost with its accounting destination.</p>
+  <div class="d-flex align-items-center gap-2">
+    <h5 class="modal-title mb-0">{{ $title }}</h5>
+    <x-backend.field-note label="General expense category information">
+      Connect a general business cost with its accounting destination.
+    </x-backend.field-note>
   </div>
   <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 </div>

@@ -1,7 +1,10 @@
 <div class="modal-header border-0 px-24 py-16">
-    <div>
-        <h5 class="modal-title">New Loan Repayment</h5>
-        <small class="text-muted">Repay a posted loan; partial repayment is allowed</small>
+    <div class="d-flex align-items-center gap-2">
+        <h5 class="modal-title mb-0">New Loan Repayment</h5>
+        <x-backend.field-note label="Loan repayment information">
+            Repay a posted loan; partial repayment is allowed and repayment cannot exceed the current due. Posting
+            creates a Finance Journal Draft that debits Loan Liability and credits Cash / Bank.
+        </x-backend.field-note>
     </div>
 
     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -11,11 +14,6 @@
     @csrf
 
     <div class="modal-body p-24">
-        <div class="alert alert-light-info border-info-subtle text-sm py-10 mb-20">
-            Posting creates a finance Journal Draft: Debit Loan Liability and Credit Cash / Bank.
-            Repayment cannot exceed the current due.
-        </div>
-
         <div class="row g-3 align-items-end">
             <div class="col-md-8">
                 <label class="form-label">Loan Receipt <span class="text-danger">*</span></label>

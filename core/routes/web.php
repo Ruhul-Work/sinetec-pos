@@ -32,6 +32,8 @@ use App\Http\Controllers\backend\PartBomController;
 use App\Http\Controllers\backend\PartCategoryController;
 use App\Http\Controllers\backend\PartController;
 use App\Http\Controllers\backend\PartProductionController;
+use App\Http\Controllers\backend\ProductBomController;
+use App\Http\Controllers\backend\ProductAssemblyController;
 use App\Http\Controllers\backend\PartReorderLevelController;
 use App\Http\Controllers\backend\PartSupplierController;
 use App\Http\Controllers\backend\PaymentTypeController;
@@ -388,10 +390,50 @@ Route::middleware(['web', 'auth', 'perm', 'branchscope'])->group(function () {
         Route::get('{partBom}', 'show')->whereNumber('partBom')->name('show');
         Route::get('{partBom}/edit', 'edit')->whereNumber('partBom')->name('edit');
         Route::put('{partBom}', 'update')->whereNumber('partBom')->name('update');
+        Route::get('{partBom}/validity-modal', 'validityModal')->whereNumber('partBom')->name('validityModal');
+        Route::patch('{partBom}/validity', 'extendValidity')->whereNumber('partBom')->name('extend-validity');
         Route::patch('{partBom}/activate', 'activate')->whereNumber('partBom')->name('activate');
         Route::patch('{partBom}/deactivate', 'deactivate')->whereNumber('partBom')->name('deactivate');
         Route::delete('{partBom}', 'destroy')->whereNumber('partBom')->name('destroy');
     });
+
+    Route::prefix('production/product-boms')
+        ->name('production.product-boms.')
+        ->controller(ProductBomController::class)
+        ->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::post('list', 'listAjax')->name('list.ajax');
+            Route::get('create', 'create')->name('create');
+            Route::post('/', 'store')->name('store');
+            Route::get('finished-products/select2', 'finishedProductSelect2')
+                ->name('finished-products.select2');
+            Route::get('components/select2', 'componentSelect2')
+                ->name('components.select2');
+            Route::get('components/{componentType}/{component}/units', 'componentUnits')
+                ->where([
+                    'componentType' => 'raw-material|part',
+                    'component' => '[0-9]+',
+                ])
+                ->name('component-units');
+            Route::get('{productBom}', 'show')->whereNumber('productBom')->name('show');
+            Route::get('{productBom}/edit', 'edit')->whereNumber('productBom')->name('edit');
+            Route::put('{productBom}', 'update')->whereNumber('productBom')->name('update');
+            Route::get('{productBom}/validity-modal', 'validityModal')
+                ->whereNumber('productBom')
+                ->name('validityModal');
+            Route::patch('{productBom}/validity', 'extendValidity')
+                ->whereNumber('productBom')
+                ->name('extend-validity');
+            Route::patch('{productBom}/activate', 'activate')
+                ->whereNumber('productBom')
+                ->name('activate');
+            Route::patch('{productBom}/deactivate', 'deactivate')
+                ->whereNumber('productBom')
+                ->name('deactivate');
+            Route::delete('{productBom}', 'destroy')
+                ->whereNumber('productBom')
+                ->name('destroy');
+        });
 
     Route::prefix('production/expense-categories')
         ->name('production.expense-categories.')
@@ -424,6 +466,22 @@ Route::middleware(['web', 'auth', 'perm', 'branchscope'])->group(function () {
         Route::patch('{partProduction}/complete', 'complete')->whereNumber('partProduction')->name('complete');
         Route::delete('{partProduction}', 'destroy')->whereNumber('partProduction')->name('destroy');
     });
+
+    Route::prefix('production/product-assemblies')
+        ->name('production.product-assemblies.')
+        ->controller(ProductAssemblyController::class)
+        ->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::post('list', 'listAjax')->name('list.ajax');
+            Route::get('create', 'create')->name('create');
+            Route::post('/', 'store')->name('store');
+            Route::get('bom/{productBom}/plan', 'bomPlan')->whereNumber('productBom')->name('bom-plan');
+            Route::get('{productAssembly}', 'show')->whereNumber('productAssembly')->name('show');
+            Route::get('{productAssembly}/edit', 'edit')->whereNumber('productAssembly')->name('edit');
+            Route::put('{productAssembly}', 'update')->whereNumber('productAssembly')->name('update');
+            Route::patch('{productAssembly}/complete', 'complete')->whereNumber('productAssembly')->name('complete');
+            Route::delete('{productAssembly}', 'destroy')->whereNumber('productAssembly')->name('destroy');
+        });
 
     Route::prefix('supplier')->name('supplier.')->group(function () {
         Route::get('suppliers', [SupplierController::class, 'index'])->name('index');

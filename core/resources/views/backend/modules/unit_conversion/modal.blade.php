@@ -1,7 +1,9 @@
 <div class="modal-header">
-  <div>
-    <h5 class="modal-title mb-1">{{ $title }}</h5>
-    <p class="text-muted text-sm mb-0">Define how many To Units equal one From Unit.</p>
+  <div class="d-flex align-items-center gap-2">
+    <h5 class="modal-title mb-0">{{ $title }}</h5>
+    <x-backend.field-note label="Unit conversion information">
+      Define how many To Units equal one From Unit.
+    </x-backend.field-note>
   </div>
   <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
 </div>
