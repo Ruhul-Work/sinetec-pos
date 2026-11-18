@@ -235,6 +235,42 @@
                 </li>
             @endpermgroup
 
+            @permgroup(['sales.pos', 'sales.wholesale', 'sales.customer_receivables'])
+                <li class="sidebar-menu-group-title">Sales</li>
+                <li class="dropdown {{ Route::is('sales.*') ? 'active' : '' }}">
+                    <a href="javascript:void(0)">
+                        <iconify-icon icon="mdi:point-of-sale" class="menu-icon"></iconify-icon>
+                        <span>Sales Management</span>
+                    </a>
+                    <ul class="sidebar-submenu">
+                        @perm('sales.pos.index')
+                            <li>
+                                <a class="{{ Route::is('sales.pos.*') ? 'active' : '' }}" href="{{ route('sales.pos.index') }}">
+                                    <iconify-icon icon="mdi:cash-register" class="menu-icon"></iconify-icon>
+                                    <span>POS Sales</span>
+                                </a>
+                            </li>
+                        @endperm
+                        @perm('sales.wholesale.index')
+                            <li>
+                                <a class="{{ Route::is('sales.wholesale.*') ? 'active' : '' }}" href="{{ route('sales.wholesale.index') }}">
+                                    <iconify-icon icon="mdi:storefront-outline" class="menu-icon"></iconify-icon>
+                                    <span>Wholesale Sales</span>
+                                </a>
+                            </li>
+                        @endperm
+                        @perm('sales.customer-receivables.index')
+                            <li>
+                                <a class="{{ Route::is('sales.customer-receivables.*') ? 'active' : '' }}" href="{{ route('sales.customer-receivables.index') }}">
+                                    <iconify-icon icon="mdi:account-cash-outline" class="menu-icon"></iconify-icon>
+                                    <span>Customer Receivables</span>
+                                </a>
+                            </li>
+                        @endperm
+                    </ul>
+                </li>
+            @endpermgroup
+
             @permgroup(['production.part_boms', 'production.product_boms', 'production.expense_categories', 'production.part_productions'])
                 <li class="sidebar-menu-group-title">Production</li>
                 <li class="dropdown {{ Route::is('production.part-boms.*') || Route::is('production.product-boms.*') || Route::is('production.expense-categories.*') || Route::is('production.part-productions.*') || Route::is('production.product-assemblies.*') ? 'active' : '' }}">

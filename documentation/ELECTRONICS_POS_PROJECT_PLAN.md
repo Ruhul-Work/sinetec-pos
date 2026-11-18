@@ -1,8 +1,8 @@
 # Electronics Manufacturing, Inventory & Sales System — Project Plan
 
-**Status:** Business scope approved; Purchasing, Inventory Core, operational Finance foundation and the complete BOM/Production/Final Assembly flow are ready; Finished Product Sales is next
-**Version:** 1.5
-**Updated:** 14 November 2026
+**Status:** Business scope approved; Purchasing, Inventory Core, Finance, Production/Assembly, POS and Wholesale Sales are ready; Sales Return is next
+**Version:** 2.0
+**Updated:** 17 November 2026
 **Purpose:** This is the authoritative business-scope and decision-history document. Physical implementation details and current progress are tracked in the linked design, roadmap and status documents.
 
 ## 1. Project objective
@@ -121,7 +121,7 @@ The approved scope remains unchanged. The following foundation is now complete a
 - Purchase Order, direct/PO-based Purchase Receipt, Purchase Return, Supplier Payment/Due and Purchase Price History.
 - Operational Finance foundation: Chart of Accounts, branch accounts, purchase mapping, Draft Journal workflow, Account Ledger, Cash/Bank Book, capital/loan controls, Trial Balance and Fiscal Year Closing.
 
-Part BOM / Recipe, Internal Part Production, Finished Product BOM / Recipe and Final Product Assembly are complete. The next delivery is **Finished Product Sales**, followed by POS/wholesale and returns. Monthly rate/reporting and supply planning remain later release work.
+Part BOM / Recipe, Internal Part Production, Finished Product BOM / Recipe, Final Product Assembly, POS, Customer Receivables and Wholesale Sales are complete. The next delivery is **Sales Return**. Monthly reporting and supply planning remain later release work.
 
 ## 4. Simple operational flows
 
@@ -144,12 +144,19 @@ The first version will not require a complex work-order approval chain. A single
 
 ### 4.3 Sales flow
 
-One sale module will support both retail POS and wholesale:
+Sales will use one shared business engine and database, exposed through two purpose-built entry screens:
 
-- Sale type: `POS` or `WHOLESALE`.
+- **POS Sale:** fast counter checkout with product gallery, compact cart, split payment and a controlled review-before-post step.
+- **Wholesale Invoice:** customer-focused invoice entry with negotiated price, partial payment and due tracking.
+- Both screens use the same `sales`, `sale_items`, payment, stock-posting, journal and return services; they are not duplicate systems.
+- The header channel remains `POS` or `WHOLESALE`, and an All Sales list provides a combined audit view.
+- The entry workspace follows the approved Purchase UI pattern with an approximately 55% Finished Product gallery and 45% cart/calculation panel.
 - Only completed finished products marked sellable appear in sales search.
 - Finished-product sale reduces warehouse stock through the ledger.
 - Payment, due, return, invoice, and branch/showroom context are shared.
+- POS follows `DRAFT → READY_TO_POST → POSTED`: review stores the prepared split payments without changing stock or Finance; final confirmation atomically posts stock, payments and the Sales journal, then exposes the thermal receipt.
+- Posted registered-customer dues are collected from either Sale details or the consolidated Customer Receivables screen. Full/partial split payments update the original Sale balance, create an auditable Customer Receipt and settle Customer Receivable without touching stock again.
+- Wholesale Sales uses a separate compact searchable invoice screen but reuses the same Draft/posting services and tables. Registered customer and due date are mandatory; customer reference, negotiated rates, split payment/full due and printable A4 invoice are supported.
 
 ### 4.4 Supply planning flow
 
@@ -287,3 +294,4 @@ These four documents, including this plan, are the authoritative project set. Th
 | 1.7 | 12 November 2026 | Adopted simple stock-only production: BOM/recipe, consumption, QC and cost estimates remain; production journals, Production Expense Payable and settlement payments were removed. Actual expenses are recorded once through General Expense. |
 | 1.8 | 14 November 2026 | Completed Finished Product BOM / Recipe with mixed Raw Material and Part components, unit conversion snapshots, one-active-version control and audited validity extension; moved the next gate to Final Product Assembly. |
 | 1.9 | 14 November 2026 | Completed Final Product Assembly with Draft/Complete workflow, mixed component consumption, QC, report-only costs, atomic stock posting and rollback protection; moved the next gate to Finished Product Sales. |
+| 2.0 | 17 November 2026 | Completed POS, Customer Receivables and Wholesale Sales over the shared Sales engine; added controlled review/post, split/partial payment, due collection, stock/Finance posting and separate thermal/A4 print flows. Sales Return is next. |

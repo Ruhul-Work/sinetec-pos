@@ -9,6 +9,9 @@ enum FinanceMappingKey: string
     case SupplierPayable = 'SUPPLIER_PAYABLE';
     case InputTax = 'INPUT_TAX';
     case PurchaseDiscount = 'PURCHASE_DISCOUNT';
+    case CustomerReceivable = 'CUSTOMER_RECEIVABLE';
+    case OutputTax = 'OUTPUT_TAX';
+    case SalesRevenue = 'SALES_REVENUE';
     /** @deprecated Production costs are operational/reporting-only and no longer post to Finance. */
     case ProductionExpensePayable = 'PRODUCTION_EXPENSE_PAYABLE';
     /** @deprecated Production costs are operational/reporting-only and no longer post to Finance. */
@@ -23,6 +26,9 @@ enum FinanceMappingKey: string
             self::SupplierPayable,
             self::InputTax,
             self::PurchaseDiscount,
+            self::CustomerReceivable,
+            self::OutputTax,
+            self::SalesRevenue,
         ];
     }
 
@@ -34,6 +40,9 @@ enum FinanceMappingKey: string
             self::SupplierPayable => 'Supplier Payable',
             self::InputTax => 'Input Tax',
             self::PurchaseDiscount => 'Purchase Discount',
+            self::CustomerReceivable => 'Customer Receivable',
+            self::OutputTax => 'Output Tax Payable',
+            self::SalesRevenue => 'Sales Revenue',
             self::ProductionExpensePayable => 'Production Expense Payable',
             self::ProductionLoss => 'Production Loss',
         };
@@ -47,6 +56,9 @@ enum FinanceMappingKey: string
             self::SupplierPayable => 'Tracks amounts owed to suppliers.',
             self::InputTax => 'Tracks recoverable purchase tax.',
             self::PurchaseDiscount => 'Tracks supplier discounts separately from inventory.',
+            self::CustomerReceivable => 'Tracks unpaid balances from registered customers.',
+            self::OutputTax => 'Tracks tax collected from customers and payable to the authority.',
+            self::SalesRevenue => 'Tracks net Finished Product sales revenue.',
             self::ProductionExpensePayable => 'Legacy production payable mapping retained only for historical data compatibility.',
             self::ProductionLoss => 'Legacy production loss mapping retained only for historical data compatibility.',
         };
@@ -55,10 +67,10 @@ enum FinanceMappingKey: string
     public function expectedTypeCode(): string
     {
         return match ($this) {
-            self::RawMaterialInventory, self::PartInventory, self::InputTax => 'ASSET',
-            self::SupplierPayable => 'LIABILITY',
+            self::RawMaterialInventory, self::PartInventory, self::InputTax, self::CustomerReceivable => 'ASSET',
+            self::SupplierPayable, self::OutputTax => 'LIABILITY',
             self::ProductionExpensePayable => 'LIABILITY',
-            self::PurchaseDiscount => 'INCOME',
+            self::PurchaseDiscount, self::SalesRevenue => 'INCOME',
             self::ProductionLoss => 'EXPENSE',
         };
     }
@@ -66,8 +78,9 @@ enum FinanceMappingKey: string
     public function expectedNormalBalance(): AccountNormalBalance
     {
         return match ($this) {
-            self::RawMaterialInventory, self::PartInventory, self::InputTax => AccountNormalBalance::Debit,
-            self::SupplierPayable, self::ProductionExpensePayable, self::PurchaseDiscount => AccountNormalBalance::Credit,
+            self::RawMaterialInventory, self::PartInventory, self::InputTax, self::CustomerReceivable => AccountNormalBalance::Debit,
+            self::SupplierPayable, self::OutputTax, self::ProductionExpensePayable,
+            self::PurchaseDiscount, self::SalesRevenue => AccountNormalBalance::Credit,
             self::ProductionLoss => AccountNormalBalance::Debit,
         };
     }

@@ -1,13 +1,13 @@
 # Electronics POS — Development Roadmap
 
-**Status:** Active implementation roadmap; Purchasing, inventory core, operational Finance foundation and the complete BOM/Production/Assembly flow are ready; Finished Product Sales is next
-**Version:** 1.3
-**Updated:** 10 November 2026
+**Status:** Active implementation roadmap; POS, Customer Receivables and Wholesale Sales are complete; Sales Return is next
+**Version:** 1.5
+**Updated:** 17 November 2026
 **Based on:** Project Plan v1.0 and Physical Database Design v2.1
 
 > **Decision override:** Any later reference in this document to a unified `inventory_item`, `inventory_movement`, or `inventory_balance` means the corresponding separate Raw Material, Part, and Finished Product masters/ledgers/balances. The unified-table proposal is cancelled.
 
-> **Current delivery position:** Phases 0-4 are complete. The purchase-related Finance foundation and accountant workflow from Phase 6 were completed early. Part BOM, Production Cost Categories, stock-only Internal Part Production, Finished Product BOM and Final Product Assembly are complete. Production cost values are report-only and do not create journals or settlements. Phase 5 Finished Product Sales is next.
+> **Current delivery position:** Phases 0-4 are complete. The purchase-related Finance foundation and accountant workflow from Phase 6 were completed early. Part BOM, Production Cost Categories, stock-only Internal Part Production, Finished Product BOM and Final Product Assembly are complete. Production cost values are report-only. Phase 5 is in progress: POS, Customer Receivables and Wholesale Sales are complete; Sales Return is next.
 
 ## 1. Roadmap objective
 
@@ -228,25 +228,33 @@ Receipt      Adjustment      Production   Stock Count
 4. Verify insufficient component stock blocks completion.
 5. Verify reject/wastage is visible in production history and cost report.
 
-### Phase 5 — Finished-product sales, POS, wholesale and returns — Pending
+### Phase 5 — Finished-product sales, POS, wholesale and returns — In progress
 
 **Why after production:** Sales must read the new finished-good stock rather than legacy product stock.
 
 | Build / adapt | Reuse or new | Depends on | Connects to |
 | --- | --- | --- | --- |
-| Finished-good search/API | Adapt existing POS search | Item + inventory balance | POS/wholesale screen |
-| POS sale | Adapt existing POS UX | New stock service | Inventory + payment + journal |
+| **Complete:** Finished-good search/API | Adapt existing POS search | Item + inventory balance | POS/wholesale screen |
+| **Complete:** POS sale | Adapt existing POS UX | New stock service | Inventory + payment + journal |
 | Wholesale sale | Adapt sales invoice pattern | New stock service | Inventory + customer due |
-| Payment/due | Adapt existing payment logic | Accounts/customer | Finance |
+| **Complete (POS):** Payment/due | Adapt existing payment logic | Accounts/customer | Finance |
 | Sale return | Adapt existing return pattern | Sale + inventory | Stock IN/refund |
-| Invoice/print | Reuse print layout patterns | Sale data | Operations |
+| **Complete (POS thermal):** Invoice/print | Reuse print layout patterns | Sale data | Operations |
+
+**Approved interface architecture**
+
+- POS and Wholesale use separate entry screens because their operator workflows differ, but both call one shared Sales service and persist to the same tables.
+- The shared sale header identifies the channel as `POS` or `WHOLESALE`; All Sales, payments, returns, stock posting and Finance integration remain common.
+- Both entry screens reuse the Purchase workspace language and responsive behaviour: approximately 55% Finished Product gallery and 45% cart/calculation panel on wide screens, stacked on smaller screens.
+- POS keeps customer/payment entry compact for fast checkout. Wholesale exposes customer, due date/reference, negotiated rate, partial payment and due information.
+- Development is delivered in small gates: shared Draft foundation → POS UI/payment review → controlled final posting/thermal receipt → Wholesale UI/due → return.
 
 **Rules to enforce**
 
 - Item search returns only active, sellable `FINISHED_GOOD`.
 - Branch/showroom sale deducts its configured issue warehouse stock.
 - POS and wholesale share one sale engine; only price/payment/customer flow differs.
-- Sale completion posts stock OUT once and creates a finance draft journal.
+- POS payment submission first creates `READY_TO_POST` with no stock/Finance effect. Final confirmation posts stock OUT once, marks prepared payments Posted and auto-posts the balanced Sales journal atomically; thermal receipt is available only after success. Manual journals retain approval control; Wholesale posting policy will reuse this approved Sales workflow.
 - Coupon, offer and loyalty logic remain disabled in this phase.
 
 **Acceptance test**
@@ -420,7 +428,12 @@ Receipt      Adjustment      Production   Stock Count
 44. **Superseded:** Production Expense Payable and production-cost settlement were removed on 12 November 2026. Actual costs are paid once through General Expense; batch cost remains for operational reporting only.
 45. **Complete:** Build Finished Product BOM with mixed Part/Raw Material lines, typed component uniqueness, production-unit/base-quantity snapshots, Draft/Active version control and audited validity extension.
 46. **Complete:** Build Final Product Assembly with actual mixed-component consumption, basic QC, report-only costing and atomic component OUT / Finished Product IN posting.
-47. **Next implementation:** Build Finished Product Sales foundation, then POS/wholesale invoice and sale return.
+47. **Complete:** Build the shared Finished Product Sales Draft foundation with typed channel/status, Finished-Product-only lines, sale-unit conversion, server-owned price/discount/tax totals, Wholesale customer validation and immutable Draft rate snapshots.
+48. **Complete:** Build the permission-isolated 60/40 POS Draft workspace with warehouse-specific Finished Product gallery, stock visibility, compact cart, optional customer, unit/price selection, server-backed totals and Draft list/details/edit/delete flow.
+49. **Complete:** Add controlled `DRAFT → READY_TO_POST → POSTED` POS checkout with review/back-to-edit, split Cash/Bank/MFS payments, Cash tender/change calculation, Walk-in full-payment enforcement and registered-customer receivable. Final confirmation atomically posts Finished Product stock OUT, payment records and the balanced Sales journal, then exposes the 80mm thermal receipt.
+50. **Complete:** Build Customer Receivables with Paid/Partially Paid/Unpaid Sale indicators, direct Sale receipt printing, branch-scoped Outstanding Dues, details/list collection entry, split Cash/Bank/MFS payments, atomic Customer Receivable settlement journal, collection history and printable Customer Payment Receipt.
+51. **Complete:** Build Wholesale Sales over the shared Sales services with mandatory registered customer/due date, customer reference, compact searchable Finished Product lines, negotiated rate, split/partial payment, full due, review-before-post and printable A4 invoice.
+52. **Next implementation:** Build Sales Return for Posted POS/Wholesale invoices with original-line limits, stock IN and controlled Finance reversal.
 
 Finance account mapping, the generic Draft Journal engine and the authorised accountant workflow are complete. Purchase integration creates reviewable drafts; only approved, successfully revalidated journals can be posted.
 

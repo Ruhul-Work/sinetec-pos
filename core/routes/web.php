@@ -12,6 +12,7 @@ use App\Http\Controllers\backend\CashBankTransferController;
 use App\Http\Controllers\backend\CompanySettingController;
 use App\Http\Controllers\backend\CountryController;
 use App\Http\Controllers\backend\CustomerController;
+use App\Http\Controllers\backend\CustomerReceivableController;
 use App\Http\Controllers\backend\DistrictController;
 use App\Http\Controllers\backend\DivisionController;
 use App\Http\Controllers\backend\DomainUnitMappingController;
@@ -37,6 +38,7 @@ use App\Http\Controllers\backend\ProductAssemblyController;
 use App\Http\Controllers\backend\PartReorderLevelController;
 use App\Http\Controllers\backend\PartSupplierController;
 use App\Http\Controllers\backend\PaymentTypeController;
+use App\Http\Controllers\backend\PosSaleController;
 use App\Http\Controllers\backend\ProductionExpenseCategoryController;
 use App\Http\Controllers\backend\PurchaseOrderController;
 use App\Http\Controllers\backend\PurchasePaymentController;
@@ -57,6 +59,7 @@ use App\Http\Controllers\backend\UnitController;
 use App\Http\Controllers\backend\UnitConversionController;
 use App\Http\Controllers\backend\UpazilaController;
 use App\Http\Controllers\backend\WarehouseController;
+use App\Http\Controllers\backend\WholesaleSaleController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -481,6 +484,71 @@ Route::middleware(['web', 'auth', 'perm', 'branchscope'])->group(function () {
             Route::put('{productAssembly}', 'update')->whereNumber('productAssembly')->name('update');
             Route::patch('{productAssembly}/complete', 'complete')->whereNumber('productAssembly')->name('complete');
             Route::delete('{productAssembly}', 'destroy')->whereNumber('productAssembly')->name('destroy');
+        });
+
+    Route::prefix('sales/pos')
+        ->name('sales.pos.')
+        ->controller(PosSaleController::class)
+        ->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::post('list', 'listAjax')->name('list.ajax');
+            Route::get('create', 'create')->name('create');
+            Route::post('/', 'store')->name('store');
+            Route::get('catalog', 'catalog')->name('catalog');
+            Route::get('products/{finishedProduct}/units', 'units')
+                ->whereNumber('finishedProduct')
+                ->name('units');
+            Route::patch('{posSale}/reopen', 'reopen')->whereNumber('posSale')->name('reopen');
+            Route::patch('{posSale}/post', 'post')->whereNumber('posSale')->name('post');
+            Route::get('{posSale}/receipt', 'receipt')->whereNumber('posSale')->name('receipt');
+            Route::get('{posSale}', 'show')->whereNumber('posSale')->name('show');
+            Route::get('{posSale}/edit', 'edit')->whereNumber('posSale')->name('edit');
+            Route::put('{posSale}', 'update')->whereNumber('posSale')->name('update');
+            Route::delete('{posSale}', 'destroy')->whereNumber('posSale')->name('destroy');
+        });
+
+    Route::prefix('sales/wholesale')
+        ->name('sales.wholesale.')
+        ->controller(WholesaleSaleController::class)
+        ->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::post('list', 'listAjax')->name('list.ajax');
+            Route::get('create', 'create')->name('create');
+            Route::post('/', 'store')->name('store');
+            Route::get('products', 'products')->name('products');
+            Route::get('products/{finishedProduct}/units', 'units')
+                ->whereNumber('finishedProduct')
+                ->name('units');
+            Route::patch('{wholesaleSale}/reopen', 'reopen')
+                ->whereNumber('wholesaleSale')
+                ->name('reopen');
+            Route::patch('{wholesaleSale}/post', 'post')
+                ->whereNumber('wholesaleSale')
+                ->name('post');
+            Route::get('{wholesaleSale}/invoice', 'invoice')
+                ->whereNumber('wholesaleSale')
+                ->name('invoice');
+            Route::get('{wholesaleSale}', 'show')->whereNumber('wholesaleSale')->name('show');
+            Route::get('{wholesaleSale}/edit', 'edit')->whereNumber('wholesaleSale')->name('edit');
+            Route::put('{wholesaleSale}', 'update')->whereNumber('wholesaleSale')->name('update');
+            Route::delete('{wholesaleSale}', 'destroy')->whereNumber('wholesaleSale')->name('destroy');
+        });
+
+    Route::prefix('sales/customer-receivables')
+        ->name('sales.customer-receivables.')
+        ->controller(CustomerReceivableController::class)
+        ->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::post('list', 'listAjax')->name('list.ajax');
+            Route::get('{sale}/collect-modal', 'collectModal')
+                ->whereNumber('sale')
+                ->name('collect-modal');
+            Route::post('{sale}/collect', 'collect')
+                ->whereNumber('sale')
+                ->name('collect');
+            Route::get('receipts/{customerReceipt}/print', 'receipt')
+                ->whereNumber('customerReceipt')
+                ->name('receipt');
         });
 
     Route::prefix('supplier')->name('supplier.')->group(function () {

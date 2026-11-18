@@ -96,6 +96,7 @@
 
 ---
 
+
 ## Date: 2026-10-29
 
 **ID:** BFT4
@@ -193,6 +194,10 @@ project:Sinetec Pos
 7. Trial Balance SQL alias/runtime fix, DataTable/UI standardisation, cache refresh  — 45 min
 
 **Total:** 8.25 hours
+
+---
+
+
 
 ## Date: 2026-11-08
 
@@ -307,5 +312,37 @@ project: Sinetec POS
 8. Atomic Raw Material/Part OUT and Finished Product IN stock posting, shortage rollback, branch scope, permissions, UI, code-quality checks, full regression and project documentation update — 1 hour
 
 **Total:** 8.25 hours
+
+
+## Date: 2026-11-15
+
+**ID:** BFT4
+
+project: Sinetec POS
+
+1. Shared Finished Product Sales Draft foundation with server-side unit/quantity/price validation, immutable line rates, discount/tax calculation and Draft-only stock/Finance behavior — 1 hours
+2. 60/40 POS workspace with warehouse-stock-aware Finished Product catalogue, cart, optional customer selection and responsive sale preparation — 1.5 hours
+3. Permission-isolated POS routes, Draft list/create/update/delete flow, navigation and quick Customer creation modal — 1.20 hours
+4. POS checkout with split Cash/Bank/MFS payments, Walk-in full-payment rule, registered-customer receivable support and atomic stock/Finance posting — 1.75 hours
+5. Sales Finance account mappings, branch-account resolution and transactional checkout journal integration — 1 hour
+6. Sales feature/code-quality test coverage and Current Status, Roadmap, Project Plan and Physical DB Design synchronization — 30 min
+
+**Total:** 7.5 hours
+
+
+## Date: 2026-11-17
+
+**ID:** BFT4
+
+project: Sinetec POS
+
+1. POS review-before-post, payment status, invoice printing and Customer Due Collection workflow completion — 2 hours
+2. Customer Receivables list, collection history, split payment and receipt integration — 1.5 hours
+3. Wholesale Sales backend using shared Sales, stock, payment and Finance posting services — 1.5 hours
+4. Compact Wholesale invoice-entry UI, negotiated rate, due date/reference, split payment and printable invoice — 1.5 hours
+5. Wholesale UI polish: compact fields, customer button, stock/unit loading and quantity step controls — 45 min
+6. Migration, permission, documentation sync and complete automated regression verification — 45 min
+
+**Total:** 8 hours
 
 

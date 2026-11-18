@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers\backend;
 
 use App\Http\Controllers\Controller;
@@ -15,12 +16,12 @@ class PaymentTypeController extends Controller
 
     public function listAjax(Request $request)
     {
-        $columns   = ['id', 'name', 'slug', 'image', 'is_active'];
-        $draw      = (int) $request->input('draw');
-        $start     = (int) $request->input('start', 0);
-        $length    = (int) $request->input('length', 10);
-        $orderIdx  = (int) $request->input('order.0.column', 0);
-        $orderDir  = strtolower($request->input('order.0.dir', 'desc')) === 'asc' ? 'asc' : 'desc';
+        $columns = ['id', 'name', 'slug', 'image', 'is_active'];
+        $draw = (int) $request->input('draw');
+        $start = (int) $request->input('start', 0);
+        $length = (int) $request->input('length', 10);
+        $orderIdx = (int) $request->input('order.0.column', 0);
+        $orderDir = strtolower($request->input('order.0.dir', 'desc')) === 'asc' ? 'asc' : 'desc';
         $searchVal = trim($request->input('search.value', ''));
 
         $base = PaymentType::query()
@@ -44,7 +45,7 @@ class PaymentTypeController extends Controller
 
         $data = [];
         foreach ($rows as $b) {
-            $nameCol = '<strong>' . e($b->name) . '</strong>';
+            $nameCol = '<strong>'.e($b->name).'</strong>';
 
             $active = $b->is_active
                 ? '<span class="badge text-sm fw-semibold bg-dark-success-gradient px-20 py-9 radius-4 text-white">Active</span>'
@@ -53,7 +54,7 @@ class PaymentTypeController extends Controller
             $actions = '<div class="d-inline-flex justify-content-end gap-1 w-100">
                 <a href="#" class="w-32-px h-32-px rounded-circle d-inline-flex align-items-center justify-content-center
                     bg-success-focus text-success-main AjaxModal"
-                    data-ajax-modal="' . route('paymentTypes.edit', $b->id) . '"
+                    data-ajax-modal="'.route('paymentTypes.edit', $b->id).'"
                     data-size="lg"
                     data-onload="PaymentTypeIndex.onLoad"
                     data-onsuccess="PaymentTypeIndex.onSaved"
@@ -61,16 +62,15 @@ class PaymentTypeController extends Controller
                     <iconify-icon icon="lucide:edit"></iconify-icon>
                 </a>
                 <a href="#" class="w-32-px h-32-px rounded-circle d-inline-flex align-items-center justify-content-center bg-danger-focus text-danger-main btn-branch-delete"
-                    data-id="' . $b->id . '"
-                    data-url="' . route('paymentTypes.destroy', $b->id) . '"
+                    data-id="'.$b->id.'"
+                    data-url="'.route('paymentTypes.destroy', $b->id).'"
                     title="Delete">
                     <iconify-icon icon="solar:trash-bin-minimalistic-outline"></iconify-icon>
                 </a>
             </div>';
 
-            $icon = '<div  style="width:70px"><img src="' . image($b->image) . '" alt="img"></div>';
+            $icon = '<div  style="width:70px"><img src="'.image($b->image).'" alt="img"></div>';
 
-          
             $data[] = [
                 $b->id,
                 $nameCol,
@@ -82,16 +82,16 @@ class PaymentTypeController extends Controller
         }
 
         return response()->json([
-            'draw'                 => $draw,
-            'iTotalRecords'        => $total,
+            'draw' => $draw,
+            'iTotalRecords' => $total,
             'iTotalDisplayRecords' => $filtered,
-            'aaData'               => $data,
+            'aaData' => $data,
         ]);
     }
 
     public function createModal()
     {
-       
+
         return view('backend.modules.payment_types.create_modal'); // partial only
     }
 
@@ -99,20 +99,22 @@ class PaymentTypeController extends Controller
     {
         // dd($req->all());
         $data = $req->validate([
-            'name'             => ['required', 'string', 'max:150', 'unique:payment_types,name'],
-            'slug'             => ['required', 'string', 'max:50', 'unique:payment_types,slug'],
-            'image'             => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-            'is_active'        => ['required', 'integer'],
+            'name' => ['required', 'string', 'max:150', 'unique:payment_types,name'],
+            'slug' => ['required', 'string', 'max:50', 'unique:payment_types,slug'],
+            'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'is_active' => ['required', 'integer'],
+            'allows_change' => ['required', 'boolean'],
 
         ]);
 
-        $iconPath      = uploadImage($req->file('image'), 'PaymentType/icons');
+        $iconPath = uploadImage($req->file('image'), 'PaymentType/icons');
 
         $paymentType = PaymentType::create([
-            'name'             => ucwords($data['name']),
-            'slug'             => $data['slug'],
-            'image'             => $iconPath,
-            'is_active'        => $data['is_active'] ?? null,
+            'name' => ucwords($data['name']),
+            'slug' => $data['slug'],
+            'image' => $iconPath,
+            'is_active' => $data['is_active'] ?? null,
+            'allows_change' => $data['allows_change'],
 
         ]);
 
@@ -122,25 +124,23 @@ class PaymentTypeController extends Controller
     public function editModal(PaymentType $paymentType)
     {
 
-      
         return view('backend.modules.payment_types.edit_modal', compact('paymentType'));
     }
 
-    
-   
     public function update(Request $req, PaymentType $paymentType)
     {
         $data = $req->validate([
-            'name'             => ['required', 'string', 'max:150'],
-            'slug'             => ['required', 'string', 'max:50'],
-            'image'             => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-            'is_active'        => ['required', 'integer'],
+            'name' => ['required', 'string', 'max:150'],
+            'slug' => ['required', 'string', 'max:50'],
+            'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'is_active' => ['required', 'integer'],
+            'allows_change' => ['required', 'boolean'],
         ]);
 
-        $previousIcon      = $paymentType->image;
+        $previousIcon = $paymentType->image;
 
         if ($req->hasFile('image')) {
-            $iconPath       = uploadImage($req->file('image'), 'PaymentType/icons');
+            $iconPath = uploadImage($req->file('image'), 'PaymentType/icons');
             $paymentType->image = $iconPath;
 
             if ($previousIcon && file_exists($previousIcon)) {
@@ -148,10 +148,10 @@ class PaymentTypeController extends Controller
             }
         }
 
-
-        $paymentType->name             = ucwords($data['name']);
-        $paymentType->slug             = $data['slug'];
-        $paymentType->is_active        = $data['is_active'];
+        $paymentType->name = ucwords($data['name']);
+        $paymentType->slug = $data['slug'];
+        $paymentType->is_active = $data['is_active'];
+        $paymentType->allows_change = $data['allows_change'];
 
         $paymentType->save();
 
@@ -168,25 +168,23 @@ class PaymentTypeController extends Controller
         //     ], 422);
         // }
 
-        $iconPath      = $paymentType->image;
+        $iconPath = $paymentType->image;
 
         $paymentType->delete();
 
         if (isset($iconPath) && file_exists($iconPath)) {
             unlink($iconPath);
         }
-      
 
         return response()->json(['ok' => true, 'msg' => 'PaymentType deleted']);
     }
 
     // public function select2(Request $r)
     // {
-        
+
     //     $q = trim($r->input('q', ''));
     //     $type = $r->type;
     //     $base = PaymentType::query()->where('PaymentType_type_id',$type)->where('is_active', 1);
-      
 
     //     if ($q !== '') {
     //         $base->where(function($x) use ($q){
@@ -198,37 +196,35 @@ class PaymentTypeController extends Controller
     //     $items = $base->orderBy('id')->orderBy('name')
     //                   ->limit(20)->get(['id','name']);
 
-
     //     return response()->json([
     //         'results' => $items->map(fn($t)=>[
     //             'id'   => $t->id,
-    //             'text' => $t->name 
+    //             'text' => $t->name
     //         ])
     //     ]);
     // }
 
     public function select2(Request $r)
-{
-    $q = trim($r->input('q', ''));
+    {
+        $q = trim($r->input('q', ''));
 
-    $base = PaymentType::query()
-        ->where('is_active', 1);
+        $base = PaymentType::query()
+            ->where('is_active', 1);
 
-    if ($q !== '') {
-        $base->where('name', 'like', "%{$q}%");
+        if ($q !== '') {
+            $base->where('name', 'like', "%{$q}%");
+        }
+
+        $items = $base
+            ->orderBy('name')
+            ->limit(20)
+            ->get(['id', 'name']);
+
+        return response()->json([
+            'results' => $items->map(fn ($t) => [
+                'id' => $t->id,
+                'text' => $t->name,
+            ]),
+        ]);
     }
-
-    $items = $base
-        ->orderBy('name')
-        ->limit(20)
-        ->get(['id', 'name']);
-
-    return response()->json([
-        'results' => $items->map(fn ($t) => [
-            'id'   => $t->id,
-            'text' => $t->name,
-        ]),
-    ]);
-}
-
 }

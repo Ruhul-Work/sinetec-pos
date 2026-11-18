@@ -1,9 +1,9 @@
-# Electronics POS — Physical Database Design (v2.1)
+# Electronics POS — Physical Database Design (v2.3)
 
 **Status:** Implemented clean-schema baseline  
-**Version:** 2.1  
-**Updated:** 8 October 2026  
-**Source:** Project Plan v1.0 and the nine active migrations in `core/database/migrations`
+**Version:** 2.3
+**Updated:** 17 November 2026
+**Source:** Project Plan v2.0 and the active migrations in `core/database/migrations`
 
 The baseline was successfully migrated to `pos-sinetec`: 112 application/framework tables plus Laravel's `migrations` table, for 113 total. The former database remains `pos-sinetec-legacy`. This document describes the design boundary; the active migrations are authoritative for exact executable columns and constraints.
 
@@ -244,6 +244,30 @@ Completion posts all consumption OUT and good output IN atomically. Assembly cos
 Rebuild/adapt `sales`, `sale_items`, `sale_payments`, `sale_returns`, `sale_return_items`, and `sale_return_payments`.
 
 `sale_items` has a required `finished_product_id` FK and no raw-material/part FK. It stores quantity, selling unit, unit price, discount/tax and total. Channel on the header is `POS` or `WHOLESALE`.
+
+POS and Wholesale are separate operator interfaces over these shared tables and services. `sales.channel` records which interface/business flow created the document; it does not create separate POS and wholesale transaction tables. An All Sales view therefore remains the common audit list.
+
+The sale Draft service owns all monetary calculations. Client-side totals are previews only; the server revalidates the selling unit/conversion, quantity, price, flat/percentage document discount, tax and final total. POS and Wholesale use immutable line-rate snapshots so later Finished Product price changes cannot alter an existing sale.
+
+The POS wide-screen layout reuses the Purchase gallery/cart pattern. Wholesale uses a compact searchable line-entry table so customer terms and negotiated rates remain visible. Layout choice does not change the shared persistence or posting rules.
+
+Implemented Sales Draft foundation:
+
+- `sales.discount_type` is `FLAT` or `PERCENT`; `discount_value` preserves the operator input while `discount` stores the calculated amount;
+- `sales.customer_reference` stores the optional customer PO/reference and `sales.due_date` stores the mandatory Wholesale payment term date. Both remain nullable at database level because POS does not use them; the Wholesale service/controller enforces its business rules.
+- channel and status are typed application enums;
+- Wholesale requires an active customer. POS keeps `customer_id` nullable and displays a null customer as the virtual `Walk-in Customer`, avoiding a shared customer-ledger row;
+- only active Finished Products and their base unit or a mapping enabled for `SALE`/`ALL` are accepted;
+- the service calculates base quantity, immutable line price, line total, header discount, tax, total and initial due on the server;
+- Draft create/update/delete has no stock or Finance effect;
+- The POS Draft UI is implemented as a permission-isolated, approximately 55/45 gallery-and-cart workspace. Its catalogue reads warehouse-specific Finished Product balances, disables zero-stock cards and keeps the responsive Purchase workspace interaction pattern.
+- POS payment review accepts one or more `sale_payments` rows, so Cash, Bank and MFS split payment is preserved at account level. `amount` is the applied/accounting amount; `tendered_amount` preserves what the customer handed over and `change_amount` preserves returned Cash. Only Payment Types explicitly marked `allows_change` may exceed the remaining total. Walk-in checkout requires full applied payment; a registered customer may retain a receivable balance.
+- The controlled lifecycle is `DRAFT → READY_TO_POST → POSTED`. Payment review creates Draft `sale_payments` and marks the Sale `READY_TO_POST`; it does not change stock or Finance. Back to Edit removes only those prepared Draft payments and restores the Sale Draft. Final confirmation locks and revalidates the prepared document, then atomically posts Finished Product stock OUT, payment rows, the Sale totals/status and a balanced Sales journal. The operational POS journal is automatically approved and posted; any failure rolls back the complete confirmation.
+- The 80mm thermal receipt is available only for a successfully `POSTED` Sale.
+- Wholesale Sales reuses the same lifecycle and posting engine. It requires a registered customer/due date, defaults line rates from `wholesale_price` while allowing negotiated snapshots, accepts split/partial payment or full due, and exposes a printable A4 invoice after posting.
+- `customer_receipts` stores one immutable posted due-collection header with Sale, Customer, Branch, collection time, amount and due-before/due-after snapshots. Its split Cash/Bank/MFS rows reuse `sale_payments.customer_receipt_id`, so the Sale payment breakdown remains complete.
+- Customer due collection never reposts Sale stock or revenue. It atomically increases `sales.paid_amount`, reduces `sales.due_amount`, and posts a Receipt journal: Debit the selected receiving account(s), Credit Customer Receivable. Outstanding Dues and Collection History are branch-scoped views over these source records.
+- Sales Finance uses company/branch-resolved mappings for Customer Receivable, Output Tax and Sales Revenue. Cash/Bank/MFS debits come from the branch-assigned receiving accounts selected on each payment row.
 
 ## 8. Monthly rates and reporting
 

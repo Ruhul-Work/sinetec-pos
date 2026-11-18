@@ -29,6 +29,8 @@ final class JournalWorkflowService
         'cash_bank_transfer',
         'fiscal_year_closing',
         'expense',
+        'sale',
+        'customer_receipt',
     ];
 
     public function __construct(private readonly JournalDraftService $drafts) {}

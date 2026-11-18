@@ -3,11 +3,14 @@
 namespace App\Services\Finance;
 
 use App\Enums\Finance\AccountNormalBalance;
+use App\Enums\Finance\FinanceMappingKey;
+use App\Enums\Finance\FinanceMappingScope;
 use App\Models\backend\Account;
 use App\Models\backend\AccountType;
 use App\Models\backend\Branch;
 use App\Models\backend\BranchAccount;
 use App\Models\backend\VoucherType;
+use App\Models\Finance\FinanceAccountMapping;
 use Illuminate\Support\Facades\DB;
 
 final class FinanceFoundationService
@@ -26,12 +29,15 @@ final class FinanceFoundationService
         ['code' => '1100', 'name' => 'Raw Material Inventory', 'type' => 'ASSET'],
         ['code' => '1110', 'name' => 'Part Inventory', 'type' => 'ASSET'],
         ['code' => '1200', 'name' => 'Input Tax Receivable', 'type' => 'ASSET'],
+        ['code' => '1210', 'name' => 'Customer Receivable', 'type' => 'ASSET'],
         ['code' => '2000', 'name' => 'Supplier Payable', 'type' => 'LIABILITY'],
         ['code' => '2100', 'name' => 'Director / Partner Loan', 'type' => 'LIABILITY'],
+        ['code' => '2200', 'name' => 'Output Tax Payable', 'type' => 'LIABILITY'],
         ['code' => '3000', 'name' => 'Owner Capital', 'type' => 'EQUITY'],
         ['code' => '3010', 'name' => 'Partner Capital', 'type' => 'EQUITY'],
         ['code' => '3020', 'name' => 'Owner Drawings', 'type' => 'EQUITY'],
         ['code' => '3030', 'name' => 'Partner Drawings', 'type' => 'EQUITY'],
+        ['code' => '4000', 'name' => 'Sales Revenue', 'type' => 'INCOME'],
         ['code' => '4100', 'name' => 'Purchase Discount', 'type' => 'INCOME'],
     ];
 
@@ -39,6 +45,13 @@ final class FinanceFoundationService
         'PURCHASE' => 'Purchase Voucher',
         'PURCHASE_RETURN' => 'Purchase Return Voucher',
         'RECEIPT' => 'Receipt Voucher',
+        'SALE' => 'Sale Voucher',
+    ];
+
+    private const DEFAULT_MAPPINGS = [
+        FinanceMappingKey::CustomerReceivable->value => '1210',
+        FinanceMappingKey::OutputTax->value => '2200',
+        FinanceMappingKey::SalesRevenue->value => '4000',
     ];
 
     public function bootstrap(): void
@@ -75,6 +88,22 @@ final class FinanceFoundationService
 
             foreach (self::VOUCHER_TYPES as $code => $name) {
                 VoucherType::query()->updateOrCreate(['code' => $code], ['name' => $name]);
+            }
+
+            foreach (self::DEFAULT_MAPPINGS as $mappingKey => $accountCode) {
+                $accountId = Account::query()->where('code', $accountCode)->value('id');
+                FinanceAccountMapping::query()->firstOrCreate(
+                    [
+                        'scope_key' => FinanceMappingScope::Company->scopeKey(),
+                        'mapping_key' => $mappingKey,
+                    ],
+                    [
+                        'scope' => FinanceMappingScope::Company,
+                        'branch_id' => null,
+                        'account_id' => $accountId,
+                        'is_active' => true,
+                    ],
+                );
             }
 
             Branch::query()->where('is_active', true)->each(fn (Branch $branch) => $this->assignStarterAccountsToBranch($branch));

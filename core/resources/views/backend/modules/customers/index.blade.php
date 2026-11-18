@@ -38,10 +38,11 @@
                     data-onsuccess="BranchesIndex.onSaved" data-ajax-modal="{{ route('customer.import_csv') }}">
                     <iconify-icon icon="ic:baseline-plus" class="text-xl"></iconify-icon>Import
                 </button>
-                <a class="d-flex btn btn-primary btn-sm px-12 py-8 radius-8 " href="{{ route('customer.create') }}"
-                    data-size="lg" data-onsuccess="BranchesIndex.onSaved">
+                <button type="button" class="d-flex btn btn-primary btn-sm px-12 py-8 radius-8 AjaxModal"
+                    data-ajax-modal="{{ route('customer.create') }}" data-size="lg"
+                    data-onsuccess="BranchesIndex.onSaved">
                     <iconify-icon icon="ic:baseline-plus" class="text-xl"></iconify-icon>Add customer
-                </a>
+                </button>
                 {{-- @endperm --}}
             </div>
         </div>

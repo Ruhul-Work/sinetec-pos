@@ -50,7 +50,7 @@
 
     {{-- Row 5: active toggle --}}
     <div class="row">
-      <div class="col-12 mb-8">
+      <div class="col-md-6 mb-8">
         <label class="form-label text-sm mb-8">Active?</label>
         <div class="form-switch switch-purple d-flex align-items-center gap-3">
           <input type="hidden" name="is_active" value="0">
@@ -58,6 +58,16 @@
           <label class="form-check-label" for="categoryIsActive">Enable this category</label>
         </div>
         <div class="invalid-feedback d-block is_active-error" style="display:none"></div>
+      </div>
+      <div class="col-md-6 mb-8">
+        <label class="form-label text-sm mb-8">Cash Change?</label>
+        <div class="form-switch switch-purple d-flex align-items-center gap-3">
+          <input type="hidden" name="allows_change" value="0">
+          <input class="form-check-input" type="checkbox" name="allows_change" value="1"
+                 id="paymentTypeAllowsChange">
+          <label class="form-check-label" for="paymentTypeAllowsChange">Allow tendered amount and change</label>
+        </div>
+        <small class="text-muted">Enable only for physical Cash-type payments.</small>
       </div>
     </div>
 
