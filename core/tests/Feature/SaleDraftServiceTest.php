@@ -148,6 +148,40 @@ class SaleDraftServiceTest extends TestCase
         $this->assertStringContainsString('Payment / Review', $html);
         $this->assertStringContainsString('Continue to Review', $html);
         $this->assertStringContainsString('Walk-in Customer', $html);
+        $this->assertStringContainsString('posBarcodeInput', $html);
+    }
+
+    public function test_pos_catalog_can_find_a_product_by_exact_barcode_for_scanning(): void
+    {
+        $setup = $this->setupSalesFoundation();
+        $barcode = '0123456789012';
+        $setup['product']->forceFill(['barcode' => $barcode])->save();
+        FinishedProductStockBalance::query()->create([
+            'finished_product_id' => $setup['product']->id,
+            'warehouse_id' => $setup['warehouse']->id,
+            'quantity' => '7',
+            'version' => 1,
+        ]);
+        FinishedProduct::query()->create([
+            'product_code' => 'FG-002',
+            'barcode' => '990123456789012',
+            'name' => 'Similar Barcode Product',
+            'finished_product_category_id' => $setup['category']->id,
+            'base_unit_id' => $setup['unit']->id,
+            'retail_price' => '100',
+            'wholesale_price' => '90',
+            'is_active' => true,
+        ]);
+
+        $response = app(PosSaleController::class)->catalog(Request::create('/catalog', 'GET', [
+            'warehouse_id' => $setup['warehouse']->id,
+            'barcode' => $barcode,
+        ]));
+        $catalog = $response->getData(true);
+
+        $this->assertCount(1, $catalog['results']);
+        $this->assertSame($setup['product']->id, $catalog['results'][0]['id']);
+        $this->assertTrue($catalog['results'][0]['in_stock']);
     }
 
     public function test_pos_routes_are_isolated_under_their_own_permission_prefix(): void

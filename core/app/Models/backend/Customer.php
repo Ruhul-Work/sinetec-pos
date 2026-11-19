@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models\backend;
 
 use Illuminate\Database\Eloquent\Model;
@@ -8,7 +9,8 @@ class Customer extends Model
 {
     use SoftDeletes;
 
-    protected $table   = 'customers';
+    protected $table = 'customers';
+
     protected $guarded = [
         'id',
         'created_at',
@@ -16,4 +18,11 @@ class Customer extends Model
         'deleted_at',
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'birth_date' => 'date',
+            'is_active' => 'boolean',
+        ];
+    }
 }

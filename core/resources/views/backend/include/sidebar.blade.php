@@ -75,9 +75,9 @@
                 </li>
             @endpermgroup
 
-            @permgroup(['core.units', 'core.brands', 'core.suppliers', 'core.customers', 'core.payment_types', 'inventory.raw_material_categories', 'inventory.part_categories', 'inventory.finished_product_categories', 'inventory.raw_materials', 'inventory.parts', 'inventory.finished_products', 'inventory.item_units', 'inventory.raw_material_suppliers', 'inventory.part_suppliers', 'inventory.raw_material_reorder_levels', 'inventory.part_reorder_levels', 'inventory.finished_product_reorder_levels'])
+            @permgroup(['core.units', 'core.brands', 'core.suppliers', 'core.customers', 'core.payment_types', 'inventory.raw_material_categories', 'inventory.part_categories', 'inventory.finished_product_categories', 'inventory.raw_materials', 'inventory.parts', 'inventory.finished_products', 'inventory.barcode_labels', 'inventory.item_units', 'inventory.raw_material_suppliers', 'inventory.part_suppliers', 'inventory.raw_material_reorder_levels', 'inventory.part_reorder_levels', 'inventory.finished_product_reorder_levels'])
                 <li class="sidebar-menu-group-title">Master Data</li>
-                <li class="dropdown {{ Route::is('units.*') || Route::is('brand.brands.*') || Route::is('supplier.*') || Route::is('customer.*') || Route::is('paymentTypes.*') || Route::is('inventory.*-categories.*') || Route::is('inventory.raw-materials.*') || Route::is('inventory.parts.*') || Route::is('inventory.finished-products.*') || Route::is('inventory.item-units.*') || Route::is('inventory.raw-material-suppliers.*') || Route::is('inventory.part-suppliers.*') || Route::is('inventory.*-reorder-levels.*') ? 'active' : '' }}">
+                <li class="dropdown {{ Route::is('units.*') || Route::is('brand.brands.*') || Route::is('supplier.*') || Route::is('customer.*') || Route::is('paymentTypes.*') || Route::is('inventory.*-categories.*') || Route::is('inventory.raw-materials.*') || Route::is('inventory.parts.*') || Route::is('inventory.finished-products.*') || Route::is('inventory.barcode-labels.*') || Route::is('inventory.item-units.*') || Route::is('inventory.raw-material-suppliers.*') || Route::is('inventory.part-suppliers.*') || Route::is('inventory.*-reorder-levels.*') ? 'active' : '' }}">
                     <a href="javascript:void(0)">
                         <iconify-icon icon="mdi:database-cog-outline" class="menu-icon"></iconify-icon>
                         <span>Master Setup</span>
@@ -127,6 +127,14 @@
                                 </ul>
                             </li>
                         @endpermgroup
+                        @perm('inventory.barcode-labels.index')
+                            <li>
+                                <a class="{{ Route::is('inventory.barcode-labels.*') ? 'active' : '' }}" href="{{ route('inventory.barcode-labels.index') }}">
+                                    <iconify-icon icon="mdi:barcode-scan" class="menu-icon"></iconify-icon>
+                                    <span>Barcode / Labels</span>
+                                </a>
+                            </li>
+                        @endperm
                         @perm('inventory.item-units.index')
                             <li><a class="{{ Route::is('inventory.item-units.*') ? 'active' : '' }}" href="{{ route('inventory.item-units.index', 'raw-materials') }}"><iconify-icon icon="mdi:scale-balance" class="menu-icon"></iconify-icon><span>Item Units</span></a></li>
                         @endperm
@@ -168,12 +176,22 @@
                         @perm('brand.brands.index')
                             <li><a class="{{ Route::is('brand.brands.*') ? 'active' : '' }}" href="{{ route('brand.brands.index') }}"><iconify-icon icon="mdi:tag-outline" class="menu-icon"></iconify-icon><span>Brands</span></a></li>
                         @endperm
-                        @perm('supplier.index')
-                            <li><a class="{{ Route::is('supplier.*') ? 'active' : '' }}" href="{{ route('supplier.index') }}"><iconify-icon icon="mdi:truck-outline" class="menu-icon"></iconify-icon><span>Suppliers</span></a></li>
-                        @endperm
-                        @perm('customer.index')
-                            <li><a class="{{ Route::is('customer.*') ? 'active' : '' }}" href="{{ route('customer.index') }}"><iconify-icon icon="mdi:account-group-outline" class="menu-icon"></iconify-icon><span>Customers</span></a></li>
-                        @endperm
+                        @permgroup(['core.suppliers', 'core.customers'])
+                            <li class="dropdown {{ Route::is('supplier.*') || Route::is('customer.*') ? 'active' : '' }}">
+                                <a href="javascript:void(0)">
+                                    <iconify-icon icon="mdi:account-group-outline" class="menu-icon"></iconify-icon>
+                                    <span>Business Contacts</span>
+                                </a>
+                                <ul class="sidebar-submenu">
+                                    @perm('supplier.index')
+                                        <li><a class="{{ Route::is('supplier.*') ? 'active' : '' }}" href="{{ route('supplier.index') }}"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i><span>Suppliers</span></a></li>
+                                    @endperm
+                                    @perm('customer.index')
+                                        <li><a class="{{ Route::is('customer.*') ? 'active' : '' }}" href="{{ route('customer.index') }}"><i class="ri-circle-fill circle-icon text-success-main w-auto"></i><span>Customers</span></a></li>
+                                    @endperm
+                                </ul>
+                            </li>
+                        @endpermgroup
                         @perm('paymentTypes.index')
                             <li><a class="{{ Route::is('paymentTypes.*') ? 'active' : '' }}" href="{{ route('paymentTypes.index') }}"><iconify-icon icon="mdi:cash-multiple" class="menu-icon"></iconify-icon><span>Payment Types</span></a></li>
                         @endperm
@@ -235,7 +253,7 @@
                 </li>
             @endpermgroup
 
-            @permgroup(['sales.pos', 'sales.wholesale', 'sales.customer_receivables', 'sales.returns'])
+            @permgroup(['sales.pos', 'sales.wholesale', 'sales.customer_receivables', 'sales.returns', 'sales.reconciliation'])
                 <li class="sidebar-menu-group-title">Sales</li>
                 <li class="dropdown {{ Route::is('sales.*') ? 'active' : '' }}">
                     <a href="javascript:void(0)">
@@ -272,6 +290,14 @@
                                 <a class="{{ Route::is('sales.returns.*') ? 'active' : '' }}" href="{{ route('sales.returns.index') }}">
                                     <iconify-icon icon="mdi:keyboard-return" class="menu-icon"></iconify-icon>
                                     <span>Sales Returns</span>
+                                </a>
+                            </li>
+                        @endperm
+                        @perm('sales.reconciliation.index')
+                            <li>
+                                <a class="{{ Route::is('sales.reconciliation.*') ? 'active' : '' }}" href="{{ route('sales.reconciliation.index') }}">
+                                    <iconify-icon icon="mdi:clipboard-check-outline" class="menu-icon"></iconify-icon>
+                                    <span>Sales Reconciliation</span>
                                 </a>
                             </li>
                         @endperm

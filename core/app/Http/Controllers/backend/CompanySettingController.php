@@ -50,8 +50,14 @@ class CompanySettingController extends Controller
             'iTotalDisplayRecords' => $filtered,
             'aaData' => $settings->map(function (CompanySetting $setting) {
                 $status = $setting->is_active
-                    ? '<span class="badge bg-success">Active</span>'
-                    : '<span class="badge bg-secondary">Inactive</span>';
+                    ? '<span class="badge bg-success-focus text-success-main px-10 py-6 radius-6">Active</span>'
+                    : '<span class="badge bg-secondary-focus text-secondary-600 px-10 py-6 radius-6">Inactive</span>';
+                $actions = '<div class="d-inline-flex justify-content-end gap-1 w-100">'
+                    .'<a href="'.e(route('company_setting.edit', $setting)).'" '
+                    .'class="w-32-px h-32-px rounded-circle d-inline-flex align-items-center '
+                    .'justify-content-center bg-success-focus text-success-main" '
+                    .'title="Edit company setting" aria-label="Edit company setting">'
+                    .'<iconify-icon icon="lucide:edit"></iconify-icon></a></div>';
 
                 return [
                     $setting->id,
@@ -62,7 +68,7 @@ class CompanySettingController extends Controller
                     e($setting->phone),
                     e(collect([$setting->address, $setting->city, $setting->country])->filter()->implode(', ')),
                     $status,
-                    '<a href="' . route('company_setting.edit', $setting) . '" class="btn btn-sm btn-outline-primary">Edit</a>',
+                    $actions,
                 ];
             })->all(),
         ]);

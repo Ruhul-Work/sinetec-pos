@@ -1,7 +1,7 @@
 # Electronics POS — Current Status and Next Actions
 
-**Status:** Purchasing, Finance and Production/Assembly are ready. POS, Customer Receivables and Wholesale Sales share the controlled Sales engine; Sales Return Draft is implemented and controlled posting is next.
-**Updated:** 18 November 2026
+**Status:** Purchasing, Finance, Production/Assembly and Finished Product Sales are ready. Sales/Return reconciliation is implemented as a read-only month-end report.
+**Updated:** 19 November 2026
 
 ## 1. Current result
 
@@ -103,6 +103,7 @@ Old permission data points to removed routes. Permissions must be created from t
 - Customer Receivables is independently permissioned and branch-scoped. POS lists now distinguish Paid, Partially Paid and Unpaid documents and expose direct receipt printing. A registered Customer due can be collected from Sale details or the consolidated Outstanding Dues list using split Cash/Bank/MFS payments. Collection creates a posted `customer_receipts` audit header, appends posted `sale_payments`, updates the Sale paid/due amounts, and atomically auto-posts a Receipt journal (Debit Cash/Bank/MFS, Credit Customer Receivable) without reposting stock or Sales revenue. The same screen retains Collection History and printable 80mm Customer Payment Receipts with due-before/due-after snapshots.
 - Wholesale Sales uses the same Draft, payment, stock and Finance services as POS while keeping a separate operator screen. It requires a registered Customer and due date; supports customer PO/reference, searchable compact product lines, negotiated rate, Flat/Percent document discount, split payment/full due, `DRAFT → READY_TO_POST → POSTED`, Customer Receivables collection and a printable A4 Wholesale invoice.
 - Sales Return is independently permissioned and branch-scoped for Posted POS and Wholesale Sales. Draft entry locks the source Sale, warehouse, Finished Product, selling unit and original rate, applies the original invoice's proportional discount/tax, and validates cumulative returnable quantity. Controlled posting atomically returns Finished Product stock, adjusts customer due before requiring a Cash/Bank/MFS refund, records split refund methods and auto-posts the balanced Sales Return journal. Drafts have no stock or Finance impact, while Posted returns are immutable.
+- Sales/Return Reconciliation is independently permissioned and branch-scoped. Its date-range report checks posted document line totals, expected Finished Product stock movements, Sale payment/due balances, Return refund/due settlement and source-linked POSTED balanced journals, including Customer Receipt journals. The range includes a Sale when its sale date, a related posted Return date or a related posted Customer Receipt date is in scope. It is read-only and flags discrepancies without changing operational or Finance records.
 - General Expense Payments are independently permissioned and branch-scoped. Actual salary, electricity, rent, transport and other paid expenses use General Expense Categories and create controlled Draft journals against Cash/Bank. Production labour/power/packing/transport values remain batch-level estimates for costing and reporting only; production does not create a payable, payment voucher or Finance journal.
 - Test retained Supplier/Customer CSV imports against the clean schema.
 - Review public registration before production; unrestricted role selection must not be exposed.
@@ -155,6 +156,10 @@ Old permission data points to removed routes. Permissions must be created from t
 44. **Complete:** Build branch-scoped Customer Receivables with Paid/Partial/Unpaid indicators, details/list collection entry, split payment, automatic Receivable settlement journal, collection history and printable Customer Payment Receipt.
 45. **Complete:** Build Wholesale Sales over the shared Sales engine with registered customer, due date/reference, compact searchable item entry, negotiated rate, split/partial payment, review-before-post, Customer Receivable integration and printable invoice.
 46. **Complete:** Build controlled Sales Return for POS and Wholesale with source/original-rate locking, cumulative return limits, proportional discount/tax reversal, atomic stock IN, due-first settlement, split customer refund and balanced auto-posted Finance reversal.
+47. **Complete:** Rebuild Supplier and Customer master lists with one reusable create/edit modal per master, active/inactive filtering, permission-aware actions and transaction-safe delete guards.
+48. **Complete:** Build permission-isolated Finished Product Barcode / Labels with persisted internal EAN-13 assignment, check-digit validation, multi-product quantities and 40-label A4 preview/print sheets. Labels contain Product Name, barcode symbol and number only; generated images are not stored.
+49. **Complete:** Build read-only Sales/Return reconciliation across Posted document totals, Finished Product stock movements, payments/due, refunds and balanced source journals, with branch/date filters and discrepancy navigation.
+50. **Next:** Begin Phase 7 with Reporting Period controls and the company-wide Monthly Rate Sheet.
 
 ## 5. Implementation decision trace
 

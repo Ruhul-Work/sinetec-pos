@@ -323,6 +323,7 @@ class PosSaleController extends Controller
     {
         $warehouse = $this->availableWarehouse((int) $request->input('warehouse_id'));
         $search = trim((string) $request->input('q', ''));
+        $barcode = trim((string) $request->input('barcode', ''));
         $categoryId = max((int) $request->input('category_id'), 0);
         $page = max((int) $request->input('page', 1), 1);
         $perPage = 24;
@@ -344,15 +345,19 @@ class PosSaleController extends Controller
             ->whereNull('category.deleted_at')
             ->where('category.is_active', true);
 
-        if ($categoryId > 0) {
-            $query->where('product.finished_product_category_id', $categoryId);
-        }
-        if ($search !== '') {
-            $query->where(function (Builder $builder) use ($search): void {
-                $builder->where('product.name', 'like', "%{$search}%")
-                    ->orWhere('product.product_code', 'like', "%{$search}%")
-                    ->orWhere('product.barcode', 'like', "%{$search}%");
-            });
+        if ($barcode !== '') {
+            $query->where('product.barcode', $barcode);
+        } else {
+            if ($categoryId > 0) {
+                $query->where('product.finished_product_category_id', $categoryId);
+            }
+            if ($search !== '') {
+                $query->where(function (Builder $builder) use ($search): void {
+                    $builder->where('product.name', 'like', "%{$search}%")
+                        ->orWhere('product.product_code', 'like', "%{$search}%")
+                        ->orWhere('product.barcode', 'like', "%{$search}%");
+                });
+            }
         }
 
         $total = (clone $query)->count();

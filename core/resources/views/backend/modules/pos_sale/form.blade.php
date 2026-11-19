@@ -109,7 +109,7 @@
                   </select>
                   @perm('customer.store', 'add')
                     <button type="button" class="btn po-supplier-add AjaxModal"
-                            data-ajax-modal="{{ route('customer.create') }}"
+                            data-ajax-modal="{{ route('customer.createModal') }}"
                             data-size="lg"
                             data-onsuccess="PosSaleForm.onCustomerCreated"
                             title="Add customer" aria-label="Add customer">
@@ -122,6 +122,17 @@
                   <span>Walk-in Customer · full payment required at checkout</span>
                 </div>
               </div>
+            </div>
+
+            <div class="pos-barcode-entry">
+              <label class="form-label" for="posBarcodeInput">Scan Product Barcode</label>
+              <div class="po-search-box pos-product-search pos-barcode-scan">
+                <iconify-icon icon="mdi:barcode-scan"></iconify-icon>
+                <input type="text" id="posBarcodeInput" class="form-control"
+                       placeholder="Scan barcode to add product" aria-label="Scan product barcode"
+                       autocomplete="off" autocapitalize="off" spellcheck="false" autofocus>
+              </div>
+              <span class="pos-customer-context text-muted">Click to focus• Scan to auto-add• type manually and press Enter.</span>
             </div>
 
             <div class="pos-order-settings-grid po-order-meta-grid">
@@ -550,9 +561,14 @@
         });
       }
 
-      function addProduct(product) {
+      function addProduct(product, incrementExisting = false) {
         const existing = $(`#posSaleItems .pos-cart-line[data-product-id="${product.id}"]`);
         if (existing.length) {
+          if (incrementExisting) {
+            const $quantity = existing.find('.js-pos-quantity');
+            const precision = Math.max(0, Math.min(6, Number(existing.find('.js-pos-unit').attr('data-selected-precision') || 0)));
+            $quantity.val((Number($quantity.val() || 0) + 1).toFixed(precision)).trigger('input');
+          }
           existing.addClass('is-highlighted');
           setTimeout(function() {
             existing.removeClass('is-highlighted');
@@ -575,6 +591,50 @@
 
         loadUnits($line, product.id, product.base_unit_id, product.retail_price, false);
         refreshCartState();
+      }
+
+      function barcodeNotice(icon, title, text) {
+        if (window.Swal) {
+          Swal.fire({ icon, title, text }).then(function() {
+            $('#posBarcodeInput').trigger('focus');
+          });
+        } else {
+          alert(text || title);
+          $('#posBarcodeInput').trigger('focus');
+        }
+      }
+
+      function scanBarcode() {
+        const barcode = $('#posBarcodeInput').val().trim();
+        const warehouseId = $('#posWarehouse').val();
+        if (!barcode) {
+          return;
+        }
+        if (!warehouseId) {
+          barcodeNotice('warning', 'Select a warehouse first', 'Choose an issuing warehouse before scanning products.');
+          $('#posBarcodeInput').val('').trigger('focus');
+          return;
+        }
+
+        const $input = $('#posBarcodeInput').prop('disabled', true);
+        $.getJSON(catalogUrl, { warehouse_id: warehouseId, barcode }).done(function(response) {
+          const product = response.results?.[0];
+          if (!product) {
+            barcodeNotice('error', 'Product not found', 'No active Finished Product matches this barcode.');
+            return;
+          }
+          if (!product.in_stock) {
+            barcodeNotice('warning', 'Out of stock', 'This product has no available stock in the selected warehouse.');
+            return;
+          }
+
+          addProduct(product, true);
+        }).fail(function(xhr) {
+          const message = xhr.responseJSON?.message || 'Unable to look up this barcode.';
+          barcodeNotice('error', 'Barcode lookup failed', message);
+        }).always(function() {
+          $input.prop('disabled', false).val('').trigger('focus');
+        });
       }
 
       function refreshCartState() {
@@ -802,6 +862,13 @@
         }, 280);
       });
 
+      $('#posBarcodeInput').on('keydown', function(event) {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          scanBarcode();
+        }
+      });
+
       $('.pos-category-pill').on('click', function() {
         $('.pos-category-pill').removeClass('active');
         $(this).addClass('active');
@@ -919,6 +986,7 @@
       S2.auto($('#posSaleForm'));
       updateCustomerContext();
       loadCatalog(false);
+      $('#posBarcodeInput').trigger('focus');
     })(jQuery);
   </script>
 @endsection

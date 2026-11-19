@@ -11,7 +11,10 @@
             <p class="mb-0">Company identity and contact information.</p>
         </div>
         @perm('company_setting.create')
-            <a href="{{ route('company_setting.create') }}" class="btn btn-primary btn-sm">Add Company Setting</a>
+            <a href="{{ route('company_setting.create') }}" class="btn btn-primary btn-sm d-inline-flex align-items-center gap-1">
+                <iconify-icon icon="mdi:plus"></iconify-icon>
+                <span>Add Company Setting</span>
+            </a>
         @endperm
     </div>
 

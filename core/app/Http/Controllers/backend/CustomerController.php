@@ -4,319 +4,358 @@ namespace App\Http\Controllers\backend;
 
 use App\Http\Controllers\Controller;
 use App\Models\backend\Customer;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class CustomerController extends Controller
 {
-    public function index()
+    public function index(): View
     {
         return view('backend.modules.customers.index');
     }
 
-    public function listAjax(Request $request)
+    public function listAjax(Request $request): JsonResponse
     {
-        $columns = ['id', 'name', 'slug', 'email', 'birth_date', 'phone', 'postal_code', 'address', 'is_active'];
+        $columns = ['id', 'name', 'phone', 'address', 'is_active', 'id'];
         $draw = (int) $request->input('draw');
-        $start = (int) $request->input('start', 0);
+        $start = max((int) $request->input('start', 0), 0);
         $length = (int) $request->input('length', 10);
-        $orderIdx = (int) $request->input('order.0.column', 0);
-        $orderDir = strtolower($request->input('order.0.dir', 'desc')) === 'asc' ? 'asc' : 'desc';
-        $searchVal = trim($request->input('search.value', ''));
+        $length = $length === -1 ? 1000 : min(max($length, 1), 1000);
+        $orderIndex = (int) $request->input('order.0.column', 0);
+        $orderDirection = strtolower((string) $request->input('order.0.dir', 'desc')) === 'asc'
+            ? 'asc'
+            : 'desc';
+        $search = trim((string) $request->input('search.value', ''));
+        $status = strtoupper(trim((string) $request->input('status', '')));
 
-        $base = Customer::query()
-            ->select(['id', 'name', 'slug', 'email', 'birth_date', 'phone', 'postal_code', 'address', 'is_active']);
+        $query = Customer::query()->select([
+            'id',
+            'code',
+            'name',
+            'email',
+            'phone',
+            'alternate_phone',
+            'address',
+            'postal_code',
+            'birth_date',
+            'is_active',
+        ]);
+        $total = (clone $query)->count();
 
-        $total = (clone $base)->count();
+        if ($status === 'ACTIVE' || $status === 'INACTIVE') {
+            $query->where('is_active', $status === 'ACTIVE');
+        }
 
-        if ($searchVal !== '') {
-            $base->where(function ($q) use ($searchVal) {
-                $q->where('name', 'like', "%{$searchVal}%")
-                    ->orWhere('slug', 'like', "%{$searchVal}%")
-                    ->orWhere('email', 'like', "%{$searchVal}%");
+        if ($search !== '') {
+            $query->where(function (Builder $builder) use ($search): void {
+                $builder
+                    ->where('name', 'like', "%{$search}%")
+                    ->orWhere('code', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%")
+                    ->orWhere('alternate_phone', 'like', "%{$search}%")
+                    ->orWhere('address', 'like', "%{$search}%");
             });
         }
 
-        $filtered = (clone $base)->count();
+        $filtered = (clone $query)->count();
+        $customers = $query
+            ->orderBy($columns[$orderIndex] ?? 'id', $orderDirection)
+            ->skip($start)
+            ->take($length)
+            ->get();
 
-        $orderCol = $columns[$orderIdx] ?? 'id';
+        $user = $request->user();
+        $canEdit = $user?->canDo('customer.update', 'edit') ?? false;
+        $canDelete = $user?->canDo('customer.destroy', 'delete') ?? false;
 
-        $rows = $base->orderBy($orderCol, $orderDir)
-            ->skip($start)->take($length)->get();
-
-        $data = [];
-        foreach ($rows as $b) {
-            $nameCol = '<strong>'.e($b->name).'</strong>';
-
-            $active = $b->is_active
-                ? '<span class="badge text-sm fw-semibold bg-dark-success-gradient px-20 py-9 radius-4 text-white">Active</span>'
-                : '<span class="badge text-sm fw-semibold bg-dark-warning-gradient px-20 py-9 radius-4 text-white">Inactive</span>';
-
-            $actions = '<div class="d-inline-flex justify-content-end gap-1 w-100">
-                <a href="'.route('customer.edit', $b->id).'" class="w-32-px h-32-px rounded-circle d-inline-flex align-items-center justify-content-center
-                    bg-success-focus text-success-main "
-                    data-size="lg"
-                    data-onload="customerIndex.onLoad"
-                    data-onsuccess="customerIndex.onSaved"
-                    title="Edit">
-                    <iconify-icon icon="lucide:edit"></iconify-icon>
-                </a>
-                <a href="#" class="w-32-px h-32-px rounded-circle d-inline-flex align-items-center justify-content-center bg-danger-focus text-danger-main btn-branch-delete"
-                    data-id="'.$b->id.'"
-                    data-url="'.route('customer.destroy', $b->id).'"
-                    title="Delete">
-                    <iconify-icon icon="solar:trash-bin-minimalistic-outline"></iconify-icon>
-                </a>
-            </div>';
-
-            $data[] = [
-                $b->id,
-                $nameCol,
-                e($b->slug),
-                $b->email,
-                $b->birth_date ?? 'N/A',
-                $b->phone,
-                ucwords($b->address),
-                $b->postal_code,
-                $active,
-                $actions,
-            ];
-        }
+        $rows = $customers->map(fn (Customer $customer): array => [
+            $customer->id,
+            $this->identityColumn($customer),
+            $this->contactColumn($customer),
+            $this->addressColumn($customer),
+            $this->statusBadge($customer),
+            $this->actions($customer, $canEdit, $canDelete),
+        ])->all();
 
         return response()->json([
             'draw' => $draw,
             'iTotalRecords' => $total,
             'iTotalDisplayRecords' => $filtered,
-            'aaData' => $data,
+            'aaData' => $rows,
         ]);
     }
 
     public function createModal(): View
     {
-        return view('backend.modules.customers.modal');
+        return $this->formView(
+            customer: new Customer(['is_active' => true]),
+            action: route('customer.store'),
+            method: 'POST',
+            title: 'Add Customer',
+        );
+    }
+
+    public function editModal(Customer $customer): View
+    {
+        return $this->formView(
+            customer: $customer,
+            action: route('customer.update', $customer),
+            method: 'PUT',
+            title: 'Edit Customer',
+        );
     }
 
     public function store(Request $request): JsonResponse
     {
-        $data = $request->validate([
-            'code' => ['nullable', 'string', 'max:50', Rule::unique('customers', 'code')],
-            'name' => ['required', 'string', 'max:150'],
-            'email' => ['nullable', 'email', 'max:191', Rule::unique('customers', 'email')],
-            'phone' => ['required', 'string', 'max:32', Rule::unique('customers', 'phone')],
-            'alternate_phone' => ['nullable', 'string', 'max:32'],
-            'birth_date' => ['nullable', 'date'],
-            'postal_code' => ['nullable', 'string', 'max:20'],
-            'address' => ['nullable', 'string', 'max:255'],
-            'is_active' => ['nullable', 'boolean'],
-        ]);
-
-        $name = trim($data['name']);
-        $slug = Str::slug($name);
-        $customer = Customer::query()->create([
-            'code' => $this->nullableText($data['code'] ?? null),
-            'name' => $name,
-            'slug' => $slug !== '' ? $slug : null,
-            'email' => $this->nullableText($data['email'] ?? null),
-            'phone' => trim($data['phone']),
-            'alternate_phone' => $this->nullableText($data['alternate_phone'] ?? null),
-            'birth_date' => $data['birth_date'] ?? null,
-            'address' => $this->nullableText($data['address'] ?? null),
-            'postal_code' => $this->nullableText($data['postal_code'] ?? null),
-            'is_active' => $data['is_active'] ?? true,
-        ]);
+        $customer = Customer::query()->create($this->validatedData($request));
 
         return response()->json([
             'ok' => true,
+            'success' => true,
             'msg' => 'Customer created successfully.',
             'message' => 'Customer created successfully.',
             'id' => $customer->id,
             'name' => $customer->name,
             'code' => $customer->code,
             'phone' => $customer->phone,
-        ]);
+            'customer' => $customer->only(['id', 'code', 'name', 'phone']),
+        ], 201);
     }
 
-    public function editModal(Customer $customer)
+    public function update(Request $request, Customer $customer): JsonResponse
     {
-        return view('backend.modules.customers.edit', compact('customer'));
-    }
-
-    public function show(Customer $customer)
-    {
+        $customer->update($this->validatedData($request, $customer));
 
         return response()->json([
-            'id' => $customer->id,
-            'name' => $customer->name,
-            'slug' => $customer->slug,
-
+            'ok' => true,
+            'success' => true,
+            'msg' => 'Customer updated successfully.',
+            'customer' => $customer->only(['id', 'code', 'name', 'phone']),
         ]);
     }
 
-    public function update(Request $req, Customer $customer)
+    public function show(Customer $customer): JsonResponse
     {
-
-        $data = $req->validate([
-            'name' => ['required', 'string', 'max:150'],
-            'slug' => ['required', 'string', 'max:150'],
-            'email' => ['required', 'string', 'max:150'],
-            'phone' => ['required', 'string', 'max:50'],
-            'alternate_phone' => ['nullable', 'string', 'max:50'],
-            'birth_date' => ['nullable', 'string', 'max:50'],
-            'postal_code' => ['required', 'integer'],
-            'address' => ['required', 'string', 'max:255'],
-            'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-            'remove_image' => ['sometimes', 'boolean'],
-            'is_active' => ['required', 'integer'],
-
-        ]);
-
-        $previousImage = $customer->image;
-
-        $removeOldImage = $req->boolean('remove_image');
-
-        if ($req->hasFile('image')) {
-            $imagePath = uploadImage($req->file('image'), 'customer/images');
-            $customer->image = $imagePath;
-            $removeOldImage = true;
-        } elseif ($removeOldImage) {
-            $customer->image = null;
-        }
-
-        $customer->name = ucwords($data['name']);
-        $customer->slug = $data['slug'];
-        $customer->email = $data['email'];
-        $customer->phone = $data['phone'];
-        $customer->alternate_phone = $data['alternate_phone'] ?? null;
-        $customer->birth_date = $data['birth_date'] ?? null;
-        $customer->address = $data['address'];
-        $customer->postal_code = $data['postal_code'];
-        $customer->is_active = $data['is_active'];
-
-        $customer->save();
-
-        if ($removeOldImage && $previousImage !== $customer->image) {
-            $this->deleteManagedImage($previousImage);
-        }
-
-        return redirect()->route('customer.index')
-            ->with('success', 'customer updated successfully!');
+        return response()->json($customer->only([
+            'id',
+            'code',
+            'name',
+            'email',
+            'phone',
+            'alternate_phone',
+            'birth_date',
+            'address',
+            'postal_code',
+            'is_active',
+        ]));
     }
 
-    public function importCsvModal()
+    public function destroy(Customer $customer): JsonResponse
     {
-        return view('backend.modules.customers.import_csv');
-    }
-
-    public function importCsv(Request $req)
-    {
-
-        $sheets[] = $req->all();
-        if (empty($sheets) || empty($sheets[0])) {
-            return back()->with('error', 'Uploaded file is empty or unreadable.');
+        $reference = $this->firstReference($customer);
+        if ($reference !== null) {
+            return response()->json([
+                'ok' => false,
+                'success' => false,
+                'msg' => "This customer is already used by {$reference}. Make the customer inactive instead.",
+            ], 422);
         }
-
-        $rows = $sheets[0];
-
-        // If first row is header, normalize it and map rows to assoc arrays
-        $header = array_map(fn ($h) => strtolower(trim($h)), $rows[0]);
-        $dataRows = array_slice($rows, 1);
-
-        $allowed = ['name', 'slug', 'email', 'birth_date', 'phone', 'alternate_phone', 'address', 'postal_code', 'image', 'is_active']; // allowed DB columns
-
-        $insertRows = [];
-
-        foreach ($dataRows as $r) {
-            // protect against ragged rows
-            $assoc = [];
-            foreach ($header as $i => $col) {
-                $assoc[$col] = $r[$i] ?? null;
-            }
-            // whitelist and normalize
-            $row = array_intersect_key($assoc, array_flip($allowed));
-            $row = array_map(fn ($v) => is_string($v) ? trim($v) : $v, $row);
-
-            if (empty($row['phone'])) {
-                continue; // skip if no unique identifier
-            }
-            // prepare for upsert; ensure email key exists even if null
-            $insertRows[] = [
-                'name' => ucwords($row['name']) ?? null,
-                'slug' => $row['slug'] ?? null,
-                'email' => $row['email'] ?? null,
-                'phone' => $row['phone'] ?? null,
-                'alternate_phone' => $row['alternate_phone'] ?? null,
-                'address' => ucwords($row['address']) ?? null,
-                'postal_code' => $row['postal_code'] ?? null,
-                'birth_date' => $row['birth_date'] ?? null,
-                'image' => $row['image'] ?? null,
-                'is_active' => (int) ($row['is_active']) ?? 1,
-            ];
-        }
-
-        if (! empty($insertRows)) {
-            // Upsert in bulk (Laravel 8+). Unique by email (or phone)
-            Customer::upsert($insertRows, ['name', 'slug', 'phone', 'address', 'postal_code', 'alternate_phone', 'birth_date', 'image', 'is_active']);
-        }
-
-        return response()->json(['ok' => true, 'msg' => 'Customers imported successfully']);
-    }
-
-    public function destroy(Customer $customer)
-    {
-        $image = $customer->image;
 
         $customer->delete();
 
-        $this->deleteManagedImage($image);
-
-        return response()->json(['ok' => true, 'msg' => 'customer deleted']);
+        return response()->json([
+            'ok' => true,
+            'success' => true,
+            'msg' => 'Customer deleted successfully.',
+        ]);
     }
 
-    public function select2(Request $r)
+    public function select2(Request $request): JsonResponse
     {
+        $search = trim((string) $request->input('q', ''));
+        $query = Customer::query()->where('is_active', true);
 
-        $q = trim($r->input('q', ''));
-        $type = $r->type;
-        $base = Customer::query()->where('is_active', 1);
-
-        if ($q !== '') {
-            $base->where(function ($x) use ($q) {
-                $x->where('name', 'like', "%{$q}%");
+        if ($search !== '') {
+            $query->where(function (Builder $builder) use ($search): void {
+                $builder
+                    ->where('name', 'like', "%{$search}%")
+                    ->orWhere('code', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%");
             });
         }
 
-        $items = $base->orderBy('id', 'desc')
-            ->limit(20)->get(['id', 'name']);
+        $customers = $query
+            ->orderBy('name')
+            ->limit(20)
+            ->get(['id', 'code', 'name', 'phone']);
 
         return response()->json([
-            'results' => $items->map(fn ($t) => [
-                'id' => $t->id,
-                'text' => $t->name,
+            'results' => $customers->map(fn (Customer $customer): array => [
+                'id' => $customer->id,
+                'text' => $this->selectLabel($customer),
             ]),
         ]);
     }
 
-    private function deleteManagedImage(?string $path): void
+    /** @return array<string, mixed> */
+    private function validatedData(Request $request, ?Customer $customer = null): array
     {
-        if (! $path) {
-            return;
+        $request->merge([
+            'code' => $this->nullableText($request->input('code')),
+            'name' => trim((string) $request->input('name')),
+            'email' => $this->nullableText($request->input('email')),
+            'phone' => trim((string) $request->input('phone')),
+            'alternate_phone' => $this->nullableText($request->input('alternate_phone')),
+            'address' => $this->nullableText($request->input('address')),
+            'postal_code' => $this->nullableText($request->input('postal_code')),
+        ]);
+
+        $data = $request->validate([
+            'code' => [
+                'nullable',
+                'string',
+                'max:50',
+                Rule::unique('customers', 'code')->ignore($customer?->id),
+            ],
+            'name' => ['required', 'string', 'max:150'],
+            'email' => [
+                'nullable',
+                'email',
+                'max:191',
+                Rule::unique('customers', 'email')->ignore($customer?->id),
+            ],
+            'phone' => [
+                'required',
+                'string',
+                'max:32',
+                Rule::unique('customers', 'phone')->ignore($customer?->id),
+            ],
+            'alternate_phone' => ['nullable', 'string', 'max:32'],
+            'birth_date' => ['nullable', 'date', 'before_or_equal:today'],
+            'address' => ['nullable', 'string', 'max:255'],
+            'postal_code' => ['nullable', 'string', 'max:20'],
+            'is_active' => ['required', 'boolean'],
+        ]);
+
+        $slug = Str::slug($data['name']);
+
+        return [
+            ...$data,
+            'code' => filled($data['code'] ?? null) ? strtoupper($data['code']) : null,
+            'slug' => $slug !== '' ? $slug : null,
+            'is_active' => $request->boolean('is_active'),
+        ];
+    }
+
+    private function formView(
+        Customer $customer,
+        string $action,
+        string $method,
+        string $title,
+    ): View {
+        return view('backend.modules.customers.modal', compact(
+            'customer',
+            'action',
+            'method',
+            'title',
+        ));
+    }
+
+    private function firstReference(Customer $customer): ?string
+    {
+        $references = [
+            'sales' => 'Sales',
+            'customer_receipts' => 'Customer Receipts',
+            'coupon_usages' => 'Coupon Usage',
+            'loyalty_transactions' => 'Loyalty Transactions',
+        ];
+
+        foreach ($references as $table => $label) {
+            if (DB::table($table)->where('customer_id', $customer->id)->exists()) {
+                return $label;
+            }
         }
 
-        $relativePath = ltrim(str_replace('\\', '/', $path), '/');
-        if (! str_starts_with($relativePath, 'uploads/customer/images/')) {
-            return;
+        return null;
+    }
+
+    private function identityColumn(Customer $customer): string
+    {
+        $code = $customer->code
+            ? '<div class="text-muted text-xs"><code>'.e($customer->code).'</code></div>'
+            : '';
+
+        return '<strong>'.e($customer->name).'</strong>'.$code;
+    }
+
+    private function contactColumn(Customer $customer): string
+    {
+        $email = $customer->email
+            ? '<div class="text-muted text-xs">'.e($customer->email).'</div>'
+            : '';
+
+        return '<span class="fw-medium">'.e($customer->phone).'</span>'.$email;
+    }
+
+    private function addressColumn(Customer $customer): string
+    {
+        $postalCode = $customer->postal_code
+            ? '<div class="text-muted text-xs">Postal: '.e($customer->postal_code).'</div>'
+            : '';
+
+        return e($customer->address ?: '—').$postalCode;
+    }
+
+    private function statusBadge(Customer $customer): string
+    {
+        if ($customer->is_active) {
+            return '<span class="badge bg-dark-success-gradient text-white px-16 py-7 radius-4">Active</span>';
         }
 
-        File::delete(base_path('../'.$relativePath));
+        return '<span class="badge bg-dark-warning-gradient text-white px-16 py-7 radius-4">Inactive</span>';
+    }
+
+    private function actions(Customer $customer, bool $canEdit, bool $canDelete): string
+    {
+        $actions = '<div class="d-inline-flex justify-content-end align-items-center gap-1 w-100">';
+
+        if ($canEdit) {
+            $actions .= '<a href="#" class="w-32-px h-32-px rounded-circle d-inline-flex '
+                .'align-items-center justify-content-center bg-success-focus text-success-main AjaxModal" '
+                .'data-ajax-modal="'.e(route('customer.edit', $customer)).'" data-size="lg" '
+                .'data-onsuccess="CustomerIndex.onSaved" title="Edit customer" aria-label="Edit customer">'
+                .'<iconify-icon icon="lucide:edit"></iconify-icon></a>';
+        }
+
+        if ($canDelete) {
+            $actions .= '<a href="#" class="w-32-px h-32-px rounded-circle d-inline-flex '
+                .'align-items-center justify-content-center bg-danger-focus text-danger-main '
+                .'btn-customer-delete" data-url="'.e(route('customer.destroy', $customer)).'" '
+                .'title="Delete customer" aria-label="Delete customer">'
+                .'<iconify-icon icon="solar:trash-bin-minimalistic-outline"></iconify-icon></a>';
+        }
+
+        return $actions.'</div>';
+    }
+
+    private function selectLabel(Customer $customer): string
+    {
+        $details = array_filter([$customer->code, $customer->phone]);
+
+        return $details === []
+            ? $customer->name
+            : $customer->name.' ('.implode(' · ', $details).')';
     }
 
     private function nullableText(mixed $value): ?string
     {
-        $text = trim((string) $value);
+        $text = trim((string) ($value ?? ''));
 
         return $text === '' ? null : $text;
     }

@@ -1,13 +1,13 @@
 # Electronics POS — Development Roadmap
 
-**Status:** Active implementation roadmap; POS, Customer Receivables and Wholesale Sales are complete; Sales Return is next
-**Version:** 1.5
-**Updated:** 17 November 2026
+**Status:** Active implementation roadmap; Sales/Return reconciliation is complete; Phase 7 reporting and supply planning are next
+**Version:** 1.9
+**Updated:** 19 November 2026
 **Based on:** Project Plan v1.0 and Physical Database Design v2.1
 
 > **Decision override:** Any later reference in this document to a unified `inventory_item`, `inventory_movement`, or `inventory_balance` means the corresponding separate Raw Material, Part, and Finished Product masters/ledgers/balances. The unified-table proposal is cancelled.
 
-> **Current delivery position:** Phases 0-4 are complete. The purchase-related Finance foundation and accountant workflow from Phase 6 were completed early. Part BOM, Production Cost Categories, stock-only Internal Part Production, Finished Product BOM and Final Product Assembly are complete. Production cost values are report-only. Phase 5 is in progress: POS, Customer Receivables and Wholesale Sales are complete; Sales Return is next.
+> **Current delivery position:** Phases 0-5 are complete. The purchase-related Finance foundation and accountant workflow from Phase 6 were completed early. Supplier/Customer masters use reusable modal CRUD and protected master lists. Finished Product internal EAN-13 assignment, multi-product A4 label printing and read-only Sales/Return reconciliation are complete; Phase 7 reporting and supply planning are next.
 
 ## 1. Roadmap objective
 
@@ -228,7 +228,7 @@ Receipt      Adjustment      Production   Stock Count
 4. Verify insufficient component stock blocks completion.
 5. Verify reject/wastage is visible in production history and cost report.
 
-### Phase 5 — Finished-product sales, POS, wholesale and returns — In progress
+### Phase 5 — Finished-product sales, POS, wholesale and returns — Complete
 
 **Why after production:** Sales must read the new finished-good stock rather than legacy product stock.
 
@@ -274,7 +274,8 @@ Receipt      Adjustment      Production   Stock Count
 | **Complete:** Journal review/post/void/reversal screen | Rebuilt | Journal entries/lines | Accountant workflow |
 | **Complete (Purchase):** Event-account mapping | Company default + branch override mapping | Accounts | Purchase automation rules |
 | **Complete (Supplier):** Payable summary | New supplier due summary | Purchase/payment | Finance reports |
-| Pending: Receivable summary, sales mapping and stock/accounting reconciliation | New report/service | Sales + production documents | Month-end control |
+| **Complete:** Receivable summary and sales account mapping | New report/service + mapping | Sales documents + accounts | Due collection + Finance |
+| **Complete:** Sales/return reconciliation | Read-only report/service | Posted Sales/Returns + stock + payments/due + journals | Month-end control |
 
 **Initial automated draft events**
 
@@ -433,7 +434,11 @@ Receipt      Adjustment      Production   Stock Count
 49. **Complete:** Add controlled `DRAFT → READY_TO_POST → POSTED` POS checkout with review/back-to-edit, split Cash/Bank/MFS payments, Cash tender/change calculation, Walk-in full-payment enforcement and registered-customer receivable. Final confirmation atomically posts Finished Product stock OUT, payment records and the balanced Sales journal, then exposes the 80mm thermal receipt.
 50. **Complete:** Build Customer Receivables with Paid/Partially Paid/Unpaid Sale indicators, direct Sale receipt printing, branch-scoped Outstanding Dues, details/list collection entry, split Cash/Bank/MFS payments, atomic Customer Receivable settlement journal, collection history and printable Customer Payment Receipt.
 51. **Complete:** Build Wholesale Sales over the shared Sales services with mandatory registered customer/due date, customer reference, compact searchable Finished Product lines, negotiated rate, split/partial payment, full due, review-before-post and printable A4 invoice.
-52. **Next implementation:** Build Sales Return for Posted POS/Wholesale invoices with original-line limits, stock IN and controlled Finance reversal.
+52. **Complete:** Build Sales Return for Posted POS/Wholesale invoices with original-line limits, stock IN and controlled Finance reversal.
+53. **Complete:** Rebuild Supplier and Customer master lists around the same reusable modal CRUD used by Purchase/POS, with status filters, permission-aware actions and used-record delete protection.
+54. **Complete:** Build Finished Product internal EAN-13 assignment and multi-product A4 Label generation without storing generated barcode images. One barcode is persisted per product and repeated according to the requested label quantity.
+55. **Complete:** Build permissioned, branch/date-filtered Sales/Return reconciliation to verify Posted document totals, stock movements, payments/due/refunds and balanced source-linked journals without mutating data. Include related Posted Sales when a linked Return or Customer Receipt falls inside the selected range.
+56. **Next control:** Begin Phase 7 Reporting Period controls and the company-wide Monthly Rate Sheet.
 
 Finance account mapping, the generic Draft Journal engine and the authorised accountant workflow are complete. Purchase integration creates reviewable drafts; only approved, successfully revalidated journals can be posted.
 

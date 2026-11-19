@@ -20,6 +20,7 @@ use App\Models\Sales\Sale;
 use App\Models\Sales\SaleItem;
 use App\Models\Sales\SaleReturn;
 use App\Services\Sales\SaleReturnService;
+use App\Services\Sales\SalesReconciliationService;
 use Database\Seeders\FinanceFoundationSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
@@ -274,6 +275,64 @@ class SaleReturnServiceTest extends TestCase
         $this->assertStringContainsString('Create Sales Return', $html);
         $this->assertStringContainsString('Select a Posted Sale', $html);
         $this->assertStringContainsString('View Draft rules', $html);
+    }
+
+    public function test_sales_reconciliation_reports_posted_sale_and_return_mismatches_without_mutating_data(): void
+    {
+        $route = Route::getRoutes()->getByName('sales.reconciliation.index');
+        $this->assertNotNull($route);
+        $this->assertContains('perm', $route->gatherMiddleware());
+
+        $setup = $this->setupPostedSale('2', '100');
+        $saleReturn = SaleReturn::query()->create([
+            'return_no' => 'SRT-RECON-001',
+            'sale_id' => $setup['sale']->id,
+            'branch_id' => $setup['branch']->id,
+            'warehouse_id' => $setup['warehouse']->id,
+            'return_at' => '2026-11-02 10:00:00',
+            'status' => SaleReturnStatus::Posted,
+            'subtotal' => '100',
+            'discount' => '0',
+            'tax' => '0',
+            'total' => '100',
+            'due_adjustment' => '0',
+            'refund_amount' => '100',
+            'reason' => 'Reconciliation test',
+        ]);
+        $saleReturn->items()->create([
+            'sale_item_id' => $setup['saleItem']->id,
+            'finished_product_id' => $setup['product']->id,
+            'unit_id' => $setup['unit']->id,
+            'quantity' => '1',
+            'base_quantity' => '1',
+            'unit_price' => '100',
+            'line_total' => '100',
+        ]);
+
+        $report = app(SalesReconciliationService::class)->reconcile([
+            'branch_id' => $setup['branch']->id,
+            'date_from' => '2026-11-02',
+            'date_to' => '2026-11-02',
+        ]);
+
+        $this->assertSame(1, $report['sales_checked']);
+        $this->assertSame(1, $report['sales_with_issues']);
+        $this->assertSame(1, $report['returns_checked']);
+        $this->assertSame(1, $report['returns_with_issues']);
+        $saleIssues = collect($report['issues'])->firstWhere('number', $setup['sale']->sale_no)['issues'];
+        $returnIssues = collect($report['issues'])->firstWhere('number', $saleReturn->return_no)['issues'];
+        $this->assertContains(
+            "Sale line {$setup['saleItem']->id} is missing its stock movement.",
+            $saleIssues,
+        );
+        $this->assertContains('Sale is missing its Finance journal.', $saleIssues);
+        $this->assertContains(
+            "Sales Return line {$saleReturn->items->first()->id} is missing its stock movement.",
+            $returnIssues,
+        );
+        $this->assertContains('Sales Return is missing its Finance journal.', $returnIssues);
+        $this->assertDatabaseCount('finished_product_stock_movements', 0);
+        $this->assertDatabaseCount('journal_entries', 0);
     }
 
     public function test_selected_posted_sale_renders_returnable_invoice_lines(): void

@@ -22,6 +22,7 @@ use App\Http\Controllers\backend\FinanceAccountMappingController;
 use App\Http\Controllers\backend\FinanceOpeningBalanceController;
 use App\Http\Controllers\backend\FinishedProductCategoryController;
 use App\Http\Controllers\backend\FinishedProductController;
+use App\Http\Controllers\backend\FinishedProductLabelController;
 use App\Http\Controllers\backend\FinishedProductReorderLevelController;
 use App\Http\Controllers\backend\FiscalYearClosingController;
 use App\Http\Controllers\backend\FiscalYearController;
@@ -40,6 +41,7 @@ use App\Http\Controllers\backend\PartSupplierController;
 use App\Http\Controllers\backend\PaymentTypeController;
 use App\Http\Controllers\backend\PosSaleController;
 use App\Http\Controllers\backend\SaleReturnController;
+use App\Http\Controllers\backend\SalesReconciliationController;
 use App\Http\Controllers\backend\ProductionExpenseCategoryController;
 use App\Http\Controllers\backend\PurchaseOrderController;
 use App\Http\Controllers\backend\PurchasePaymentController;
@@ -197,6 +199,12 @@ Route::middleware(['web', 'auth', 'perm', 'branchscope'])->group(function () {
             Route::get('{finishedProduct}/edit-modal', 'editModal')->whereNumber('finishedProduct')->name('editModal');
             Route::put('{finishedProduct}', 'update')->whereNumber('finishedProduct')->name('update');
             Route::delete('{finishedProduct}', 'destroy')->whereNumber('finishedProduct')->name('destroy');
+        });
+
+        Route::prefix('barcode-labels')->name('barcode-labels.')->controller(FinishedProductLabelController::class)->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::get('products', 'products')->name('products');
+            Route::post('preview', 'preview')->name('preview');
         });
 
         Route::prefix('item-units/{domain}')
@@ -572,9 +580,11 @@ Route::middleware(['web', 'auth', 'perm', 'branchscope'])->group(function () {
             Route::delete('{saleReturn}', 'destroy')->whereNumber('saleReturn')->name('destroy');
         });
 
+    Route::get('sales/reconciliation', [SalesReconciliationController::class, 'index'])
+        ->name('sales.reconciliation.index');
+
     Route::prefix('supplier')->name('supplier.')->group(function () {
         Route::get('suppliers', [SupplierController::class, 'index'])->name('index');
-        Route::get('suppliers/create', [SupplierController::class, 'create'])->name('create');
         Route::get('suppliers/create-modal', [SupplierController::class, 'createModal'])->name('createModal');
         Route::post('suppliers/list', [SupplierController::class, 'listAjax'])->name('list.ajax');
         Route::post('suppliers', [SupplierController::class, 'store'])->name('store');
@@ -583,13 +593,11 @@ Route::middleware(['web', 'auth', 'perm', 'branchscope'])->group(function () {
         Route::get('suppliers/{supplier}', [SupplierController::class, 'show'])->name('show');
         Route::delete('suppliers/{supplier}', [SupplierController::class, 'destroy'])->name('destroy');
         Route::get('suppliers/select2/type', [SupplierController::class, 'select2'])->name('select2');
-        Route::get('suppliers/import_csv/file', [SupplierController::class, 'importCsvModal'])->name('import_csv');
-        Route::post('suppliers/handle/upload_csv', [SupplierController::class, 'importCsv'])->name('handle_csv');
     });
 
     Route::prefix('customer')->name('customer.')->group(function () {
         Route::get('customers', [CustomerController::class, 'index'])->name('index');
-        Route::get('customers/create', [CustomerController::class, 'createModal'])->name('create');
+        Route::get('customers/create-modal', [CustomerController::class, 'createModal'])->name('createModal');
         Route::post('customers/list', [CustomerController::class, 'listAjax'])->name('list.ajax');
         Route::post('customers', [CustomerController::class, 'store'])->name('store');
         Route::get('customers/edit/{customer}', [CustomerController::class, 'editModal'])->whereNumber('customer')->name('edit');
@@ -597,8 +605,6 @@ Route::middleware(['web', 'auth', 'perm', 'branchscope'])->group(function () {
         Route::get('customers/{customer}', [CustomerController::class, 'show'])->name('show');
         Route::delete('customers/{customer}', [CustomerController::class, 'destroy'])->name('destroy');
         Route::get('customers/select2/type', [CustomerController::class, 'select2'])->name('select2');
-        Route::get('customers/import_csv/file', [CustomerController::class, 'importCsvModal'])->name('import_csv');
-        Route::post('customers/handle/upload_csv', [CustomerController::class, 'importCsv'])->name('handle_csv');
     });
 
     Route::prefix('payment-types')->name('paymentTypes.')->group(function () {

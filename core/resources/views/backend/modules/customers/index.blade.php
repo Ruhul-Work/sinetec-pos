@@ -1,163 +1,137 @@
 @extends('backend.layouts.master')
 
 @section('meta')
-    <title>Customers</title>
+  <title>Customers</title>
 @endsection
 
 @section('content')
-    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
-        <div>
-            <h6 class="fw-semibold mb-0">Customers List</h6>
-            <p class=" m-0">Manage Customers</p>
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-24">
+    <div>
+      <div class="d-flex align-items-center gap-2">
+        <h6 class="fw-semibold mb-0">Customers</h6>
+        <x-backend.page-note title="Customer master" label="View customer rules" align="start">
+          Customers are company-wide master records shared by POS, Wholesale Sales, Due Collection and Sales Return.
+          Walk-in POS sales do not require a saved customer. Used customers should be made inactive instead of deleted.
+        </x-backend.page-note>
+      </div>
+      <p class="text-muted mb-0">Manage registered customers used by sales and receivables.</p>
+    </div>
+  </div>
+
+  <div class="card basic-data-table">
+    <div class="card-header d-flex align-items-center justify-content-between gap-3 flex-wrap">
+      <h5 class="card-title mb-0">Customer List</h5>
+
+      <div class="actions-bar d-flex align-items-center gap-2 flex-wrap">
+        <select id="customerStatusFilter" class="form-select form-select-sm w-auto">
+          <option value="">All status</option>
+          <option value="ACTIVE">Active</option>
+          <option value="INACTIVE">Inactive</option>
+        </select>
+        <div class="search-set me-2">
+          <div id="tableSearch" class="search-input"></div>
         </div>
-        <ul class="d-flex align-items-center gap-2">
-            <li class="fw-medium">
-                <a href="#" class="d-flex align-items-center gap-1 hover-text-primary">
-                    <iconify-icon icon="solar:home-smile-angle-outline" class="icon text-lg"></iconify-icon> Dashboard
-                </a>
-            </li>
-            <li>-</li>
-            <li class="fw-medium">Customers</li>
+        <ul class="table-top-head list-unstyled d-flex align-items-center gap-2 mb-0">
+          @include('backend.include.buttons')
         </ul>
+
+        @perm('customer.store', 'add')
+          <button
+            type="button"
+            class="btn btn-primary btn-sm px-12 py-8 radius-8 app-action-button AjaxModal"
+            data-ajax-modal="{{ route('customer.createModal') }}"
+            data-size="lg"
+            data-onsuccess="CustomerIndex.onSaved"
+          >
+            <iconify-icon icon="mdi:account-plus-outline" class="text-xl"></iconify-icon>
+            <span>Add Customer</span>
+          </button>
+        @endperm
+      </div>
     </div>
 
-    <div class="card basic-data-table">
-        <div class="card-header d-flex align-items-center justify-content-between">
-            <h5 class="card-title mb-0">Datatables</h5>
-            <div class="actions-bar d-flex align-items-center gap-2 flex-wrap">
-                <div class="search-set me-2">
-                    <div id="tableSearch" class="search-input"></div>
-                </div>
-
-                <ul class="table-top-head list-unstyled d-flex align-items-center gap-2 mb-0">
-                    @include('backend.include.buttons')
-                </ul>
-
-                {{-- @perm('org.customers.store') --}}
-                <button class="d-flex btn btn-dark btn-sm px-12  radius-8 AjaxModal" data-size="lg"
-                    data-onsuccess="BranchesIndex.onSaved" data-ajax-modal="{{ route('customer.import_csv') }}">
-                    <iconify-icon icon="ic:baseline-plus" class="text-xl"></iconify-icon>Import
-                </button>
-                <button type="button" class="d-flex btn btn-primary btn-sm px-12 py-8 radius-8 AjaxModal"
-                    data-ajax-modal="{{ route('customer.create') }}" data-size="lg"
-                    data-onsuccess="BranchesIndex.onSaved">
-                    <iconify-icon icon="ic:baseline-plus" class="text-xl"></iconify-icon>Add customer
-                </button>
-                {{-- @endperm --}}
-            </div>
-        </div>
-
-        <div class="card-body">
-            <table class="table bordered-table table-scroll mb-0 AjaxDataTable" id="customersTable" style="width:100%">
-                <thead>
-                    <tr>
-                        <th style="width:60px">
-                            <div class="form-check style-check d-flex align-items-center">
-                                <input class="form-check-input" type="checkbox" id="select-all">
-                                <label class="form-check-label">S.L</label>
-                            </div>
-                        </th>
-                        <th>Customer</th>
-                        <th>Slug</th>
-                        <th>Email</th>
-                        <th>Birth Date</th>
-                        <th>Phone</th>
-                        <th>Address</th>
-                        <th>Postal Code</th>
-                        <th>Status</th>
-                        <th style="width:120px">Action</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
-        </div>
+    <div class="card-body">
+      <table class="table bordered-table table-scroll mb-0 AjaxDataTable" id="customersTable" style="width: 100%">
+        <thead>
+          <tr>
+            <th style="width: 60px">S.L</th>
+            <th>Customer</th>
+            <th>Contact</th>
+            <th>Address</th>
+            <th>Status</th>
+            <th class="text-end" style="width: 110px">Action</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
     </div>
+  </div>
 @endsection
 
 @section('script')
-    <script>
-        var DATATABLE_URL = "{{ route('customer.list.ajax') }}";
+<script>
+  var DATATABLE_URL = @json(route('customer.list.ajax'));
 
-        window.BranchesIndex = {
-            onSaved: function(res) {
-                // DataTable current page reload
-                $('.AjaxDataTable').DataTable().ajax.reload(null, false);
-                // Optional: extra toast (আপনার গ্লোবালে আগেই toast দেওয়া আছে, এটা না দিলেও হবে)
-                if (window.Swal) Swal.fire({
-                    icon: 'success',
-                    title: 'Created',
-                    text: res?.msg || 'Saved',
-                    timer: 1000,
-                    showConfirmButton: false
-                });
-            }
-        };
+  window.CustomerIndex = {
+    onSaved: function() {
+      if ($.fn.DataTable.isDataTable('#customersTable')) {
+        $('#customersTable').DataTable().ajax.reload(null, false);
+      }
+    }
+  };
 
+  $(document).on('preXhr.dt', '#customersTable', function(event, settings, data) {
+    data.status = $('#customerStatusFilter').val();
+  });
 
-        $(document).on('click', '.btn-branch-delete', function(e) {
-            e.preventDefault();
-            const url = $(this).data('url');
+  $(document).on('change', '#customerStatusFilter', function() {
+    if ($.fn.DataTable.isDataTable('#customersTable')) {
+      $('#customersTable').DataTable().ajax.reload();
+    }
+  });
 
-            const doDelete = () => {
-                $.ajax({
-                    url: url,
-                    type: 'POST',
-                    dataType: 'json',
-                    data: {
-                        _method: 'DELETE',
-                        _token: '{{ csrf_token() }}'
-                    },
-                    success: function(res) {
-                        // DataTable রিলোড (পজিশন ধরে)
-                        $('.AjaxDataTable').DataTable().ajax.reload(null, false);
-                        if (window.Swal) {
-                            Swal.fire({
-                                icon: 'success',
-                                title: res?.msg || 'Deleted',
-                                timer: 1000,
-                                showConfirmButton: false
-                            });
-                        }
-                    },
-                    error: function(xhr) {
-                        if (xhr.status === 422) {
-                            const msg = xhr.responseJSON?.msg || 'Cannot delete this customer.';
-                            Swal && Swal.fire({
-                                icon: 'warning',
-                                title: 'Blocked',
-                                text: msg
-                            });
-                        } else if (xhr.status === 403) {
-                            Swal && Swal.fire({
-                                icon: 'warning',
-                                title: 'Forbidden',
-                                text: xhr.responseJSON?.message || 'Permission denied'
-                            });
-                        } else {
-                            Swal && Swal.fire({
-                                icon: 'error',
-                                title: 'Failed',
-                                text: 'Delete failed'
-                            });
-                        }
-                    }
-                });
-            };
+  $(document).on('click', '.btn-customer-delete', function(event) {
+    event.preventDefault();
+    const url = $(this).data('url');
 
-            if (window.Swal) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Delete customer?',
-                    text: 'This action cannot be undone.',
-                    showCancelButton: true,
-                    confirmButtonText: 'Yes, delete',
-                    confirmButtonColor: '#d33'
-                }).then(r => {
-                    if (r.isConfirmed) doDelete();
-                });
-            } else {
-                if (confirm('Delete this customer?')) doDelete();
-            }
+    const deleteCustomer = function() {
+      $.ajax({
+        url: url,
+        type: 'POST',
+        dataType: 'json',
+        data: {
+          _method: 'DELETE',
+          _token: @json(csrf_token())
+        }
+      }).done(function(response) {
+        $('#customersTable').DataTable().ajax.reload(null, false);
+        Swal.fire({
+          icon: 'success',
+          title: response.msg || 'Customer deleted',
+          timer: 1200,
+          showConfirmButton: false
         });
-    </script>
+      }).fail(function(xhr) {
+        Swal.fire({
+          icon: xhr.status === 422 ? 'warning' : 'error',
+          title: xhr.status === 422 ? 'Delete blocked' : 'Delete failed',
+          text: xhr.responseJSON?.msg || xhr.responseJSON?.message || 'Unable to delete the customer.'
+        });
+      });
+    };
+
+    Swal.fire({
+      icon: 'warning',
+      title: 'Delete this customer?',
+      text: 'A used customer cannot be deleted and should be made inactive instead.',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete',
+      confirmButtonColor: '#dc3545'
+    }).then(function(result) {
+      if (result.isConfirmed) {
+        deleteCustomer();
+      }
+    });
+  });
+</script>
 @endsection

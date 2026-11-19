@@ -114,6 +114,8 @@ Create `raw_material_categories`, `part_categories`, and `finished_product_categ
 | `is_active` | boolean default true |
 | audit | timestamps, soft delete |
 
+Finished Product labels use internal EAN-13. When a selected product has no barcode, preview generation assigns one valid, unique 13-digit number once and persists it in the existing `barcode` column. Later prints reuse that number. No configurable/company prefix is required in the current internal-POS scope, rendered barcode images are not stored, and the A4 label contains only Product Name, barcode symbol and its human-readable number. The implementation remains reusable for Raw Material/Part labels or an official GS1 prefix if later approved.
+
 ### 3.5 Unit and supplier mappings
 
 - `raw_material_units(raw_material_id, unit_id, conversion_to_base, usage_type)`

@@ -71,7 +71,7 @@
               </select>
               @perm('customer.store', 'add')
                 <button type="button" class="btn AjaxModal wholesale-add-customer"
-                        data-ajax-modal="{{ route('customer.create') }}" data-size="lg"
+                        data-ajax-modal="{{ route('customer.createModal') }}" data-size="lg"
                         data-onsuccess="WholesaleSaleForm.onCustomerCreated" title="Add customer">
                   <iconify-icon icon="mdi:account-plus-outline"></iconify-icon>
                 </button>

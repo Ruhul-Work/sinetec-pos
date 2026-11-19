@@ -1,8 +1,8 @@
 # Electronics Manufacturing, Inventory & Sales System — Project Plan
 
-**Status:** Business scope approved; Purchasing, Inventory Core, Finance, Production/Assembly, POS and Wholesale Sales are ready; Sales Return is next
-**Version:** 2.0
-**Updated:** 17 November 2026
+**Status:** Business scope approved; Purchasing, Inventory Core, Finance, Production/Assembly and Finished Product Sales/Returns are ready; reconciliation is next
+**Version:** 2.3
+**Updated:** 19 November 2026
 **Purpose:** This is the authoritative business-scope and decision-history document. Physical implementation details and current progress are tracked in the linked design, roadmap and status documents.
 
 ## 1. Project objective
@@ -121,7 +121,7 @@ The approved scope remains unchanged. The following foundation is now complete a
 - Purchase Order, direct/PO-based Purchase Receipt, Purchase Return, Supplier Payment/Due and Purchase Price History.
 - Operational Finance foundation: Chart of Accounts, branch accounts, purchase mapping, Draft Journal workflow, Account Ledger, Cash/Bank Book, capital/loan controls, Trial Balance and Fiscal Year Closing.
 
-Part BOM / Recipe, Internal Part Production, Finished Product BOM / Recipe, Final Product Assembly, POS, Customer Receivables and Wholesale Sales are complete. The next delivery is **Sales Return**. Monthly reporting and supply planning remain later release work.
+Part BOM / Recipe, Internal Part Production, Finished Product BOM / Recipe, Final Product Assembly, POS, Customer Receivables, Wholesale Sales and Sales Return are complete. Supplier and Customer master CRUD has also been rebuilt around the shared quick-create modal flow. The next small delivery is **Finished Product Barcode/Label generation**, followed by Sales/Return reconciliation. Monthly reporting and supply planning remain later release work.
 
 ## 4. Simple operational flows
 
@@ -295,3 +295,6 @@ These four documents, including this plan, are the authoritative project set. Th
 | 1.8 | 14 November 2026 | Completed Finished Product BOM / Recipe with mixed Raw Material and Part components, unit conversion snapshots, one-active-version control and audited validity extension; moved the next gate to Final Product Assembly. |
 | 1.9 | 14 November 2026 | Completed Final Product Assembly with Draft/Complete workflow, mixed component consumption, QC, report-only costs, atomic stock posting and rollback protection; moved the next gate to Finished Product Sales. |
 | 2.0 | 17 November 2026 | Completed POS, Customer Receivables and Wholesale Sales over the shared Sales engine; added controlled review/post, split/partial payment, due collection, stock/Finance posting and separate thermal/A4 print flows. Sales Return is next. |
+| 2.1 | 19 November 2026 | Completed controlled POS/Wholesale Sales Return with stock IN, due-first adjustment, split refund and Finance reversal; moved the next gate to Sales/Return reconciliation. |
+| 2.2 | 19 November 2026 | Rebuilt Supplier/Customer master lists around reusable modal CRUD and recorded Finished Product Barcode/Label generation as the next operational delivery. |
+| 2.3 | 19 November 2026 | Completed internal EAN-13 Finished Product barcode assignment and multi-product A4 label printing; no company prefix, price or stored barcode image is used in the current internal-POS scope. |
