@@ -7,6 +7,7 @@ use App\Exceptions\Finance\InvalidJournalDraftException;
 use App\Exceptions\Finance\JournalWorkflowException;
 use App\Exceptions\Sales\InvalidCustomerReceiptException;
 use App\Http\Controllers\Controller;
+use App\Models\backend\User;
 use App\Models\Sales\CustomerReceipt;
 use App\Models\Sales\Sale;
 use App\Services\Sales\CustomerReceiptService;
@@ -50,6 +51,7 @@ class CustomerReceivableController extends Controller
             ->select([
                 'sale.id',
                 'sale.sale_no',
+                'sale.channel',
                 'sale.sale_at',
                 'sale.total',
                 'sale.paid_amount',
@@ -81,12 +83,13 @@ class CustomerReceivableController extends Controller
         $user = $request->user();
 
         $data = $rows->map(function (object $row) use ($user): array {
+            $saleDetailsUrl = $this->saleDetailsUrl($row->channel, (int) $row->id);
             $actionClass = 'w-32-px h-32-px rounded-circle d-inline-flex '
                 .'align-items-center justify-content-center';
             $actions = '<div class="d-inline-flex justify-content-end align-items-center gap-1 w-100">';
 
-            if ($user?->canDo('sales.pos.show', 'show')) {
-                $actions .= '<a href="'.e(route('sales.pos.show', $row->id)).'" '
+            if ($this->canViewSale($user, $row->channel)) {
+                $actions .= '<a href="'.e($saleDetailsUrl).'" '
                     .'class="'.$actionClass.' bg-info-focus text-info-main" title="View Sale">'
                     .'<iconify-icon icon="mdi:eye-outline"></iconify-icon></a>';
             }
@@ -102,7 +105,7 @@ class CustomerReceivableController extends Controller
             return [
                 $row->id,
                 '<a class="fw-semibold text-primary-600" href="'
-                    .e(route('sales.pos.show', $row->id)).'">'.e($row->sale_no).'</a>',
+                    .e($saleDetailsUrl).'">'.e($row->sale_no).'</a>',
                 e(Carbon::parse($row->sale_at)->format('d M Y')),
                 e($row->customer_name)
                     .($row->customer_phone ? '<br><small>'.e($row->customer_phone).'</small>' : ''),
@@ -143,6 +146,10 @@ class CustomerReceivableController extends Controller
 
         return view('backend.modules.customer_receivable.receipt', [
             'receipt' => $receipt,
+            'saleDetailsUrl' => $this->saleDetailsUrl(
+                $receipt->sale->channel->value,
+                (int) $receipt->sale_id,
+            ),
         ]);
     }
 
@@ -262,6 +269,7 @@ class CustomerReceivableController extends Controller
                 'receipt.due_after',
                 'sale.id as sale_id',
                 'sale.sale_no',
+                'sale.channel',
                 'customer.name as customer_name',
                 'branch.name as branch_name',
                 DB::raw('COALESCE(payment_count.payment_count, 0) as payment_count'),
@@ -289,12 +297,13 @@ class CustomerReceivableController extends Controller
         $user = $request->user();
 
         $data = $rows->map(function (object $row) use ($user): array {
+            $saleDetailsUrl = $this->saleDetailsUrl($row->channel, (int) $row->sale_id);
             $actionClass = 'w-32-px h-32-px rounded-circle d-inline-flex '
                 .'align-items-center justify-content-center';
             $actions = '<div class="d-inline-flex justify-content-end align-items-center gap-1 w-100">';
 
-            if ($user?->canDo('sales.pos.show', 'show')) {
-                $actions .= '<a href="'.e(route('sales.pos.show', $row->sale_id)).'" '
+            if ($this->canViewSale($user, $row->channel)) {
+                $actions .= '<a href="'.e($saleDetailsUrl).'" '
                     .'class="'.$actionClass.' bg-info-focus text-info-main" title="View Sale">'
                     .'<iconify-icon icon="mdi:eye-outline"></iconify-icon></a>';
             }
@@ -310,7 +319,7 @@ class CustomerReceivableController extends Controller
                 '<span class="fw-semibold text-primary-600">'.e($row->receipt_no).'</span>',
                 e(Carbon::parse($row->receipt_at)->format('d M Y, h:i A')),
                 e($row->customer_name).'<br><small>'.e($row->branch_name).'</small>',
-                '<a class="fw-semibold" href="'.e(route('sales.pos.show', $row->sale_id)).'">'
+                '<a class="fw-semibold" href="'.e($saleDetailsUrl).'">'
                     .e($row->sale_no).'</a>',
                 '<span class="d-block text-center">'.(int) $row->payment_count.'</span>',
                 '<span class="d-block text-end fw-semibold">'.number_format((float) $row->amount, 2).'</span>',
@@ -326,5 +335,23 @@ class CustomerReceivableController extends Controller
             'iTotalDisplayRecords' => $filtered,
             'aaData' => $data,
         ]);
+    }
+
+    private function saleDetailsUrl(string $channel, int $saleId): string
+    {
+        $routeName = strtoupper($channel) === 'WHOLESALE'
+            ? 'sales.wholesale.show'
+            : 'sales.pos.show';
+
+        return route($routeName, $saleId);
+    }
+
+    private function canViewSale(?User $user, string $channel): bool
+    {
+        $routeName = strtoupper($channel) === 'WHOLESALE'
+            ? 'sales.wholesale.show'
+            : 'sales.pos.show';
+
+        return $user?->canDo($routeName, 'show') ?? false;
     }
 }

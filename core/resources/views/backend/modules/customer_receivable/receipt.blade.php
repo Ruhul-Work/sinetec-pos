@@ -108,7 +108,7 @@
   </style>
 
   <div class="receipt-actions no-print">
-    <a href="{{ route('sales.pos.show', $receipt->sale) }}">Back to Sale</a>
+    <a href="{{ $saleDetailsUrl }}">Back to Sale</a>
     <button type="button" onclick="window.print()">Print Again</button>
   </div>
 

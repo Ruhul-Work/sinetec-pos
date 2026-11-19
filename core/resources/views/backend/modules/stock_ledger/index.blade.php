@@ -30,47 +30,47 @@
       <div class="row gy-3 align-items-end" id="stockLedgerFilters">
         <div class="col-xl-2 col-md-4">
           <label class="form-label text-sm">Inventory Type</label>
-          <select id="ledgerDomain" class="form-control js-s2" placeholder="All inventory types">
+          <select id="ledgerDomain" class="form-control form-control-sm js-s2" placeholder="All inventory types">
             <option value="">All inventory types</option>
             @foreach ($domains as $domain => $config)<option value="{{ $domain }}">{{ $config['label'] }}</option>@endforeach
           </select>
         </div>
         <div class="col-xl-3 col-md-4">
           <label class="form-label text-sm">Item</label>
-          <select id="ledgerItem" class="form-control" placeholder="Select inventory type first" disabled></select>
+          <select id="ledgerItem" class="form-control form-control-sm" placeholder="Select inventory type first" disabled></select>
         </div>
         <div class="col-xl-2 col-md-4">
           <label class="form-label text-sm">Branch</label>
-          <select id="ledgerBranch" class="form-control js-s2" placeholder="All branches">
+          <select id="ledgerBranch" class="form-control form-control-sm js-s2" placeholder="All branches">
             <option value="">All branches</option>
             @foreach ($branches as $branch)<option value="{{ $branch->id }}">{{ $branch->name }} ({{ $branch->code }})</option>@endforeach
           </select>
         </div>
         <div class="col-xl-3 col-md-6">
           <label class="form-label text-sm">Warehouse</label>
-          <select id="ledgerWarehouse" class="form-control js-s2" placeholder="All warehouses">
+          <select id="ledgerWarehouse" class="form-control form-control-sm js-s2" placeholder="All warehouses">
             <option value="">All warehouses</option>
             @foreach ($warehouses as $warehouse)<option value="{{ $warehouse->id }}" data-branch="{{ $warehouse->branch_id }}">{{ $warehouse->name }} ({{ $warehouse->code }}) — {{ $warehouse->branch_name }}</option>@endforeach
           </select>
         </div>
         <div class="col-xl-2 col-md-3">
           <label class="form-label text-sm">Direction</label>
-          <select id="ledgerDirection" class="form-control js-s2"><option value="">IN & OUT</option><option value="IN">IN</option><option value="OUT">OUT</option></select>
+          <select id="ledgerDirection" class="form-control form-control-sm js-s2"><option value="">IN & OUT</option><option value="IN">IN</option><option value="OUT">OUT</option></select>
         </div>
         <div class="col-xl-3 col-md-5">
           <label class="form-label text-sm">Movement Type</label>
-          <select id="ledgerMovementType" class="form-control js-s2" placeholder="All movement types">
+          <select id="ledgerMovementType" class="form-control form-control-sm js-s2" placeholder="All movement types">
             <option value="">All movement types</option>
             @foreach ($movementTypes as $movementType)<option value="{{ $movementType->value }}">{{ str($movementType->value)->replace('_', ' ')->title() }}</option>@endforeach
           </select>
         </div>
         <div class="col-xl-2 col-md-3">
           <label class="form-label text-sm">From Date</label>
-          <input type="date" id="ledgerDateFrom" class="form-control" value="{{ now()->startOfMonth()->format('Y-m-d') }}">
+          <input type="date" id="ledgerDateFrom" class="form-control form-control-sm" value="{{ now()->startOfMonth()->format('Y-m-d') }}">
         </div>
         <div class="col-xl-2 col-md-3">
           <label class="form-label text-sm">To Date</label>
-          <input type="date" id="ledgerDateTo" class="form-control" value="{{ now()->format('Y-m-d') }}">
+          <input type="date" id="ledgerDateTo" class="form-control form-control-sm" value="{{ now()->format('Y-m-d') }}">
         </div>
         <div class="col-xl-2 col-md-3">
           <button type="button" id="applyLedgerFilters" class="btn btn-primary w-100 px-14 py-10 radius-8 app-action-button app-primary-action"><iconify-icon icon="mdi:magnify"></iconify-icon><span>Apply Filters</span></button>
@@ -88,7 +88,7 @@
       </div>
     </div>
     <div class="card-body">
-      <table class="table bordered-table table-scroll mb-0 AjaxDataTable" id="stockLedgerTable" style="width:100%">
+      <table class="table bordered-table table-scroll mb-0 AjaxDataTable stock-ledger-movements-table" id="stockLedgerTable" style="width:100%">
         <thead><tr>
           <th style="width:60px">S.L</th><th>Date</th><th>Inventory Type</th><th>Item</th><th>Location</th><th>Movement</th><th>Reference</th><th class="text-end">IN</th><th class="text-end">OUT</th><th class="text-end">Unit Cost</th><th class="text-end">Running Balance</th><th>Posted By</th><th style="width:80px">Document</th>
         </tr></thead>

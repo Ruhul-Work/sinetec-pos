@@ -48,6 +48,7 @@ class CorePermissionSeeder extends Seeder
             ['key' => 'sales.pos', 'name' => 'POS Sales', 'module' => 'Sales', 'prefixes' => ['sales.pos.']],
             ['key' => 'sales.wholesale', 'name' => 'Wholesale Sales', 'module' => 'Sales', 'prefixes' => ['sales.wholesale.']],
             ['key' => 'sales.customer_receivables', 'name' => 'Customer Receivables', 'module' => 'Sales', 'prefixes' => ['sales.customer-receivables.']],
+            ['key' => 'sales.returns', 'name' => 'Sales Returns', 'module' => 'Sales', 'prefixes' => ['sales.returns.']],
             ['key' => 'purchase.orders', 'name' => 'Purchase Orders', 'module' => 'Purchasing', 'prefixes' => ['purchase.orders.']],
             ['key' => 'purchase.receipts', 'name' => 'Purchase Receipts', 'module' => 'Purchasing', 'prefixes' => ['purchase.receipts.']],
             ['key' => 'purchase.returns', 'name' => 'Purchase Returns', 'module' => 'Purchasing', 'prefixes' => ['purchase.returns.']],

@@ -236,9 +236,9 @@ Receipt      Adjustment      Production   Stock Count
 | --- | --- | --- | --- |
 | **Complete:** Finished-good search/API | Adapt existing POS search | Item + inventory balance | POS/wholesale screen |
 | **Complete:** POS sale | Adapt existing POS UX | New stock service | Inventory + payment + journal |
-| Wholesale sale | Adapt sales invoice pattern | New stock service | Inventory + customer due |
+| **Complete:** Wholesale sale | Adapt sales invoice pattern | New stock service | Inventory + customer due |
 | **Complete (POS):** Payment/due | Adapt existing payment logic | Accounts/customer | Finance |
-| Sale return | Adapt existing return pattern | Sale + inventory | Stock IN/refund |
+| **Complete:** Sale return | Adapt existing return pattern | Sale + inventory | Stock IN/refund + Finance reversal |
 | **Complete (POS thermal):** Invoice/print | Reuse print layout patterns | Sale data | Operations |
 
 **Approved interface architecture**

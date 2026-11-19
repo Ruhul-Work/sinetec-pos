@@ -86,6 +86,11 @@ class Sale extends Model
         return $this->hasMany(CustomerReceipt::class);
     }
 
+    public function returns(): HasMany
+    {
+        return $this->hasMany(SaleReturn::class);
+    }
+
     public function createdBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');

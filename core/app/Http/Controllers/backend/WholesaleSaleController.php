@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers\backend;
 
 use App\Enums\Sales\SaleChannel;
@@ -38,8 +37,8 @@ class WholesaleSaleController extends Controller
 
     public function listAjax(Request $request): JsonResponse
     {
-        $status = strtoupper(trim((string) $request->input('status')));
-        $search = trim((string) $request->input('search.value'));
+        $status     = strtoupper(trim((string) $request->input('status')));
+        $search     = trim((string) $request->input('search.value'));
         $lineCounts = DB::table('sale_items')
             ->selectRaw('sale_id, COUNT(*) as line_count')
             ->groupBy('sale_id');
@@ -54,7 +53,7 @@ class WholesaleSaleController extends Controller
             ->where('sale.channel', SaleChannel::Wholesale->value)
             ->when(
                 current_branch_id(),
-                fn (Builder $builder, int $branchId) => $builder->where('sale.branch_id', $branchId),
+                fn(Builder $builder, int $branchId) => $builder->where('sale.branch_id', $branchId),
             )
             ->select([
                 'sale.id',
@@ -86,8 +85,8 @@ class WholesaleSaleController extends Controller
         }
 
         $filtered = (clone $query)->count();
-        $length = min(max((int) $request->input('length', 10), 1), 1000);
-        $rows = $query
+        $length   = min(max((int) $request->input('length', 10), 1), 1000);
+        $rows     = $query
             ->orderByDesc('sale.id')
             ->skip(max((int) $request->input('start', 0), 0))
             ->take($length)
@@ -95,53 +94,53 @@ class WholesaleSaleController extends Controller
         $user = $request->user();
 
         $data = $rows->map(function (object $row) use ($user): array {
-            $status = SaleStatus::from($row->status);
+            $status      = SaleStatus::from($row->status);
             $actionClass = 'w-32-px h-32-px rounded-circle d-inline-flex '
-                .'align-items-center justify-content-center';
+                . 'align-items-center justify-content-center';
             $actions = '<div class="d-inline-flex justify-content-end align-items-center gap-1 w-100">';
 
             if ($user?->canDo('sales.wholesale.show', 'show')) {
-                $actions .= '<a href="'.e(route('sales.wholesale.show', $row->id)).'" '
-                    .'class="'.$actionClass.' bg-info-focus text-info-main" title="View">'
-                    .'<iconify-icon icon="mdi:eye-outline"></iconify-icon></a>';
+                $actions .= '<a href="' . e(route('sales.wholesale.show', $row->id)) . '" '
+                    . 'class="' . $actionClass . ' bg-info-focus text-info-main" title="View">'
+                    . '<iconify-icon icon="mdi:eye-outline"></iconify-icon></a>';
             }
             if ($status === SaleStatus::Draft && $user?->canDo('sales.wholesale.edit', 'edit')) {
-                $actions .= '<a href="'.e(route('sales.wholesale.edit', $row->id)).'" '
-                    .'class="'.$actionClass.' bg-success-focus text-success-main" title="Edit">'
-                    .'<iconify-icon icon="lucide:edit"></iconify-icon></a>';
+                $actions .= '<a href="' . e(route('sales.wholesale.edit', $row->id)) . '" '
+                    . 'class="' . $actionClass . ' bg-success-focus text-success-main" title="Edit">'
+                    . '<iconify-icon icon="lucide:edit"></iconify-icon></a>';
             }
             if ($status === SaleStatus::Draft && $user?->canDo('sales.wholesale.destroy', 'delete')) {
-                $actions .= '<button type="button" data-url="'.e(route('sales.wholesale.destroy', $row->id)).'" '
-                    .'class="btn '.$actionClass.' bg-danger-focus text-danger-main btn-wholesale-delete" title="Delete">'
-                    .'<iconify-icon icon="solar:trash-bin-minimalistic-outline"></iconify-icon></button>';
+                $actions .= '<button type="button" data-url="' . e(route('sales.wholesale.destroy', $row->id)) . '" '
+                    . 'class="btn ' . $actionClass . ' bg-danger-focus text-danger-main btn-wholesale-delete" title="Delete">'
+                    . '<iconify-icon icon="solar:trash-bin-minimalistic-outline"></iconify-icon></button>';
             }
             if ($status === SaleStatus::Posted && $user?->canDo('sales.wholesale.invoice', 'view')) {
-                $actions .= '<a href="'.e(route('sales.wholesale.invoice', $row->id)).'" target="_blank" '
-                    .'class="'.$actionClass.' bg-success-focus text-success-main" title="Print Invoice">'
-                    .'<iconify-icon icon="mdi:printer-outline"></iconify-icon></a>';
+                $actions .= '<a href="' . e(route('sales.wholesale.invoice', $row->id)) . '" target="_blank" '
+                    . 'class="' . $actionClass . ' bg-success-focus text-success-main" title="Print Invoice">'
+                    . '<iconify-icon icon="mdi:printer-outline"></iconify-icon></a>';
             }
 
             return [
                 $row->id,
-                '<a class="fw-semibold text-primary-600" href="'.e(route('sales.wholesale.show', $row->id)).'">'
-                    .e($row->sale_no).'</a>',
+                '<a class="fw-semibold text-primary-600" href="' . e(route('sales.wholesale.show', $row->id)) . '">'
+                . e($row->sale_no) . '</a>',
                 e(Carbon::parse($row->sale_at)->format('d M Y')),
                 e($row->customer_name),
                 e($row->customer_reference ?: '—'),
-                e($row->warehouse_name).'<br><small>'.e($row->branch_name).'</small>',
-                '<span class="d-block text-center">'.(int) $row->line_count.'</span>',
-                '<span class="d-block text-end fw-semibold">'.number_format((float) $row->total, 2).'</span>',
+                e($row->warehouse_name) . '<br><small>' . e($row->branch_name) . '</small>',
+                '<span class="d-block text-center">' . (int) $row->line_count . '</span>',
+                '<span class="d-block text-end fw-semibold">' . number_format((float) $row->total, 2) . '</span>',
                 $this->statusBadge($status),
                 $this->paymentStatusBadge($status, (string) $row->paid_amount, (string) $row->due_amount),
-                $actions.'</div>',
+                $actions . '</div>',
             ];
         })->all();
 
         return response()->json([
-            'draw' => (int) $request->input('draw'),
-            'iTotalRecords' => $total,
+            'draw'                 => (int) $request->input('draw'),
+            'iTotalRecords'        => $total,
             'iTotalDisplayRecords' => $filtered,
-            'aaData' => $data,
+            'aaData'               => $data,
         ]);
     }
 
@@ -169,11 +168,11 @@ class WholesaleSaleController extends Controller
                 );
             }
         } catch (
-            InvalidSaleException|
-            InvalidSaleCheckoutException|
-            FinanceConfigurationException|
-            InvalidJournalDraftException|
-            JournalWorkflowException|
+            InvalidSaleException |
+            InvalidSaleCheckoutException |
+            FinanceConfigurationException |
+            InvalidJournalDraftException |
+            JournalWorkflowException |
             StockPostingException $exception
         ) {
             return back()->withInput()->with('error', $exception->getMessage());
@@ -191,7 +190,7 @@ class WholesaleSaleController extends Controller
         $sale = $this->record($wholesaleSale);
 
         return view('backend.modules.wholesale_sale.show', [
-            'sale' => $sale,
+            'sale'    => $sale,
             'journal' => JournalEntry::query()
                 ->with('voucherType')
                 ->where('source_type', 'sale')
@@ -227,11 +226,11 @@ class WholesaleSaleController extends Controller
                 );
             }
         } catch (
-            InvalidSaleException|
-            InvalidSaleCheckoutException|
-            FinanceConfigurationException|
-            InvalidJournalDraftException|
-            JournalWorkflowException|
+            InvalidSaleException |
+            InvalidSaleCheckoutException |
+            FinanceConfigurationException |
+            InvalidJournalDraftException |
+            JournalWorkflowException |
             StockPostingException $exception
         ) {
             return back()->withInput()->with('error', $exception->getMessage());
@@ -276,10 +275,10 @@ class WholesaleSaleController extends Controller
                 (int) $request->user()?->id,
             );
         } catch (
-            InvalidSaleCheckoutException|
-            FinanceConfigurationException|
-            InvalidJournalDraftException|
-            JournalWorkflowException|
+            InvalidSaleCheckoutException |
+            FinanceConfigurationException |
+            InvalidJournalDraftException |
+            JournalWorkflowException |
             StockPostingException $exception
         ) {
             return back()->with('error', $exception->getMessage());
@@ -301,9 +300,9 @@ class WholesaleSaleController extends Controller
     public function products(Request $request): JsonResponse
     {
         $warehouse = $this->availableWarehouse((int) $request->input('warehouse_id'));
-        $search = trim((string) $request->input('q'));
-        $page = max((int) $request->input('page', 1), 1);
-        $perPage = 30;
+        $search    = trim((string) $request->input('q'));
+        $page      = max((int) $request->input('page', 1), 1);
+        $perPage   = 30;
 
         $query = DB::table('finished_products as product')
             ->join('units as unit', 'unit.id', '=', 'product.base_unit_id')
@@ -323,7 +322,7 @@ class WholesaleSaleController extends Controller
                 });
             });
 
-        $total = (clone $query)->count();
+        $total   = (clone $query)->count();
         $results = $query
             ->orderBy('product.name')
             ->skip(($page - 1) * $perPage)
@@ -336,12 +335,12 @@ class WholesaleSaleController extends Controller
                 'unit.code as unit_code',
                 DB::raw('COALESCE(stock.quantity, 0) as stock_quantity'),
             ])
-            ->map(fn (object $product): array => [
-                'id' => (int) $product->id,
-                'text' => $product->name.' ('.$product->product_code.')',
-                'name' => $product->name,
-                'code' => $product->product_code,
-                'stock_quantity' => $this->formatQuantity($product->stock_quantity),
+            ->map(fn(object $product): array=> [
+                'id'              => (int) $product->id,
+                'text'            => $product->name . ' (' . $product->product_code . ')',
+                'name'            => $product->name,
+                'code'            => $product->product_code,
+                'stock_quantity'  => $this->formatQuantity($product->stock_quantity),
                 'stock_unit_code' => $product->unit_code,
                 'wholesale_price' => $product->wholesale_price === null
                     ? null
@@ -349,7 +348,7 @@ class WholesaleSaleController extends Controller
             ]);
 
         return response()->json([
-            'results' => $results,
+            'results'    => $results,
             'pagination' => ['more' => $page * $perPage < $total],
         ]);
     }
@@ -371,12 +370,12 @@ class WholesaleSaleController extends Controller
         abort_unless($product, 404);
 
         $basePrice = $product->wholesale_price === null ? null : (string) $product->wholesale_price;
-        $results = collect([[
-            'id' => (int) $product->unit_id,
-            'text' => $product->unit_name.' ('.$product->unit_code.') — Base unit',
-            'precision' => (int) $product->precision,
+        $results   = collect([[
+            'id'                 => (int) $product->unit_id,
+            'text'               => $product->unit_name . ' (' . $product->unit_code . ') — Base unit',
+            'precision'          => (int) $product->precision,
             'conversion_to_base' => '1.000000',
-            'default_price' => $basePrice === null ? null : number_format((float) $basePrice, 2, '.', ''),
+            'default_price'      => $basePrice === null ? null : number_format((float) $basePrice, 2, '.', ''),
         ]])->concat(
             DB::table('finished_product_units as mapping')
                 ->join('units as unit', 'unit.id', '=', 'mapping.unit_id')
@@ -392,13 +391,13 @@ class WholesaleSaleController extends Controller
                     'unit.precision',
                     'mapping.conversion_to_base',
                 ])
-                ->map(fn (object $unit): array => [
-                    'id' => (int) $unit->id,
-                    'text' => $unit->name.' ('.$unit->code.') — 1 '.$unit->code.' = '
-                        .$this->formatQuantity($unit->conversion_to_base).' base',
-                    'precision' => (int) $unit->precision,
+                ->map(fn(object $unit): array=> [
+                    'id'                 => (int) $unit->id,
+                    'text'               => $unit->name . ' (' . $unit->code . ') — 1 ' . $unit->code . ' = '
+                    . $this->formatQuantity($unit->conversion_to_base) . ' base',
+                    'precision'          => (int) $unit->precision,
                     'conversion_to_base' => (string) $unit->conversion_to_base,
-                    'default_price' => $basePrice === null
+                    'default_price'      => $basePrice === null
                         ? null
                         : number_format((float) $basePrice * (float) $unit->conversion_to_base, 2, '.', ''),
                 ]),
@@ -417,7 +416,7 @@ class WholesaleSaleController extends Controller
             ->where('branch.is_active', true)
             ->when(
                 current_branch_id(),
-                fn (Builder $query, int $branchId) => $query->where('warehouse.branch_id', $branchId),
+                fn(Builder $query, int $branchId) => $query->where('warehouse.branch_id', $branchId),
             )
             ->orderBy('branch.name')
             ->orderBy('warehouse.name')
@@ -446,7 +445,7 @@ class WholesaleSaleController extends Controller
             ->whereNull('branch.deleted_at')
             ->when(
                 current_branch_id(),
-                fn (Builder $query, int $branchId) => $query->where('branch_account.branch_id', $branchId),
+                fn(Builder $query, int $branchId) => $query->where('branch_account.branch_id', $branchId),
             )
             ->orderBy('branch.name')
             ->orderBy('account.code')
@@ -459,10 +458,10 @@ class WholesaleSaleController extends Controller
             ]);
 
         return view('backend.modules.wholesale_sale.form', [
-            'sale' => $sale,
-            'items' => $sale ? $this->documentItems($sale) : [],
-            'warehouses' => $warehouses,
-            'customers' => $customers,
+            'sale'         => $sale,
+            'items'        => $sale ? $this->documentItems($sale) : [],
+            'warehouses'   => $warehouses,
+            'customers'    => $customers,
             'paymentTypes' => $paymentTypes,
             'cashAccounts' => $cashAccounts,
         ]);
@@ -472,7 +471,7 @@ class WholesaleSaleController extends Controller
     private function validated(Request $request): array
     {
         return $request->validate([
-            'warehouse_id' => [
+            'warehouse_id'                => [
                 'required',
                 'integer',
                 Rule::exists('warehouses', 'id')->where(function ($query): void {
@@ -482,46 +481,46 @@ class WholesaleSaleController extends Controller
                     }
                 }),
             ],
-            'customer_id' => [
+            'customer_id'                 => [
                 'required',
                 'integer',
                 Rule::exists('customers', 'id')
-                    ->where(fn ($query) => $query->whereNull('deleted_at')->where('is_active', true)),
+                    ->where(fn($query) => $query->whereNull('deleted_at')->where('is_active', true)),
             ],
-            'customer_reference' => ['nullable', 'string', 'max:100'],
-            'sale_at' => ['required', 'date'],
-            'due_date' => ['required', 'date'],
-            'discount_type' => ['required', Rule::in(['FLAT', 'PERCENT'])],
-            'discount_value' => [
+            'customer_reference'          => ['nullable', 'string', 'max:100'],
+            'sale_at'                     => ['required', 'date'],
+            'due_date'                    => ['required', 'date'],
+            'discount_type'               => ['required', Rule::in(['FLAT', 'PERCENT'])],
+            'discount_value'              => [
                 'required',
                 'numeric',
                 'min:0',
                 Rule::when($request->input('discount_type') === 'PERCENT', ['max:100']),
             ],
-            'tax' => ['nullable', 'numeric', 'min:0', 'max:9999999999999999.9999'],
-            'note' => ['nullable', 'string', 'max:5000'],
-            'review' => ['nullable', 'boolean'],
-            'payments' => [Rule::excludeIf(! $request->boolean('review')), 'nullable', 'array'],
-            'payments.*.payment_type_id' => [Rule::excludeIf(! $request->boolean('review')), 'required', 'integer'],
-            'payments.*.account_id' => [Rule::excludeIf(! $request->boolean('review')), 'required', 'integer'],
-            'payments.*.amount' => [
+            'tax'                         => ['nullable', 'numeric', 'min:0', 'max:9999999999999999.9999'],
+            'note'                        => ['nullable', 'string', 'max:5000'],
+            'review'                      => ['nullable', 'boolean'],
+            'payments'                    => [Rule::excludeIf(! $request->boolean('review')), 'nullable', 'array'],
+            'payments.*.payment_type_id'  => [Rule::excludeIf(! $request->boolean('review')), 'required', 'integer'],
+            'payments.*.account_id'       => [Rule::excludeIf(! $request->boolean('review')), 'required', 'integer'],
+            'payments.*.amount'           => [
                 Rule::excludeIf(! $request->boolean('review')),
                 'required',
                 'numeric',
                 'gt:0',
                 'max:9999999999999999.9999',
             ],
-            'payments.*.reference_no' => [
+            'payments.*.reference_no'     => [
                 Rule::excludeIf(! $request->boolean('review')),
                 'nullable',
                 'string',
                 'max:100',
             ],
-            'items' => ['required', 'array', 'min:1'],
+            'items'                       => ['required', 'array', 'min:1'],
             'items.*.finished_product_id' => ['required', 'integer', 'min:1'],
-            'items.*.unit_id' => ['required', 'integer', 'min:1'],
-            'items.*.quantity' => ['required', 'numeric', 'gt:0', 'max:99999999999999.999999'],
-            'items.*.unit_price' => ['required', 'numeric', 'gt:0', 'max:9999999999999999.9999'],
+            'items.*.unit_id'             => ['required', 'integer', 'min:1'],
+            'items.*.quantity'            => ['required', 'numeric', 'gt:0', 'max:99999999999999.999999'],
+            'items.*.unit_price'          => ['required', 'numeric', 'gt:0', 'max:9999999999999999.9999'],
         ]);
     }
 
@@ -529,16 +528,16 @@ class WholesaleSaleController extends Controller
     private function header(array $data): array
     {
         return [
-            'channel' => SaleChannel::Wholesale->value,
-            'warehouse_id' => $data['warehouse_id'],
-            'customer_id' => $data['customer_id'],
+            'channel'            => SaleChannel::Wholesale->value,
+            'warehouse_id'       => $data['warehouse_id'],
+            'customer_id'        => $data['customer_id'],
             'customer_reference' => $data['customer_reference'] ?? null,
-            'sale_at' => $data['sale_at'],
-            'due_date' => $data['due_date'],
-            'discount_type' => $data['discount_type'],
-            'discount_value' => $data['discount_value'],
-            'tax' => $data['tax'] ?? 0,
-            'note' => $data['note'] ?? null,
+            'sale_at'            => $data['sale_at'],
+            'due_date'           => $data['due_date'],
+            'discount_type'      => $data['discount_type'],
+            'discount_value'     => $data['discount_value'],
+            'tax'                => $data['tax'] ?? 0,
+            'note'               => $data['note'] ?? null,
         ];
     }
 
@@ -549,7 +548,7 @@ class WholesaleSaleController extends Controller
             ->where('channel', SaleChannel::Wholesale->value)
             ->when(
                 current_branch_id(),
-                fn ($query, int $branchId) => $query->where('branch_id', $branchId),
+                fn($query, int $branchId) => $query->where('branch_id', $branchId),
             )
             ->with([
                 'branch',
@@ -580,14 +579,14 @@ class WholesaleSaleController extends Controller
         return $sale->items->map(function ($item) use ($stockByProduct): array {
             return [
                 'finished_product_id' => $item->finished_product_id,
-                'item_text' => $item->finishedProduct->name.' ('.$item->finishedProduct->product_code.')',
-                'stock_quantity' => $this->formatQuantity($stockByProduct->get($item->finished_product_id, 0)),
-                'stock_unit_code' => $item->finishedProduct->baseUnit->code,
-                'unit_id' => $item->unit_id,
-                'unit_text' => $item->unit->name.' ('.$item->unit->code.')',
-                'quantity' => $this->formatQuantity($item->quantity),
-                'unit_price' => number_format((float) $item->unit_price, 2, '.', ''),
-                'line_total' => number_format((float) $item->line_total, 2, '.', ''),
+                'item_text'           => $item->finishedProduct->name . ' (' . $item->finishedProduct->product_code . ')',
+                'stock_quantity'      => $this->formatQuantity($stockByProduct->get($item->finished_product_id, 0)),
+                'stock_unit_code'     => $item->finishedProduct->baseUnit->code,
+                'unit_id'             => $item->unit_id,
+                'unit_text'           => $item->unit->name . ' (' . $item->unit->code . ')',
+                'quantity'            => $this->formatQuantity($item->quantity),
+                'unit_price'          => number_format((float) $item->unit_price, 2, '.', ''),
+                'line_total'          => number_format((float) $item->line_total, 2, '.', ''),
             ];
         })->all();
     }
@@ -603,7 +602,7 @@ class WholesaleSaleController extends Controller
             ->where('branch.is_active', true)
             ->when(
                 current_branch_id(),
-                fn (Builder $query, int $branchId) => $query->where('warehouse.branch_id', $branchId),
+                fn(Builder $query, int $branchId) => $query->where('warehouse.branch_id', $branchId),
             )
             ->first(['warehouse.id', 'warehouse.branch_id']);
         abort_unless($warehouse, 404);
@@ -614,14 +613,14 @@ class WholesaleSaleController extends Controller
     private function statusBadge(SaleStatus $status): string
     {
         $class = match ($status) {
-            SaleStatus::Draft => 'bg-dark-warning-gradient',
+            SaleStatus::Draft       => 'bg-dark-warning-gradient',
             SaleStatus::ReadyToPost => 'bg-dark-info-gradient',
-            SaleStatus::Posted => 'bg-dark-success-gradient',
-            SaleStatus::Void => 'bg-dark-danger-gradient',
+            SaleStatus::Posted      => 'bg-dark-success-gradient',
+            SaleStatus::Void        => 'bg-dark-danger-gradient',
         };
 
-        return '<span class="badge text-sm fw-semibold '.$class.' px-12 py-7 radius-4 text-white">'
-            .e($status->label()).'</span>';
+        return '<span class="badge text-sm fw-semibold ' . $class . ' px-12 py-7 radius-4 text-white">'
+        . e($status->label()) . '</span>';
     }
 
     private function paymentStatusBadge(SaleStatus $status, string $paid, string $due): string
@@ -638,7 +637,7 @@ class WholesaleSaleController extends Controller
             [$label, $class] = ['Unpaid', 'bg-danger-focus text-danger-600'];
         }
 
-        return '<span class="badge '.$class.' px-10 py-6 radius-4">'.$label.'</span>';
+        return '<span class="badge ' . $class . ' px-10 py-6 radius-4">' . $label . '</span>';
     }
 
     private function formatQuantity(mixed $quantity): string

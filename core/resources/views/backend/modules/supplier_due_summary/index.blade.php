@@ -31,7 +31,7 @@
       </div>
     </div>
     <div class="card-body">
-      <table class="table bordered-table table-scroll mb-0 AjaxDataTable" id="supplierDueTable" style="width:100%">
+      <table class="table bordered-table table-scroll mb-0 AjaxDataTable supplier-due-summary-table" id="supplierDueTable" style="width:100%">
         <thead>
           <tr>
             <th>S.L</th>

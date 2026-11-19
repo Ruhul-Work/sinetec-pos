@@ -35,6 +35,8 @@
           <option value="cash_bank_transfer">Cash / Bank Transfer</option>
           <option value="fiscal_year_closing">Fiscal Year Closing</option>
           <option value="part_production_batch">Part Production</option>
+          <option value="sale_return">Sales Return</option>
+          <option value="expense">Expense Payment</option>
           <option value="journal_reversal">Journal Reversal</option>
         </select>
         <select id="journalStatusFilter" class="form-select form-select-sm w-auto">

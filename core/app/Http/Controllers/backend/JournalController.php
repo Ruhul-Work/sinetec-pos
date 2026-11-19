@@ -19,6 +19,7 @@ use App\Models\Production\PartProductionBatch;
 use App\Models\Purchase\PurchasePayment;
 use App\Models\Purchase\PurchaseReceipt;
 use App\Models\Purchase\PurchaseReturn;
+use App\Models\Sales\SaleReturn;
 use App\Services\Finance\JournalWorkflowService;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Http\JsonResponse;
@@ -92,6 +93,8 @@ class JournalController extends Controller
             'cash_bank_transfer',
             'fiscal_year_closing',
             'part_production_batch',
+            'sale_return',
+            'expense',
             'journal_reversal',
         ];
 
@@ -236,6 +239,7 @@ class JournalController extends Controller
         $transferIds = collect($rows)->where('source_type', 'cash_bank_transfer')->pluck('source_id')->filter()->unique();
         $closingIds = collect($rows)->where('source_type', 'fiscal_year_closing')->pluck('source_id')->filter()->unique();
         $partProductionIds = collect($rows)->where('source_type', 'part_production_batch')->pluck('source_id')->filter()->unique();
+        $saleReturnIds = collect($rows)->where('source_type', 'sale_return')->pluck('source_id')->filter()->unique();
         $expenseIds = collect($rows)->where('source_type', 'expense')->pluck('source_id')->filter()->unique();
 
         return [
@@ -249,6 +253,7 @@ class JournalController extends Controller
             'cash_bank_transfer' => CashBankTransfer::query()->whereIn('id', $transferIds)->get(['id', 'transfer_no'])->keyBy('id')->all(),
             'fiscal_year_closing' => FiscalYearClosing::query()->whereIn('id', $closingIds)->get(['id', 'closing_no'])->keyBy('id')->all(),
             'part_production_batch' => PartProductionBatch::query()->whereIn('id', $partProductionIds)->get(['id', 'batch_no'])->keyBy('id')->all(),
+            'sale_return' => SaleReturn::query()->whereIn('id', $saleReturnIds)->get(['id', 'return_no'])->keyBy('id')->all(),
             'expense' => Expense::query()->whereIn('id', $expenseIds)->get(['id', 'expense_no'])->keyBy('id')->all(),
             'journal_reversal' => JournalEntry::query()
                 ->whereIn(
@@ -280,6 +285,7 @@ class JournalController extends Controller
             'cash_bank_transfer' => ['Cash / Bank Transfer', $record?->transfer_no ?? '#'.$id, $record ? route('finance.cash-bank-transfers.show', $id) : null],
             'fiscal_year_closing' => ['Fiscal Year Closing', $record?->closing_no ?? '#'.$id, $record ? route('finance.fiscal-year-closings.show', $id) : null],
             'part_production_batch' => ['Part Production', $record?->batch_no ?? '#'.$id, $record ? route('production.part-productions.show', $id) : null],
+            'sale_return' => ['Sales Return', $record?->return_no ?? '#'.$id, $record ? route('sales.returns.show', $id) : null],
             'expense' => ['Expense Payment', $record?->expense_no ?? '#'.$id, $record ? route('finance.expenses.show', $id) : null],
             'journal_reversal' => ['Journal Reversal', $record?->voucher_no ?? '#'.$id, $record ? route('finance.journals.show', $id) : null],
             default => [str($type ?: 'Manual')->replace('_', ' ')->title()->toString(), '#'.$id, null],

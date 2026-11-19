@@ -46,6 +46,7 @@ final class FinanceFoundationService
         'PURCHASE_RETURN' => 'Purchase Return Voucher',
         'RECEIPT' => 'Receipt Voucher',
         'SALE' => 'Sale Voucher',
+        'SALE_RETURN' => 'Sale Return Voucher',
     ];
 
     private const DEFAULT_MAPPINGS = [

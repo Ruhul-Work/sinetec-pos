@@ -39,6 +39,7 @@ use App\Http\Controllers\backend\PartReorderLevelController;
 use App\Http\Controllers\backend\PartSupplierController;
 use App\Http\Controllers\backend\PaymentTypeController;
 use App\Http\Controllers\backend\PosSaleController;
+use App\Http\Controllers\backend\SaleReturnController;
 use App\Http\Controllers\backend\ProductionExpenseCategoryController;
 use App\Http\Controllers\backend\PurchaseOrderController;
 use App\Http\Controllers\backend\PurchasePaymentController;
@@ -549,6 +550,26 @@ Route::middleware(['web', 'auth', 'perm', 'branchscope'])->group(function () {
             Route::get('receipts/{customerReceipt}/print', 'receipt')
                 ->whereNumber('customerReceipt')
                 ->name('receipt');
+        });
+
+    Route::prefix('sales/returns')
+        ->name('sales.returns.')
+        ->controller(SaleReturnController::class)
+        ->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::post('list', 'listAjax')->name('list.ajax');
+            Route::get('create', 'create')->name('create');
+            Route::post('/', 'store')->name('store');
+            Route::get('{saleReturn}', 'show')->whereNumber('saleReturn')->name('show');
+            Route::get('{saleReturn}/edit', 'edit')->whereNumber('saleReturn')->name('edit');
+            Route::put('{saleReturn}', 'update')->whereNumber('saleReturn')->name('update');
+            Route::get('{saleReturn}/post-modal', 'postModal')
+                ->whereNumber('saleReturn')
+                ->name('post-modal');
+            Route::post('{saleReturn}/post', 'post')
+                ->whereNumber('saleReturn')
+                ->name('post');
+            Route::delete('{saleReturn}', 'destroy')->whereNumber('saleReturn')->name('destroy');
         });
 
     Route::prefix('supplier')->name('supplier.')->group(function () {

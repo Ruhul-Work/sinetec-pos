@@ -233,6 +233,7 @@ project: Sinetec POS
 
 **Total:** 8 hours
 
+
 ---
 
 ## Date: 2026-11-10
@@ -346,3 +347,19 @@ project: Sinetec POS
 **Total:** 8 hours
 
 
+---
+
+## Date: 2026-11-18
+
+**ID:** BFT4
+
+project: Sinetec POS
+
+1. Sales Return schema, posting totals, refund/due audit fields, voucher setup and typed Draft/Posted models — 1 hour
+2. Branch-scoped Sales Return routes, permissions, list/create/edit/details screens and source-sale navigation — 1.25 hours
+3. Draft return validation using original Sale rates/units, proportional discount/tax reversal and cumulative returnable-quantity limits — 1.25 hours
+4. Controlled return posting with atomic Finished Product stock IN, due-first adjustment, split Cash/Bank/MFS refunds and balanced Finance reversal — 1.5 hours
+5. Wholesale Sales, Customer Receivables and Journal source integration for return records — 45 min
+6. Sales Return feature tests for Draft safety, pricing, quantity limits, stock/refund posting, receivable adjustment and routes; status/roadmap documentation update — 1 hour
+
+**Total:** 6.75 hours

@@ -30,6 +30,7 @@ final class JournalWorkflowService
         'fiscal_year_closing',
         'expense',
         'sale',
+        'sale_return',
         'customer_receipt',
     ];
 

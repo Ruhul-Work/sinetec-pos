@@ -204,6 +204,48 @@ class SaleDraftServiceTest extends TestCase
         $this->assertStringNotContainsString('pos-catalog-grid', $html);
     }
 
+    public function test_customer_receivable_uses_the_wholesale_details_route_for_wholesale_sales(): void
+    {
+        $setup = $this->setupSalesFoundation();
+        $customer = Customer::query()->create([
+            'code' => 'CUS-WHOLESALE-DUE',
+            'name' => 'Wholesale Due Customer',
+            'is_active' => true,
+        ]);
+        $sale = app(SaleDraftService::class)->createDraft(
+            [
+                'channel' => 'WHOLESALE',
+                'warehouse_id' => $setup['warehouse']->id,
+                'customer_id' => $customer->id,
+                'sale_at' => '2026-11-18 10:00:00',
+                'due_date' => '2026-12-18',
+            ],
+            [[
+                'finished_product_id' => $setup['product']->id,
+                'unit_id' => $setup['unit']->id,
+                'quantity' => '1',
+            ]],
+            null,
+        );
+        $sale->forceFill([
+            'status' => SaleStatus::Posted,
+            'paid_amount' => '0',
+            'due_amount' => $sale->total,
+        ])->save();
+
+        $response = app(CustomerReceivableController::class)->listAjax(
+            Request::create('/sales/customer-receivables/list', 'POST', [
+                'draw' => 1,
+                'start' => 0,
+                'length' => 10,
+            ]),
+        );
+        $row = $response->getData(true)['aaData'][0];
+
+        $this->assertStringContainsString("/sales/wholesale/{$sale->id}", $row[1]);
+        $this->assertStringNotContainsString("/sales/pos/{$sale->id}", $row[1]);
+    }
+
     public function test_quick_customer_modal_creates_an_active_pos_customer(): void
     {
         $controller = app(CustomerController::class);

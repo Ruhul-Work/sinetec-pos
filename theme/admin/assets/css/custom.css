@@ -3278,3 +3278,14 @@ html[data-theme="dark"] .account-ledger-summary-card--closing { border-left-colo
     }
 
 }
+
+.supplier-due-summary-table tbody td:nth-child(n + 3) {
+    text-align: right;
+}
+
+.stock-ledger-movements-table tbody td:nth-child(8),
+.stock-ledger-movements-table tbody td:nth-child(9),
+.stock-ledger-movements-table tbody td:nth-child(10),
+.stock-ledger-movements-table tbody td:nth-child(11) {
+    text-align: right;
+}

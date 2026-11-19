@@ -1,7 +1,7 @@
 # Electronics POS — Current Status and Next Actions
 
-**Status:** Purchasing, Finance and Production/Assembly are ready. POS, Customer Receivables and Wholesale Sales now share the controlled Sales posting engine; Sales Return is next.
-**Updated:** 17 November 2026
+**Status:** Purchasing, Finance and Production/Assembly are ready. POS, Customer Receivables and Wholesale Sales share the controlled Sales engine; Sales Return Draft is implemented and controlled posting is next.
+**Updated:** 18 November 2026
 
 ## 1. Current result
 
@@ -102,6 +102,7 @@ Old permission data points to removed routes. Permissions must be created from t
 - Generic and purchase-generated journals retain accountant approval/posting. POS is an explicit exception: Payment & Review first creates a `READY_TO_POST` document with Draft payment rows and no stock/Finance effect. `Confirm & Post Sale` then auto-posts its balanced Sales journal inside the same transaction as payment and stock posting, after which the 80mm thermal receipt is available.
 - Customer Receivables is independently permissioned and branch-scoped. POS lists now distinguish Paid, Partially Paid and Unpaid documents and expose direct receipt printing. A registered Customer due can be collected from Sale details or the consolidated Outstanding Dues list using split Cash/Bank/MFS payments. Collection creates a posted `customer_receipts` audit header, appends posted `sale_payments`, updates the Sale paid/due amounts, and atomically auto-posts a Receipt journal (Debit Cash/Bank/MFS, Credit Customer Receivable) without reposting stock or Sales revenue. The same screen retains Collection History and printable 80mm Customer Payment Receipts with due-before/due-after snapshots.
 - Wholesale Sales uses the same Draft, payment, stock and Finance services as POS while keeping a separate operator screen. It requires a registered Customer and due date; supports customer PO/reference, searchable compact product lines, negotiated rate, Flat/Percent document discount, split payment/full due, `DRAFT → READY_TO_POST → POSTED`, Customer Receivables collection and a printable A4 Wholesale invoice.
+- Sales Return is independently permissioned and branch-scoped for Posted POS and Wholesale Sales. Draft entry locks the source Sale, warehouse, Finished Product, selling unit and original rate, applies the original invoice's proportional discount/tax, and validates cumulative returnable quantity. Controlled posting atomically returns Finished Product stock, adjusts customer due before requiring a Cash/Bank/MFS refund, records split refund methods and auto-posts the balanced Sales Return journal. Drafts have no stock or Finance impact, while Posted returns are immutable.
 - General Expense Payments are independently permissioned and branch-scoped. Actual salary, electricity, rent, transport and other paid expenses use General Expense Categories and create controlled Draft journals against Cash/Bank. Production labour/power/packing/transport values remain batch-level estimates for costing and reporting only; production does not create a payable, payment voucher or Finance journal.
 - Test retained Supplier/Customer CSV imports against the clean schema.
 - Review public registration before production; unrestricted role selection must not be exposed.
@@ -153,7 +154,7 @@ Old permission data points to removed routes. Permissions must be created from t
 43. **Complete:** Add controlled `DRAFT → READY_TO_POST → POSTED` POS checkout. The review stage stores split Cash/Bank/MFS payment plans without stock/Finance effect, supports Back to Edit, Cash tender/change and registered-customer due, while final confirmation atomically posts Finished Product stock OUT, payments and the balanced Sales journal before opening an 80mm thermal receipt.
 44. **Complete:** Build branch-scoped Customer Receivables with Paid/Partial/Unpaid indicators, details/list collection entry, split payment, automatic Receivable settlement journal, collection history and printable Customer Payment Receipt.
 45. **Complete:** Build Wholesale Sales over the shared Sales engine with registered customer, due date/reference, compact searchable item entry, negotiated rate, split/partial payment, review-before-post, Customer Receivable integration and printable invoice.
-46. **Next:** Build Sales Return against Posted POS/Wholesale documents with original-rate validation, stock reversal and controlled Finance reversal.
+46. **Complete:** Build controlled Sales Return for POS and Wholesale with source/original-rate locking, cumulative return limits, proportional discount/tax reversal, atomic stock IN, due-first settlement, split customer refund and balanced auto-posted Finance reversal.
 
 ## 5. Implementation decision trace
 

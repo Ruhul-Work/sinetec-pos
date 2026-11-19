@@ -235,7 +235,7 @@
                 </li>
             @endpermgroup
 
-            @permgroup(['sales.pos', 'sales.wholesale', 'sales.customer_receivables'])
+            @permgroup(['sales.pos', 'sales.wholesale', 'sales.customer_receivables', 'sales.returns'])
                 <li class="sidebar-menu-group-title">Sales</li>
                 <li class="dropdown {{ Route::is('sales.*') ? 'active' : '' }}">
                     <a href="javascript:void(0)">
@@ -264,6 +264,14 @@
                                 <a class="{{ Route::is('sales.customer-receivables.*') ? 'active' : '' }}" href="{{ route('sales.customer-receivables.index') }}">
                                     <iconify-icon icon="mdi:account-cash-outline" class="menu-icon"></iconify-icon>
                                     <span>Customer Receivables</span>
+                                </a>
+                            </li>
+                        @endperm
+                        @perm('sales.returns.index')
+                            <li>
+                                <a class="{{ Route::is('sales.returns.*') ? 'active' : '' }}" href="{{ route('sales.returns.index') }}">
+                                    <iconify-icon icon="mdi:keyboard-return" class="menu-icon"></iconify-icon>
+                                    <span>Sales Returns</span>
                                 </a>
                             </li>
                         @endperm

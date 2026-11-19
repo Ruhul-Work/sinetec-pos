@@ -74,10 +74,13 @@ class SalesCodeQualityTest extends TestCase
             $root.'/app/Http/Controllers/backend/PosSaleController.php',
             $root.'/app/Http/Controllers/backend/WholesaleSaleController.php',
             $root.'/app/Http/Controllers/backend/CustomerReceivableController.php',
+            $root.'/app/Http/Controllers/backend/SaleReturnController.php',
+            $root.'/app/Services/Finance/SaleReturnJournalService.php',
             $root.'/app/Services/Finance/SalesJournalService.php',
             $root.'/app/Services/Sales/SaleDraftService.php',
             $root.'/app/Services/Sales/SaleCheckoutService.php',
             $root.'/app/Services/Sales/CustomerReceiptService.php',
+            $root.'/app/Services/Sales/SaleReturnService.php',
         ];
 
         foreach ([
@@ -97,7 +100,7 @@ class SalesCodeQualityTest extends TestCase
     private static function salesBladeFiles(): array
     {
         $files = [];
-        foreach (['pos_sale', 'wholesale_sale', 'customer_receivable'] as $module) {
+        foreach (['pos_sale', 'wholesale_sale', 'customer_receivable', 'sale_return'] as $module) {
             array_push(
                 $files,
                 ...self::phpFilesIn(
