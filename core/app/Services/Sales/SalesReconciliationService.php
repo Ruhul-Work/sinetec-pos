@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Services\Sales;
 
 use App\Enums\Sales\SaleReturnStatus;
@@ -25,17 +24,17 @@ final class SalesReconciliationService
     public function reconcile(array $filters): array
     {
         $report = [
-            'sales_checked' => 0,
-            'sales_with_issues' => 0,
-            'returns_checked' => 0,
+            'sales_checked'       => 0,
+            'sales_with_issues'   => 0,
+            'returns_checked'     => 0,
             'returns_with_issues' => 0,
-            'issues' => [],
+            'issues'              => [],
         ];
 
         $this->reconcileSales($filters, $report);
         $this->reconcileReturns($filters, $report);
 
-        usort($report['issues'], fn (array $left, array $right): int => strcmp($right['date'], $left['date']));
+        usort($report['issues'], fn(array $left, array $right): int => strcmp($right['date'], $left['date']));
 
         return $report;
     }
@@ -48,36 +47,36 @@ final class SalesReconciliationService
     {
         Sale::query()
             ->where('status', SaleStatus::Posted->value)
-            ->when($filters['branch_id'] ?? null, fn ($query, int $branchId) => $query->where('branch_id', $branchId))
+            ->when($filters['branch_id'] ?? null, fn($query, int $branchId) => $query->where('branch_id', $branchId))
             ->where(function ($query) use ($filters): void {
                 $query->where(function ($saleQuery) use ($filters): void {
                     $saleQuery
-                        ->when($filters['date_from'] ?? null, fn ($builder, string $date) => $builder->whereDate('sale_at', '>=', $date))
-                        ->when($filters['date_to'] ?? null, fn ($builder, string $date) => $builder->whereDate('sale_at', '<=', $date));
+                        ->when($filters['date_from'] ?? null, fn($builder, string $date) => $builder->whereDate('sale_at', '>=', $date))
+                        ->when($filters['date_to'] ?? null, fn($builder, string $date) => $builder->whereDate('sale_at', '<=', $date));
                 })
                     ->orWhereHas('returns', function ($returnQuery) use ($filters): void {
                         $returnQuery->where('status', SaleReturnStatus::Posted->value)
-                            ->when($filters['date_from'] ?? null, fn ($builder, string $date) => $builder->whereDate('return_at', '>=', $date))
-                            ->when($filters['date_to'] ?? null, fn ($builder, string $date) => $builder->whereDate('return_at', '<=', $date));
+                            ->when($filters['date_from'] ?? null, fn($builder, string $date) => $builder->whereDate('return_at', '>=', $date))
+                            ->when($filters['date_to'] ?? null, fn($builder, string $date) => $builder->whereDate('return_at', '<=', $date));
                     })
                     ->orWhereHas('customerReceipts', function ($receiptQuery) use ($filters): void {
                         $receiptQuery->where('status', 'POSTED')
-                            ->when($filters['date_from'] ?? null, fn ($builder, string $date) => $builder->whereDate('receipt_at', '>=', $date))
-                            ->when($filters['date_to'] ?? null, fn ($builder, string $date) => $builder->whereDate('receipt_at', '<=', $date));
+                            ->when($filters['date_from'] ?? null, fn($builder, string $date) => $builder->whereDate('receipt_at', '>=', $date))
+                            ->when($filters['date_to'] ?? null, fn($builder, string $date) => $builder->whereDate('receipt_at', '<=', $date));
                     });
             })
             ->with([
                 'items',
-                'payments' => fn ($query) => $query->where('status', 'POSTED'),
-                'returns' => fn ($query) => $query->where('status', SaleReturnStatus::Posted->value),
-                'customerReceipts' => fn ($query) => $query
+                'payments'         => fn($query)         => $query->where('status', 'POSTED'),
+                'returns'          => fn($query)          => $query->where('status', SaleReturnStatus::Posted->value),
+                'customerReceipts' => fn($query) => $query
                     ->where('status', 'POSTED')
-                    ->with(['payments' => fn ($payments) => $payments->where('status', 'POSTED')]),
+                    ->with(['payments' => fn($payments) => $payments->where('status', 'POSTED')]),
             ])
             ->orderBy('id')
             ->chunkById(100, function (EloquentCollection $sales) use (&$report): void {
-                $saleIds = $sales->modelKeys();
-                $receiptIds = $sales->flatMap(fn (Sale $sale) => $sale->customerReceipts->modelKeys())
+                $saleIds    = $sales->modelKeys();
+                $receiptIds = $sales->flatMap(fn(Sale $sale) => $sale->customerReceipts->modelKeys())
                     ->unique()
                     ->values()
                     ->all();
@@ -87,7 +86,7 @@ final class SalesReconciliationService
                     ->get()
                     ->groupBy('source_id');
                 $journals = $this->journalTotals([
-                    'sale' => $saleIds,
+                    'sale'             => $saleIds,
                     'customer_receipt' => $receiptIds,
                 ]);
 
@@ -120,12 +119,12 @@ final class SalesReconciliationService
                         $issues,
                     );
 
-                    $paymentTotal = $this->sum($sale->payments->pluck('amount'));
-                    $refundTotal = $this->sum($sale->returns->pluck('refund_amount'));
+                    $paymentTotal       = $this->sum($sale->payments->pluck('amount'));
+                    $refundTotal        = $this->sum($sale->returns->pluck('refund_amount'));
                     $dueAdjustmentTotal = $this->sum($sale->returns->pluck('due_adjustment'));
-                    $expectedPaid = bcsub($paymentTotal, $refundTotal, 4);
-                    $expectedDue = bcsub(
-                        bcadd(bcsub((string) $sale->total, $paymentTotal, 4), $refundTotal, 4),
+                    $expectedPaid       = bcsub($paymentTotal, $refundTotal, 4);
+                    $expectedDue        = bcsub(
+                        bcsub((string) $sale->total, $paymentTotal, 4),
                         $dueAdjustmentTotal,
                         4,
                     );
@@ -185,9 +184,9 @@ final class SalesReconciliationService
     {
         SaleReturn::query()
             ->where('status', SaleReturnStatus::Posted->value)
-            ->when($filters['branch_id'] ?? null, fn ($query, int $branchId) => $query->where('branch_id', $branchId))
-            ->when($filters['date_from'] ?? null, fn ($query, string $date) => $query->whereDate('return_at', '>=', $date))
-            ->when($filters['date_to'] ?? null, fn ($query, string $date) => $query->whereDate('return_at', '<=', $date))
+            ->when($filters['branch_id'] ?? null, fn($query, int $branchId) => $query->where('branch_id', $branchId))
+            ->when($filters['date_from'] ?? null, fn($query, string $date) => $query->whereDate('return_at', '>=', $date))
+            ->when($filters['date_to'] ?? null, fn($query, string $date) => $query->whereDate('return_at', '<=', $date))
             ->with(['items', 'payments', 'sale'])
             ->orderBy('id')
             ->chunkById(100, function (EloquentCollection $returns) use (&$report): void {
@@ -286,12 +285,12 @@ final class SalesReconciliationService
         array &$issues,
     ): void {
         $expectedItemIds = [];
-        $bySourceItem = $movements->groupBy('source_item_id');
+        $bySourceItem    = $movements->groupBy('source_item_id');
 
         foreach ($items as $item) {
-            $itemId = (int) $item->id;
+            $itemId            = (int) $item->id;
             $expectedItemIds[] = $itemId;
-            $itemMovements = $bySourceItem->get((string) $itemId, collect());
+            $itemMovements     = $bySourceItem->get((string) $itemId, collect());
 
             if ($itemMovements->isEmpty()) {
                 $issues[] = "{$documentLabel} line {$itemId} is missing its stock movement.";
@@ -330,7 +329,7 @@ final class SalesReconciliationService
      */
     private function journalTotals(array $sourceIds): array
     {
-        $sourceIds = array_filter($sourceIds, fn (array $ids): bool => $ids !== []);
+        $sourceIds = array_filter($sourceIds, fn(array $ids): bool => $ids !== []);
         if ($sourceIds === []) {
             return [];
         }
@@ -424,12 +423,12 @@ final class SalesReconciliationService
             $report['returns_with_issues']++;
         }
         $report['issues'][] = [
-            'type' => $type,
-            'number' => $number,
-            'date' => $date,
+            'type'         => $type,
+            'number'       => $number,
+            'date'         => $date,
             'related_sale' => $relatedSale,
-            'url' => $url,
-            'issues' => array_values(array_unique($issues)),
+            'url'          => $url,
+            'issues'       => array_values(array_unique($issues)),
         ];
     }
 
@@ -445,6 +444,6 @@ final class SalesReconciliationService
 
     private function sourceKey(string $sourceType, int $sourceId): string
     {
-        return $sourceType.':'.$sourceId;
+        return $sourceType . ':' . $sourceId;
     }
 }

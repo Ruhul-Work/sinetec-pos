@@ -1,13 +1,13 @@
 # Electronics POS — Development Roadmap
 
-**Status:** Active implementation roadmap; Sales/Return reconciliation is complete; Phase 7 reporting and supply planning are next
-**Version:** 1.9
+**Status:** Active implementation roadmap; Reporting hub, reconciliation, Reporting Period controls and the Monthly Rate Sheet workflow are complete; stock valuation and snapshots are next
+**Version:** 2.1
 **Updated:** 19 November 2026
-**Based on:** Project Plan v1.0 and Physical Database Design v2.1
+**Based on:** Project Plan v2.4 and Physical Database Design v2.4
 
 > **Decision override:** Any later reference in this document to a unified `inventory_item`, `inventory_movement`, or `inventory_balance` means the corresponding separate Raw Material, Part, and Finished Product masters/ledgers/balances. The unified-table proposal is cancelled.
 
-> **Current delivery position:** Phases 0-5 are complete. The purchase-related Finance foundation and accountant workflow from Phase 6 were completed early. Supplier/Customer masters use reusable modal CRUD and protected master lists. Finished Product internal EAN-13 assignment, multi-product A4 label printing and read-only Sales/Return reconciliation are complete; Phase 7 reporting and supply planning are next.
+> **Current delivery position:** Phases 0-5 are complete. The purchase-related Finance foundation and accountant workflow from Phase 6 were completed early. Supplier/Customer masters use reusable modal CRUD and protected master lists. Finished Product internal EAN-13 assignment, multi-product A4 label printing, read-only Sales/Return reconciliation, audited Reporting Period Open/Close controls and a permission-filtered Reporting hub are complete; the company-wide Monthly Rate Sheet is next.
 
 ## 1. Roadmap objective
 
@@ -296,15 +296,15 @@ Receipt      Adjustment      Production   Stock Count
 - Void does not silently alter original document/stock; it follows approved correction flow.
 - Reconciliation highlights any posted stock document lacking a draft journal.
 
-### Phase 7 — Monthly rate sheet, reports, print and supply planning — Pending
+### Phase 7 — Monthly rate sheet, reports, print and supply planning — In progress
 
 **Why after transactions:** These features depend on trustworthy purchase, production, stock and sales history.
 
 | Build / adapt | Reuse or new | Depends on | Connects to |
 | --- | --- | --- | --- |
-| Reporting period open/close | New | Permissions | Rate sheet/report snapshots |
+| **Complete: Reporting period open/close** | Company-wide period controls with audited close/reopen and separate reopen permission | Permissions | Rate sheet/report snapshots |
 | Company-wide monthly rate sheet | New | Three inventory masters + purchase history | Valuation/reports/planning |
-| Current stock valuation | New report | Balance + active monthly rates | Management dashboard |
+| **In progress: Current stock valuation** | Read-only report using current positive balances and period-approved/locked rates | Balance + approved/locked monthly rate sheet | Management dashboard |
 | Monthly stock/purchase/production/sales reports | New queries, reuse print UI | All posted transactions + rates | Print/PDF |
 | Frozen report snapshot | New | Reporting period + rate sheet | Historical report integrity |
 | Demand plan | New | Sales history / manual target | MRP |
@@ -315,6 +315,8 @@ Receipt      Adjustment      Production   Stock Count
 
 `Open Reporting Month → Prepare/Approve Company Rate Sheet → Operate Normally → Generate Reports → Close Month → Lock Rate + Final Report Snapshots`
 
+Reporting Periods are company-wide calendar months. Each year/month can be created once; its first and last dates are derived by the application. A period can be closed only after its end date. Closing requires a reason and records the actor/time; reopening requires both period-view access and the separate reopen permission, a reason, and retains the full event history. This first delivery establishes the lifecycle; the upcoming Rate Sheet and report snapshot workflows must enforce the period state before they can be built.
+
 **Acceptance test**
 
 1. August rate/report stays unchanged after September/October rate update.
@@ -322,6 +324,7 @@ Receipt      Adjustment      Production   Stock Count
 3. A finished product made in August but sold in September appears in September report at September applicable rate.
 4. Demand plan expands finished-good demand through active BOM and subtracts available stock/safety level.
 5. Closed period blocks rate edit until authorised reopen.
+6. A period cannot be duplicated or closed/reopened from an invalid state; authorized reopen preserves prior close/reopen events.
 
 ### Phase 8 — Hardening, data migration, training and go-live — Pending
 
@@ -438,7 +441,11 @@ Receipt      Adjustment      Production   Stock Count
 53. **Complete:** Rebuild Supplier and Customer master lists around the same reusable modal CRUD used by Purchase/POS, with status filters, permission-aware actions and used-record delete protection.
 54. **Complete:** Build Finished Product internal EAN-13 assignment and multi-product A4 Label generation without storing generated barcode images. One barcode is persisted per product and repeated according to the requested label quantity.
 55. **Complete:** Build permissioned, branch/date-filtered Sales/Return reconciliation to verify Posted document totals, stock movements, payments/due/refunds and balanced source-linked journals without mutating data. Include related Posted Sales when a linked Return or Customer Receipt falls inside the selected range.
-56. **Next control:** Begin Phase 7 Reporting Period controls and the company-wide Monthly Rate Sheet.
+56. **Complete:** Implement company-wide Reporting Period Open/Close controls with calendar-derived dates, duplicate prevention, end-date-gated close, close/reopen reasons and actor/time history, and a distinct permission for reopening.
+57. **Complete:** Add a single-link Reporting hub with permission-filtered cards for implemented reports and Reporting Period controls.
+58. **Complete:** Clarify Wholesale invoice gross receipts, refunds, net paid and due as separate aligned values.
+59. **Complete:** Build the company-wide Monthly Rate Sheet with purchase-weighted Raw/Part suggestions, manual Finished-Product base rates, Draft/Approved/Locked status and Open-period edit protection.
+60. **Next control:** Build monthly stock valuation and frozen report snapshots.
 
 Finance account mapping, the generic Draft Journal engine and the authorised accountant workflow are complete. Purchase integration creates reviewable drafts; only approved, successfully revalidated journals can be posted.
 

@@ -7,8 +7,10 @@ use App\Enums\Sales\SaleReturnStatus;
 use App\Enums\Sales\SaleStatus;
 use App\Exceptions\Sales\InvalidSaleReturnException;
 use App\Http\Controllers\backend\SaleReturnController;
+use App\Http\Controllers\backend\WholesaleSaleController;
 use App\Models\backend\Account;
 use App\Models\backend\Branch;
+use App\Models\backend\Customer;
 use App\Models\backend\FinishedProduct;
 use App\Models\backend\FinishedProductCategory;
 use App\Models\backend\FiscalYear;
@@ -18,6 +20,7 @@ use App\Models\backend\Warehouse;
 use App\Models\Inventory\FinishedProductStockBalance;
 use App\Models\Sales\Sale;
 use App\Models\Sales\SaleItem;
+use App\Models\Sales\SalePayment;
 use App\Models\Sales\SaleReturn;
 use App\Services\Sales\SaleReturnService;
 use App\Services\Sales\SalesReconciliationService;
@@ -335,6 +338,74 @@ class SaleReturnServiceTest extends TestCase
         $this->assertDatabaseCount('journal_entries', 0);
     }
 
+    public function test_sales_reconciliation_does_not_add_cash_refunds_to_the_sale_due(): void
+    {
+        $setup = $this->setupPostedSale('2', '100');
+        $finance = $this->setupFinance($setup['branch']);
+        DB::table('sale_payments')->insert([
+            'payment_no' => 'PAY-RECON-001',
+            'sale_id' => $setup['sale']->id,
+            'customer_receipt_id' => null,
+            'payment_type_id' => $finance['payment_type_id'],
+            'account_id' => $finance['cash_account_id'],
+            'payment_at' => '2026-11-01 10:00:00',
+            'amount' => '200.0000',
+            'tendered_amount' => '200.0000',
+            'change_amount' => '0.0000',
+            'status' => 'POSTED',
+            'created_by' => $finance['user']->id,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        $saleReturn = SaleReturn::query()->create([
+            'return_no' => 'SRT-RECON-REFUND-001',
+            'sale_id' => $setup['sale']->id,
+            'branch_id' => $setup['branch']->id,
+            'warehouse_id' => $setup['warehouse']->id,
+            'return_at' => '2026-11-02 10:00:00',
+            'status' => SaleReturnStatus::Posted,
+            'subtotal' => '100',
+            'discount' => '0',
+            'tax' => '0',
+            'total' => '100',
+            'due_adjustment' => '0',
+            'refund_amount' => '100',
+            'reason' => 'Refund reconciliation test',
+        ]);
+        $saleReturn->items()->create([
+            'sale_item_id' => $setup['saleItem']->id,
+            'finished_product_id' => $setup['product']->id,
+            'unit_id' => $setup['unit']->id,
+            'quantity' => '1',
+            'base_quantity' => '1',
+            'unit_price' => '100',
+            'line_total' => '100',
+        ]);
+        DB::table('sale_return_payments')->insert([
+            'sale_return_id' => $saleReturn->id,
+            'payment_type_id' => $finance['payment_type_id'],
+            'account_id' => $finance['cash_account_id'],
+            'amount' => '100.0000',
+            'reference_no' => 'REFUND-RECON-001',
+            'created_by' => $finance['user']->id,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        $setup['sale']->update(['paid_amount' => '100', 'due_amount' => '0']);
+
+        $report = app(SalesReconciliationService::class)->reconcile([
+            'branch_id' => $setup['branch']->id,
+            'date_from' => '2026-11-02',
+            'date_to' => '2026-11-02',
+        ]);
+        $saleIssues = collect($report['issues'])->firstWhere('number', $setup['sale']->sale_no)['issues'];
+
+        $this->assertNotContains(
+            'Sale total, payments and return due adjustments do not match the current due amount.',
+            $saleIssues,
+        );
+    }
+
     public function test_selected_posted_sale_renders_returnable_invoice_lines(): void
     {
         $setup = $this->setupPostedSale('4', '125');
@@ -351,6 +422,61 @@ class SaleReturnServiceTest extends TestCase
         $this->assertStringContainsString('4 PCS', $html);
         $this->assertStringContainsString('max="4.000000"', $html);
         $this->assertStringContainsString('Maximum returnable quantity is 4 PCS.', $html);
+    }
+
+    public function test_wholesale_invoice_separates_received_payments_from_refunds(): void
+    {
+        $setup = $this->setupPostedSale('5', '100');
+        $finance = $this->setupFinance($setup['branch']);
+        $customer = Customer::query()->create([
+            'code' => 'CUS-WHOLESALE-REFUND',
+            'name' => 'Wholesale Refund Customer',
+            'is_active' => true,
+        ]);
+        $setup['sale']->update([
+            'channel' => SaleChannel::Wholesale,
+            'customer_id' => $customer->id,
+            'customer_reference' => 'PO-REFUND-001',
+            'due_date' => '2026-11-30',
+            'paid_amount' => '0',
+            'due_amount' => '0',
+        ]);
+        SalePayment::query()->create([
+            'payment_no' => 'PAY-WHOLESALE-REFUND-001',
+            'sale_id' => $setup['sale']->id,
+            'customer_receipt_id' => null,
+            'payment_type_id' => $finance['payment_type_id'],
+            'account_id' => $finance['cash_account_id'],
+            'payment_at' => '2026-11-01 10:00:00',
+            'amount' => '500',
+            'tendered_amount' => '500',
+            'change_amount' => '0',
+            'status' => 'POSTED',
+            'created_by' => $finance['user']->id,
+        ]);
+        SaleReturn::query()->create([
+            'return_no' => 'SRT-WHOLESALE-REFUND-001',
+            'sale_id' => $setup['sale']->id,
+            'branch_id' => $setup['branch']->id,
+            'warehouse_id' => $setup['warehouse']->id,
+            'return_at' => '2026-11-02 10:00:00',
+            'status' => SaleReturnStatus::Posted,
+            'subtotal' => '500',
+            'discount' => '0',
+            'tax' => '0',
+            'total' => '500',
+            'due_adjustment' => '0',
+            'refund_amount' => '500',
+            'reason' => 'Wholesale invoice display test',
+        ]);
+        view()->share('errors', new ViewErrorBag);
+
+        $html = app(WholesaleSaleController::class)->show($setup['sale']->id)->render();
+
+        $this->assertMatchesRegularExpression('/Payment Received<\/small>\s*<strong class="text-success">500\.00<\/strong>/', $html);
+        $this->assertMatchesRegularExpression('/Refunded<\/small>\s*<strong class="text-danger">500\.00<\/strong>/', $html);
+        $this->assertMatchesRegularExpression('/Net Paid<\/small>\s*<strong class="text-success">0\.00<\/strong>/', $html);
+        $this->assertMatchesRegularExpression('/Due<\/small>\s*<strong class="text-danger">0\.00<\/strong>/', $html);
     }
 
     /** @return array<string, mixed> */

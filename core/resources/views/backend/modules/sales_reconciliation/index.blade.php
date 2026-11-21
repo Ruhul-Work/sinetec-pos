@@ -127,8 +127,8 @@
                     </table>
                 </div>
             @else
-                <div class="text-center py-32">
-                    <iconify-icon icon="mdi:check-decagram-outline" class="text-success-main" style="font-size: 32px"></iconify-icon>
+                <div class="d-flex flex-column align-items-center justify-content-center text-center py-32">
+                    <iconify-icon icon="mdi:check-decagram-outline" class="d-block text-success-main" style="font-size: 32px; line-height: 1"></iconify-icon>
                     <h6 class="mt-2 mb-1">No reconciliation issues</h6>
                     <p class="text-muted mb-0">
                         {{ $report['sales_checked'] + $report['returns_checked'] ? 'All posted documents in this scope match the checked records.' : 'No posted Sales or Returns were found in this scope.' }}

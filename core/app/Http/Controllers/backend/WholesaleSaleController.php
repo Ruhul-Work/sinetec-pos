@@ -2,6 +2,7 @@
 namespace App\Http\Controllers\backend;
 
 use App\Enums\Sales\SaleChannel;
+use App\Enums\Sales\SaleReturnStatus;
 use App\Enums\Sales\SaleStatus;
 use App\Exceptions\Finance\FinanceConfigurationException;
 use App\Exceptions\Finance\InvalidJournalDraftException;
@@ -188,9 +189,19 @@ class WholesaleSaleController extends Controller
     public function show(int $wholesaleSale): View
     {
         $sale = $this->record($wholesaleSale);
+        $sale->load([
+            'returns' => fn ($query) => $query->where('status', SaleReturnStatus::Posted->value),
+        ]);
+        $paymentReceived = $sale->payments
+            ->where('status', 'POSTED')
+            ->reduce(fn (string $total, $payment): string => bcadd($total, (string) $payment->amount, 4), '0.0000');
+        $refundedAmount = $sale->returns
+            ->reduce(fn (string $total, $return): string => bcadd($total, (string) $return->refund_amount, 4), '0.0000');
 
         return view('backend.modules.wholesale_sale.show', [
-            'sale'    => $sale,
+            'sale' => $sale,
+            'paymentReceived' => $paymentReceived,
+            'refundedAmount' => $refundedAmount,
             'journal' => JournalEntry::query()
                 ->with('voucherType')
                 ->where('source_type', 'sale')

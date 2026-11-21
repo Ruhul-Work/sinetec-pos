@@ -126,14 +126,37 @@
           <small class="text-muted d-block">Due Date</small>
           <strong>{{ $sale->due_date->format('d M Y') }}</strong>
         </div>
-        <div class="col-md-3">
-          <small class="text-muted d-block">Paid</small>
-          <strong class="text-success">{{ number_format((float) $sale->paid_amount, 2) }}</strong>
-        </div>
-        <div class="col-md-3">
-          <small class="text-muted d-block">Due</small>
-          <strong class="text-danger">{{ number_format((float) $sale->due_amount, 2) }}</strong>
-        </div>
+        @if ($sale->status === \App\Enums\Sales\SaleStatus::Posted)
+          <div class="col-12">
+            <div class="row gy-3">
+              <div class="col-md-3">
+                <small class="text-muted d-block">Payment Received</small>
+                <strong class="text-success">{{ number_format((float) $paymentReceived, 2) }}</strong>
+              </div>
+              <div class="col-md-3">
+                <small class="text-muted d-block">Refunded</small>
+                <strong class="text-danger">{{ number_format((float) $refundedAmount, 2) }}</strong>
+              </div>
+              <div class="col-md-3">
+                <small class="text-muted d-block">Net Paid</small>
+                <strong class="text-success">{{ number_format((float) $sale->paid_amount, 2) }}</strong>
+              </div>
+              <div class="col-md-3">
+                <small class="text-muted d-block">Due</small>
+                <strong class="text-danger">{{ number_format((float) $sale->due_amount, 2) }}</strong>
+              </div>
+            </div>
+          </div>
+        @else
+          <div class="col-md-3">
+            <small class="text-muted d-block">{{ $sale->status === \App\Enums\Sales\SaleStatus::ReadyToPost ? 'Payment Planned' : 'Paid' }}</small>
+            <strong class="text-success">{{ number_format((float) $sale->paid_amount, 2) }}</strong>
+          </div>
+          <div class="col-md-3">
+            <small class="text-muted d-block">{{ $sale->status === \App\Enums\Sales\SaleStatus::ReadyToPost ? 'Projected Due' : 'Due' }}</small>
+            <strong class="text-danger">{{ number_format((float) $sale->due_amount, 2) }}</strong>
+          </div>
+        @endif
         <div class="col-md-6">
           <small class="text-muted d-block">Finance Journal</small>
           <strong>{{ $journal ? $journal->voucher_no.' · '.$journal->status->value : 'Not created before posting' }}</strong>

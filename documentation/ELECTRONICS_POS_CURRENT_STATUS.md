@@ -1,6 +1,6 @@
 # Electronics POS — Current Status and Next Actions
 
-**Status:** Purchasing, Finance, Production/Assembly and Finished Product Sales are ready. Sales/Return reconciliation is implemented as a read-only month-end report.
+**Status:** Purchasing, Finance, Production/Assembly and Finished Product Sales are ready. Reporting hub, reconciliation, audited Reporting Period controls and the company-wide Monthly Rate Sheet workflow are implemented; stock valuation and frozen snapshots are next.
 **Updated:** 19 November 2026
 
 ## 1. Current result
@@ -8,7 +8,7 @@
 - The new active database is `pos-sinetec`.
 - The former database is retained as `pos-sinetec-legacy` for backup/reference.
 - All nine clean baseline migrations ran successfully in batch 1; the Purchase Order and Purchase Receipt discount-mode forward migrations also ran successfully.
-- The new database contains 113 tables: 112 application/framework tables plus Laravel's `migrations` table.
+- The clean database baseline contains 113 tables: 112 application/framework tables plus Laravel's `migrations` table. The Reporting Period audit migration adds `reporting_period_events` when applied.
 - The 116 generated legacy migrations remain archived outside Laravel's active migration path.
 - Raw Material, Part and Finished Product use separate masters, stock movements and stock balances.
 - Only Finished Product can be sold.
@@ -159,7 +159,12 @@ Old permission data points to removed routes. Permissions must be created from t
 47. **Complete:** Rebuild Supplier and Customer master lists with one reusable create/edit modal per master, active/inactive filtering, permission-aware actions and transaction-safe delete guards.
 48. **Complete:** Build permission-isolated Finished Product Barcode / Labels with persisted internal EAN-13 assignment, check-digit validation, multi-product quantities and 40-label A4 preview/print sheets. Labels contain Product Name, barcode symbol and number only; generated images are not stored.
 49. **Complete:** Build read-only Sales/Return reconciliation across Posted document totals, Finished Product stock movements, payments/due, refunds and balanced source journals, with branch/date filters and discrepancy navigation.
-50. **Next:** Begin Phase 7 with Reporting Period controls and the company-wide Monthly Rate Sheet.
+50. **Complete:** Add company-wide Reporting Period controls with calendar-derived month dates, duplicate-period prevention, end-date-gated audited close/reopen transitions and a separate reopen permission.
+51. **Complete:** Add a single-link Reporting hub with permission-filtered cards for available reports and Reporting Period controls; compact the cards with light gradients and aligned titles/actions.
+52. **Complete:** Clarify Wholesale invoice payment display as Payment Received, Refunded, Net Paid and Due, aligned in one row.
+53. **Complete:** Build the company-wide Monthly Rate Sheet with Open-period Draft preparation, posted purchase weighted-rate suggestions, manual Raw/Part/Finished-Product rates, approval and lock workflow.
+54. **Complete:** Build read-only monthly stock valuation with period selection, branch/warehouse/domain filters, Approved/Locked rate resolution and Raw/Part/Finished-Product totals.
+55. **Next:** Build monthly stock/purchase/production/sales reports and frozen report snapshots.
 
 ## 5. Implementation decision trace
 

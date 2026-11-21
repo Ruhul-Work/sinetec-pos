@@ -72,7 +72,9 @@ Development is progressing according to the approved roadmap. Core master data, 
 
 - `PR-001` is the cumulative baseline through 31 October 2026.
 - `PR-002` covers only updates from 1 November through 8 November 2026.
-- The next report will be `PR-003` and will include only updates from 9 November 2026 through its report date.
+- `PR-003` covers updates from 9 November through 17 November 2026.
+- `PR-004` covers updates from 18 November through 19 November 2026.
+- The next report will be `PR-005` and will include updates from 20 November 2026 onward.
 - Older report periods will not be overwritten.
 
 ---
@@ -174,4 +176,40 @@ Production are complete. Production cost values remain report-only; Finished Pro
 
 Inventory, Purchasing, Finance, Production/Assembly, POS, Customer Receivables and Wholesale Sales are
 operational. Sales Return is the next implementation gate.
+
+---
+
+## Progress Report PR-004
+
+**Reporting Period:** 18 November 2026 — 19 November 2026
+
+**Next Reporting Period:** From 20 November 2026
+
+### Completed
+
+1. Read-only Sales/Return reconciliation for posted totals, stock movements, payments, due, refunds and source journals
+2. Corrected reconciliation so cash refunds reduce net paid but do not increase the customer due
+3. Wholesale invoice payment display separating Payment Received, Refunded, Net Paid and Due
+4. Company-wide Reporting Period Open/Close workflow with calendar-derived dates, duplicate prevention and end-date-gated close
+5. Close/reopen reason capture, actor/time audit history and separate Reporting Period Reopen permission
+6. Single-link Reporting menu and permission-filtered report hub cards, including Reporting Period controls
+7. Compact responsive report cards with light gradients, clearer titles, unboxed icons and aligned actions
+8. Reporting Period UI polished with a gradient Open button, larger status badges and Close availability gated by period end date
+9. Focused regression tests and synchronized current-status, roadmap, project-plan and database-design documentation
+
+### Verification
+
+- Route registration and PHP syntax checks were completed for the Reporting Period workflow.
+- Regression tests were added but automated test execution was not completed.
+
+### Next Steps
+
+1. Build the company-wide Monthly Rate Sheet for Raw Materials, Parts and Finished Products
+2. Enforce open-period status for rate-sheet edits and approved rate changes
+3. Build stock valuation, monthly operational reports and immutable report snapshots
+4. Continue with demand and material requirement planning
+
+### Current Status
+
+Sales/Return reconciliation, the permission-filtered Reporting hub and audited Reporting Period controls are implemented. Monthly Rate Sheet is the next Phase 7 delivery.
 

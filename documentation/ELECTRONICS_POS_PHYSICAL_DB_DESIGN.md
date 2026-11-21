@@ -1,11 +1,11 @@
-# Electronics POS — Physical Database Design (v2.3)
+# Electronics POS — Physical Database Design (v2.4)
 
-**Status:** Implemented clean-schema baseline  
-**Version:** 2.3
-**Updated:** 17 November 2026
-**Source:** Project Plan v2.0 and the active migrations in `core/database/migrations`
+**Status:** Implemented clean-schema baseline with a Reporting Period audit extension
+**Version:** 2.4
+**Updated:** 19 November 2026
+**Source:** Project Plan v2.4 and the active migrations in `core/database/migrations`
 
-The baseline was successfully migrated to `pos-sinetec`: 112 application/framework tables plus Laravel's `migrations` table, for 113 total. The former database remains `pos-sinetec-legacy`. This document describes the design boundary; the active migrations are authoritative for exact executable columns and constraints.
+The clean baseline was successfully migrated to `pos-sinetec`: 112 application/framework tables plus Laravel's `migrations` table, for 113 total. A forward migration defines the Reporting Period audit-event table. The former database remains `pos-sinetec-legacy`. This document describes the design boundary; the active migrations are authoritative for exact executable columns and constraints.
 
 ## 0. Approved decisions
 
@@ -274,13 +274,16 @@ Implemented Sales Draft foundation:
 ## 8. Monthly rates and reporting
 
 - `reporting_periods`
+- `reporting_period_events`
 - `monthly_rate_sheets`
 - `monthly_raw_material_rates`
 - `monthly_part_rates`
 - `monthly_finished_product_rates`
 - `monthly_report_snapshots`
 
-Rate tables are unique by `(monthly_rate_sheet_id, domain_item_id)`. A closed period blocks edits and backdated posting unless reopened with permission/audit.
+`reporting_period_events` retains each Open, Close and Reopen action with its actor, reason and timestamp. Reporting periods are company-wide calendar months; a month can be closed only after its end date, and reopening requires separate permission and an audit reason.
+
+Rate tables are unique by `(monthly_rate_sheet_id, domain_item_id)`. The business rule for dependent workflows is that a closed period blocks rate edits and backdated posting unless it is reopened with permission and audit. Enforcement for the Monthly Rate Sheet and posting workflows will be added with those implementations.
 
 ## 9. Demand and supply planning
 

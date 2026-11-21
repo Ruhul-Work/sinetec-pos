@@ -332,6 +332,16 @@
                 </li>
             @endpermgroup
 
+            @perm('reporting.dashboard.index')
+                <li class="sidebar-menu-group-title">Reporting</li>
+                <li class="{{ Route::is('reporting.*') ? 'active' : '' }}">
+                    <a href="{{ route('reporting.dashboard.index') }}">
+                        <iconify-icon icon="mdi:chart-box-outline" class="menu-icon"></iconify-icon>
+                        <span>Reporting</span>
+                    </a>
+                </li>
+            @endperm
+
             @permgroup(['core.fiscal_years', 'core.account_types', 'core.accounts', 'core.branch_accounts', 'finance.account_mappings', 'finance.opening_balances', 'finance.cash_bank_book', 'finance.cash_bank_transfers', 'finance.expense_categories', 'finance.expenses', 'finance.capital_investments', 'finance.capital_withdrawals', 'finance.loan_receipts', 'finance.loan_repayments', 'finance.fiscal_year_closings', 'finance.journals', 'finance.account_ledger', 'finance.trial_balance'])
                 <li class="sidebar-menu-group-title">Finance</li>
                 <li class="dropdown {{ Route::is('fiscal-years.*') || Route::is('account-types.*') || Route::is('accounts.*') || Route::is('branch-accounts.*') || Route::is('finance.account-mappings.*') || Route::is('finance.opening-balances.*') || Route::is('finance.cash-bank-book.*') || Route::is('finance.cash-bank-transfers.*') || Route::is('finance.expense-categories.*') || Route::is('finance.expenses.*') || Route::is('finance.capital-investments.*') || Route::is('finance.capital-withdrawals.*') || Route::is('finance.loan-receipts.*') || Route::is('finance.loan-repayments.*') || Route::is('finance.fiscal-year-closings.*') || Route::is('finance.journals.*') || Route::is('finance.account-ledger.*') || Route::is('finance.trial-balance.*') ? 'active' : '' }}">

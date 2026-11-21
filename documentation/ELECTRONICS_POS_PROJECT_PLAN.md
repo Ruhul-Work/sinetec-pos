@@ -1,7 +1,7 @@
 # Electronics Manufacturing, Inventory & Sales System — Project Plan
 
-**Status:** Business scope approved; Purchasing, Inventory Core, Finance, Production/Assembly and Finished Product Sales/Returns are ready; reconciliation is next
-**Version:** 2.3
+**Status:** Business scope approved; core operations, reconciliation and Reporting Period/Monthly Rate Sheet workflows are ready; stock valuation and report snapshots are next
+**Version:** 2.4
 **Updated:** 19 November 2026
 **Purpose:** This is the authoritative business-scope and decision-history document. Physical implementation details and current progress are tracked in the linked design, roadmap and status documents.
 
@@ -298,3 +298,5 @@ These four documents, including this plan, are the authoritative project set. Th
 | 2.1 | 19 November 2026 | Completed controlled POS/Wholesale Sales Return with stock IN, due-first adjustment, split refund and Finance reversal; moved the next gate to Sales/Return reconciliation. |
 | 2.2 | 19 November 2026 | Rebuilt Supplier/Customer master lists around reusable modal CRUD and recorded Finished Product Barcode/Label generation as the next operational delivery. |
 | 2.3 | 19 November 2026 | Completed internal EAN-13 Finished Product barcode assignment and multi-product A4 label printing; no company prefix, price or stored barcode image is used in the current internal-POS scope. |
+| 2.4 | 19 November 2026 | Completed Sales/Return reconciliation, audited Reporting Period Open/Close controls, a permission-filtered Reporting hub and clear Wholesale payment/refund/net-paid/due display; the company-wide Monthly Rate Sheet is next. |
+| 2.5 | 21 November 2026 | Implemented Monthly Rate Sheets for Raw Materials, Parts and Finished Products with period-scoped Draft, weighted purchase suggestions, manual editing, Approval and Lock. |

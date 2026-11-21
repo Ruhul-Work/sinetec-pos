@@ -363,3 +363,43 @@ project: Sinetec POS
 6. Sales Return feature tests for Draft safety, pricing, quantity limits, stock/refund posting, receivable adjustment and routes; status/roadmap documentation update — 1 hour
 
 **Total:** 6.75 hours
+
+---
+
+## Date: 2026-11-19
+
+**ID:** BFT4
+
+project: Sinetec POS
+
+1. Sales/Return reconciliation report, refund-versus-due calculation correction and empty-state alignment — approx. 2 hours
+2. Wholesale invoice payment summary separating Payment Received, Refunded, Net Paid and Due; aligned the four figures in one row — approx. 45 min
+3. Reporting Period Open/Close workflow with calendar dates, duplicate prevention, end-date close guard, separate reopen permission and retained action history — approx. 1.5 hours
+4. Permission-filtered Reporting hub with one sidebar link, report cards and Reporting Period controls — approx. 1.25 hours
+5. Reporting card UI polish: compact responsive cards, light gradients, unboxed icons, more visible titles and aligned arrows — approx. 30 min
+6. Reporting Period UI polish with gradient Open button, larger status badges and end-date-gated Close availability — approx. 20 min
+7. Updated status/roadmap/project/database documentation and added focused regression tests; automated tests were not run — approx. 45 min
+
+**Total:** Approx. 7 hours 5 minutes
+
+---
+
+## Date: 2026-11-21
+
+**ID:** BFT4
+
+project: Sinetec POS
+
+1. Implemented Monthly Rate Sheet models, status enum and period/lock validation — approx. 1 hour
+2. Added posted purchase weighted-rate suggestions for Raw Materials and Parts — approx. 45 min
+3. Added Finished-Product previous/wholesale-rate fallback and manual sheet editing — approx. 45 min
+4. Built Rate Sheet list/details screens, Draft/Approved/Locked workflow and Reporting hub card — approx. 1.5 hours
+5. Added permission catalogue entries and route/controller regression coverage — approx. 45 min
+
+**Total:** Approx. 4 hours 45 minutes
+
+Added monthly stock valuation for the 21 November 2026 working scope:
+1. Added period, branch, warehouse and inventory-domain filters.
+2. Added Approved/Locked monthly-rate resolution and item-level value calculation.
+3. Added domain totals and grand stock value cards.
+4. Added Reporting hub card and independent Stock Valuation permission.

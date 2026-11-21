@@ -52,6 +52,10 @@ use App\Http\Controllers\backend\RawMaterialCategoryController;
 use App\Http\Controllers\backend\RawMaterialController;
 use App\Http\Controllers\backend\RawMaterialReorderLevelController;
 use App\Http\Controllers\backend\RawMaterialSupplierController;
+use App\Http\Controllers\backend\ReportingDashboardController;
+use App\Http\Controllers\backend\ReportingPeriodController;
+use App\Http\Controllers\backend\MonthlyRateSheetController;
+use App\Http\Controllers\backend\StockValuationController;
 use App\Http\Controllers\backend\StockAdjustmentController;
 use App\Http\Controllers\backend\StockLedgerController;
 use App\Http\Controllers\backend\StockTransferController;
@@ -582,6 +586,27 @@ Route::middleware(['web', 'auth', 'perm', 'branchscope'])->group(function () {
 
     Route::get('sales/reconciliation', [SalesReconciliationController::class, 'index'])
         ->name('sales.reconciliation.index');
+
+    Route::get('reporting', [ReportingDashboardController::class, 'index'])
+        ->name('reporting.dashboard.index');
+    Route::prefix('reporting/rate-sheets')->name('reporting.rate-sheets.')->group(function () {
+        Route::get('/', [MonthlyRateSheetController::class, 'index'])->name('index');
+        Route::post('periods/{period}', [MonthlyRateSheetController::class, 'create'])->whereNumber('period')->name('store');
+        Route::get('{sheet}', [MonthlyRateSheetController::class, 'show'])->whereNumber('sheet')->name('show');
+        Route::put('{sheet}', [MonthlyRateSheetController::class, 'update'])->whereNumber('sheet')->name('update');
+        Route::patch('{sheet}/approve', [MonthlyRateSheetController::class, 'approve'])->whereNumber('sheet')->name('approve');
+        Route::patch('{sheet}/lock', [MonthlyRateSheetController::class, 'lock'])->whereNumber('sheet')->name('lock');
+    });
+    Route::get('reporting/stock-valuation', [StockValuationController::class, 'index'])
+        ->name('reporting.stock-valuation.index');
+    Route::prefix('reporting/periods')->name('reporting.periods.')->group(function () {
+        Route::get('/', [ReportingPeriodController::class, 'index'])->name('index');
+        Route::post('/', [ReportingPeriodController::class, 'store'])->name('store');
+        Route::patch('{period}/close', [ReportingPeriodController::class, 'close'])->whereNumber('period')->name('close');
+    });
+    Route::patch('reporting/periods/{period}/reopen', [ReportingPeriodController::class, 'reopen'])
+        ->whereNumber('period')
+        ->name('reporting.period-reopen.reopen');
 
     Route::prefix('supplier')->name('supplier.')->group(function () {
         Route::get('suppliers', [SupplierController::class, 'index'])->name('index');
