@@ -16,10 +16,27 @@
             </div>
             <p class="text-muted m-0">Branch and warehouse-wise inventory value using the period rate sheet.</p>
         </div>
+        <ul class="d-flex align-items-center gap-2 mb-0">
+            <li class="fw-medium">
+                <a href="{{ route('backend.dashboard') }}" class="d-flex align-items-center gap-1 hover-text-primary">
+                    <iconify-icon icon="solar:home-smile-angle-outline" class="icon text-lg"></iconify-icon>
+                    Dashboard
+                </a>
+            </li>
+            <li>-</li>
+            <li class="fw-medium">Monthly Stock Valuation</li>
+        </ul>
     </div>
 
     <div class="card mb-24">
-        <div class="card-header"><h5 class="card-title mb-0">Valuation Filters</h5></div>
+        <div class="card-header d-flex align-items-center justify-content-between gap-2 flex-wrap">
+            <h5 class="card-title mb-0">Valuation Filters</h5>
+            <button type="button" id="resetStockValuationFilters"
+                    class="btn btn-outline-secondary btn-sm px-12 py-8 radius-8 app-action-button">
+                <iconify-icon icon="mdi:filter-remove-outline"></iconify-icon>
+                <span>Reset Filters</span>
+            </button>
+        </div>
         <div class="card-body">
             <form method="GET" action="{{ route('reporting.stock-valuation.index') }}" class="row gy-3 align-items-end">
                 <div class="col-xl-3 col-md-4">
@@ -116,45 +133,54 @@
     </div>
 
     <div class="card">
-        <div class="card-header"><h5 class="card-title mb-0">Valuation Details</h5></div>
+        <div class="card-header d-flex align-items-center justify-content-between gap-3 flex-wrap">
+            <h5 class="card-title mb-0">Valuation Details</h5>
+            <div class="actions-bar d-flex align-items-center gap-2">
+                <div class="search-set me-2"><div id="tableSearch" class="search-input"></div></div>
+                <ul class="table-top-head list-unstyled d-flex align-items-center gap-2 mb-0">@include('backend.include.buttons')</ul>
+            </div>
+        </div>
         <div class="card-body">
-            @if ($report['rows']->isEmpty())
-                <div class="text-center text-muted py-32">No positive stock balances found for the selected filters.</div>
-            @else
-                <div class="table-responsive">
-                    <table class="table bordered-table mb-0 align-middle">
-                        <thead>
-                            <tr>
-                                <th>Inventory</th>
-                                <th>Item</th>
-                                <th>Location</th>
-                                <th class="text-end">Quantity</th>
-                                <th class="text-end">Monthly Rate</th>
-                                <th class="text-end">Stock Value</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($report['rows'] as $row)
-                                <tr>
-                                    <td><span class="badge bg-light text-dark">{{ $row['domain_label'] }}</span></td>
-                                    <td><strong>{{ $row['item_name'] }}</strong><br><code>{{ $row['item_code'] }}</code></td>
-                                    <td><strong>{{ $row['warehouse_name'] }}</strong> <code>{{ $row['warehouse_code'] }}</code><br><small class="text-muted">{{ $row['branch_name'] }} ({{ $row['branch_code'] }})</small></td>
-                                    <td class="text-end fw-semibold">{{ number_format((float) $row['quantity'], 6) }} {{ $row['unit_code'] }}</td>
-                                    <td class="text-end">
-                                        <strong>{{ number_format((float) $row['rate'], 2) }}</strong>
-                                        <br><small class="{{ $row['basis'] === 'NO_APPROVED_RATE' ? 'text-danger-main' : 'text-muted' }}">{{ str_replace('_', ' ', $row['basis']) }}</small>
-                                    </td>
-                                    <td class="text-end fw-bold text-primary-main">{{ number_format((float) $row['value'], 2) }}</td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            @endif
+            <div class="table-responsive">
+                <table class="table bordered-table table-scroll mb-0 AjaxDataTable" id="stockValuationTable" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th style="width:65px">S.L</th>
+                            <th>Inventory</th>
+                            <th>Item</th>
+                            <th>Location</th>
+                            <th class="text-end">Quantity</th>
+                            <th class="text-end">Monthly Rate</th>
+                            <th class="text-end">Stock Value</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
         </div>
     </div>
 @endsection
 
 @section('script')
-    <script>S2.auto($('.card-body'));</script>
+    <script>
+        var DATATABLE_URL = @json(route('reporting.stock-valuation.list.ajax'));
+        S2.auto($('.card-body'));
+        $(document).on('preXhr.dt', '#stockValuationTable', function (event, settings, data) {
+            Object.assign(data, {
+                period_id: $('#valuationPeriod').val(),
+                domain: $('#valuationDomain').val(),
+                branch_id: $('#valuationBranch').val(),
+                warehouse_id: $('#valuationWarehouse').val()
+            });
+        });
+        $(document).on('click', '#resetStockValuationFilters', function () {
+            $('#valuationDomain').val('').trigger('change');
+            $('#valuationWarehouse').val('').trigger('change');
+            @if (! $fixedBranchId)
+                $('#valuationBranch').val('').trigger('change');
+            @endif
+            $('#valuationPeriod').trigger('change');
+            window.location = @json(route('reporting.stock-valuation.index'));
+        });
+    </script>
 @endsection

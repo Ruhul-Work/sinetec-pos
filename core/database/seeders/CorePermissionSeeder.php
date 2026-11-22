@@ -57,6 +57,8 @@ class CorePermissionSeeder extends Seeder
             ['key' => 'reporting.rate_sheets', 'name' => 'Monthly Rate Sheets', 'module' => 'Reporting', 'prefixes' => ['reporting.rate-sheets.']],
             ['key' => 'reporting.stock_valuation', 'name' => 'Monthly Stock Valuation', 'module' => 'Reporting', 'prefixes' => ['reporting.stock-valuation.']],
             ['key' => 'reporting.monthly_purchase', 'name' => 'Monthly Purchase Report', 'module' => 'Reporting', 'prefixes' => ['reporting.monthly-purchase.']],
+            ['key' => 'reporting.monthly_stock', 'name' => 'Monthly Stock Report', 'module' => 'Reporting', 'prefixes' => ['reporting.monthly-stock.']],
+            ['key' => 'reporting.monthly_part_production', 'name' => 'Monthly Part Production Report', 'module' => 'Reporting', 'prefixes' => ['reporting.monthly-part-production.']],
             ['key' => 'purchase.orders', 'name' => 'Purchase Orders', 'module' => 'Purchasing', 'prefixes' => ['purchase.orders.']],
             ['key' => 'purchase.receipts', 'name' => 'Purchase Receipts', 'module' => 'Purchasing', 'prefixes' => ['purchase.receipts.']],
             ['key' => 'purchase.returns', 'name' => 'Purchase Returns', 'module' => 'Purchasing', 'prefixes' => ['purchase.returns.']],

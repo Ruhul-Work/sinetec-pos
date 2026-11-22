@@ -7,6 +7,7 @@ use App\Models\Reporting\ReportingPeriod;
 use App\Services\Reporting\StockValuationService;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
@@ -61,6 +62,34 @@ class StockValuationController extends Controller
             'selectedDomain' => $selectedDomain,
             'fixedBranchId' => $fixedBranchId,
             'report' => $report,
+        ]);
+    }
+
+    public function listAjax(Request $request): JsonResponse
+    {
+        $periodId = $request->integer('period_id') ?: null;
+        $branchId = current_branch_id() ?: ($request->integer('branch_id') ?: null);
+        $warehouseId = $request->integer('warehouse_id') ?: null;
+        $domain = (string) $request->input('domain', '');
+        $report = $this->valuation->report($periodId, $branchId, $warehouseId, $domain);
+
+        $rows = $report['rows']->values()->map(function (array $row, int $index): array {
+            return [
+                $index + 1,
+                '<span class="badge bg-light text-dark">'.e($row['domain_label']).'</span>',
+                '<strong>'.e($row['item_name']).'</strong><br><code>'.e($row['item_code']).'</code>',
+                '<strong>'.e($row['warehouse_name']).'</strong> <code>'.e($row['warehouse_code']).'</code><br><small class="text-muted">'.e($row['branch_name']).' ('.e($row['branch_code']).')</small>',
+                '<span class="fw-semibold">'.e(number_format((float) $row['quantity'], 6)).' '.e($row['unit_code']).'</span>',
+                '<strong>'.e(number_format((float) $row['rate'], 2)).'</strong><br><small class="'.($row['basis'] === 'NO_APPROVED_RATE' ? 'text-danger-main' : 'text-muted').'">'.e(str_replace('_', ' ', $row['basis'])).'</small>',
+                '<span class="fw-bold text-primary-main">'.e(number_format((float) $row['value'], 2)).'</span>',
+            ];
+        });
+
+        return response()->json([
+            'draw' => (int) $request->input('draw'),
+            'iTotalRecords' => $rows->count(),
+            'iTotalDisplayRecords' => $rows->count(),
+            'aaData' => $rows->all(),
         ]);
     }
 }

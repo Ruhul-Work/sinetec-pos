@@ -16,10 +16,27 @@
             </div>
             <p class="text-muted m-0">Posted purchase activity for the selected month and branch scope.</p>
         </div>
+        <ul class="d-flex align-items-center gap-2 mb-0">
+            <li class="fw-medium">
+                <a href="{{ route('backend.dashboard') }}" class="d-flex align-items-center gap-1 hover-text-primary">
+                    <iconify-icon icon="solar:home-smile-angle-outline" class="icon text-lg"></iconify-icon>
+                    Dashboard
+                </a>
+            </li>
+            <li>-</li>
+            <li class="fw-medium">Monthly Purchase Report</li>
+        </ul>
     </div>
 
     <div class="card mb-24">
-        <div class="card-header"><h5 class="card-title mb-0">Report Filters</h5></div>
+        <div class="card-header d-flex align-items-center justify-content-between gap-2 flex-wrap">
+            <h5 class="card-title mb-0">Report Filters</h5>
+            <button type="button" id="resetMonthlyPurchaseFilters"
+                    class="btn btn-outline-secondary btn-sm px-12 py-8 radius-8 app-action-button">
+                <iconify-icon icon="mdi:filter-remove-outline"></iconify-icon>
+                <span>Reset Filters</span>
+            </button>
+        </div>
         <div class="card-body">
             <form method="GET" action="{{ route('reporting.monthly-purchase.index') }}" class="row gy-3 align-items-end">
                 <div class="col-xl-2 col-md-4">
@@ -108,86 +125,75 @@
     </div>
 
     <div class="card mb-24">
-        <div class="card-header"><h5 class="card-title mb-0">Purchased Item Lines</h5></div>
+        <div class="card-header d-flex align-items-center justify-content-between gap-3 flex-wrap">
+            <h5 class="card-title mb-0">Purchased Item Lines</h5>
+            <div class="actions-bar d-flex align-items-center gap-2">
+                <div class="search-set me-2"><div id="tableSearch" class="search-input"></div></div>
+                <ul class="table-top-head list-unstyled d-flex align-items-center gap-2 mb-0">@include('backend.include.buttons')</ul>
+            </div>
+        </div>
         <div class="card-body">
-            @if ($report['lines']->isEmpty())
-                <div class="text-center text-muted py-32">No posted purchase lines found in this period.</div>
-            @else
-                <div class="table-responsive">
-                    <table class="table bordered-table mb-0 align-middle">
-                        <thead>
-                            <tr>
-                                <th>Type</th><th>Receipt</th><th>Item</th><th class="text-end">Quantity</th><th class="text-end">Unit Rate</th><th class="text-end">Line Total</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($report['lines'] as $line)
-                                <tr>
-                                    <td><span class="badge bg-light text-dark">{{ $line->domain === 'PART' ? 'Part' : 'Raw Material' }}</span></td>
-                                    <td><strong>{{ $line->receipt_no }}</strong><br><small class="text-muted">{{ \Illuminate\Support\Carbon::parse($line->receipt_date)->format('d M Y') }}</small></td>
-                                    <td><strong>{{ $line->item_name }}</strong><br><code>{{ $line->item_code }}</code></td>
-                                    <td class="text-end fw-semibold">{{ number_format((float) $line->base_quantity, 6) }} {{ $line->unit_code }}</td>
-                                    <td class="text-end">{{ number_format((float) $line->unit_rate, 2) }}</td>
-                                    <td class="text-end fw-bold text-primary-main">{{ number_format((float) $line->line_total, 2) }}</td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            @endif
+            <table class="table bordered-table table-scroll mb-0 AjaxDataTable" id="monthlyPurchaseLineTable" style="width:100%">
+                <thead>
+                    <tr>
+                        <th style="width:65px">S.L</th><th>Type</th><th>Receipt</th><th>Item</th><th class="text-end">Quantity</th><th class="text-end">Unit Rate</th><th class="text-end">Line Total</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
         </div>
     </div>
 
     <div class="row g-3">
         <div class="col-lg-6">
             <div class="card h-100">
-                <div class="card-header"><h5 class="card-title mb-0">Posted Returns</h5></div>
+                <div class="card-header d-flex align-items-center justify-content-between gap-2 flex-wrap">
+                    <h5 class="card-title mb-0">Posted Returns</h5>
+                    <ul class="table-top-head list-unstyled d-flex align-items-center gap-2 mb-0">@include('backend.include.buttons')</ul>
+                </div>
                 <div class="card-body">
-                    @if ($report['returns']->isEmpty())
-                        <div class="text-muted text-sm">No posted purchase returns.</div>
-                    @else
-                        <div class="table-responsive">
-                            <table class="table bordered-table mb-0 align-middle">
-                                <thead><tr><th>Return</th><th>Date</th><th>Supplier</th><th class="text-end">Amount</th></tr></thead>
-                                <tbody>
-                                    @foreach ($report['returns'] as $return)
-                                        <tr>
-                                            <td class="fw-semibold">{{ $return->return_no }}</td>
-                                            <td>{{ \Illuminate\Support\Carbon::parse($return->return_date)->format('d M Y') }}</td>
-                                            <td>{{ $return->supplier_name }}</td>
-                                            <td class="text-end fw-bold text-danger-main">{{ number_format((float) $return->total, 2) }}</td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    @endif
+                    <table class="table bordered-table mb-0 align-middle" id="monthlyPurchaseReturnTable" style="width:100%">
+                        <thead><tr><th style="width:65px">S.L</th><th>Return</th><th>Date</th><th>Supplier</th><th class="text-end">Amount</th></tr></thead>
+                        <tbody>
+                            @forelse ($report['returns'] as $index => $return)
+                                <tr>
+                                    <td>{{ str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT) }}</td>
+                                    <td class="fw-semibold">{{ $return->return_no }}</td>
+                                    <td>{{ \Illuminate\Support\Carbon::parse($return->return_date)->format('d M Y') }}</td>
+                                    <td>{{ $return->supplier_name }}</td>
+                                    <td class="text-end fw-bold text-danger-main">{{ number_format((float) $return->total, 2) }}</td>
+                                </tr>
+                            @empty
+                                <tr><td colspan="5" class="text-center text-muted py-24">No posted purchase returns.</td></tr>
+                            @endforelse
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
         <div class="col-lg-6">
             <div class="card h-100">
-                <div class="card-header"><h5 class="card-title mb-0">Posted Supplier Payments</h5></div>
+                <div class="card-header d-flex align-items-center justify-content-between gap-2 flex-wrap">
+                    <h5 class="card-title mb-0">Posted Supplier Payments</h5>
+                    <ul class="table-top-head list-unstyled d-flex align-items-center gap-2 mb-0">@include('backend.include.buttons')</ul>
+                </div>
                 <div class="card-body">
-                    @if ($report['payments']->isEmpty())
-                        <div class="text-muted text-sm">No posted supplier payments.</div>
-                    @else
-                        <div class="table-responsive">
-                            <table class="table bordered-table mb-0 align-middle">
-                                <thead><tr><th>Payment</th><th>Date</th><th>Supplier</th><th class="text-end">Amount</th></tr></thead>
-                                <tbody>
-                                    @foreach ($report['payments'] as $payment)
-                                        <tr>
-                                            <td class="fw-semibold">{{ $payment->payment_no }}</td>
-                                            <td>{{ \Illuminate\Support\Carbon::parse($payment->payment_date)->format('d M Y') }}</td>
-                                            <td>{{ $payment->supplier_name }}</td>
-                                            <td class="text-end fw-bold text-success-main">{{ number_format((float) $payment->amount, 2) }}</td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    @endif
+                    <table class="table bordered-table mb-0 align-middle" id="monthlyPurchasePaymentTable" style="width:100%">
+                        <thead><tr><th style="width:65px">S.L</th><th>Payment</th><th>Date</th><th>Supplier</th><th class="text-end">Amount</th></tr></thead>
+                        <tbody>
+                            @forelse ($report['payments'] as $index => $payment)
+                                <tr>
+                                    <td>{{ str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT) }}</td>
+                                    <td class="fw-semibold">{{ $payment->payment_no }}</td>
+                                    <td>{{ \Illuminate\Support\Carbon::parse($payment->payment_date)->format('d M Y') }}</td>
+                                    <td>{{ $payment->supplier_name }}</td>
+                                    <td class="text-end fw-bold text-success-main">{{ number_format((float) $payment->amount, 2) }}</td>
+                                </tr>
+                            @empty
+                                <tr><td colspan="5" class="text-center text-muted py-24">No posted supplier payments.</td></tr>
+                            @endforelse
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -195,5 +201,26 @@
 @endsection
 
 @section('script')
-    <script>S2.auto($('.card-body'));</script>
+    <script>
+        var DATATABLE_URL = @json(route('reporting.monthly-purchase.lines.ajax'));
+        S2.auto($('.card-body'));
+        $(document).on('preXhr.dt', '#monthlyPurchaseLineTable', function (event, settings, data) {
+            Object.assign(data, {
+                period_id: $('#purchaseReportPeriod').val(),
+                domain: $('#purchaseReportDomain').val(),
+                branch_id: $('#purchaseReportBranch').val(),
+                warehouse_id: $('#purchaseReportWarehouse').val(),
+                supplier_id: $('#purchaseReportSupplier').val()
+            });
+        });
+        $(document).on('click', '#resetMonthlyPurchaseFilters', function () {
+            $('#purchaseReportDomain').val('').trigger('change');
+            $('#purchaseReportWarehouse').val('').trigger('change');
+            $('#purchaseReportSupplier').val('').trigger('change');
+            @if (! $fixedBranchId)
+                $('#purchaseReportBranch').val('').trigger('change');
+            @endif
+            window.location = @json(route('reporting.monthly-purchase.index'));
+        });
+    </script>
 @endsection

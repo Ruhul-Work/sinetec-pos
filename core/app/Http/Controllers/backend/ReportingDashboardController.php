@@ -100,6 +100,24 @@ class ReportingDashboardController extends Controller
                 'tone'        => 'warning',
                 'wash'        => '#fff7e6',
             ],
+            [
+                'title'       => 'Monthly Stock Report',
+                'description' => 'Review opening, period IN/OUT and closing stock by warehouse.',
+                'route'       => 'reporting.monthly-stock.index',
+                'permission'  => 'reporting.monthly-stock.index',
+                'icon'        => 'mdi:warehouse',
+                'tone'        => 'success',
+                'wash'        => '#ebfaef',
+            ],
+            [
+                'title'       => 'Monthly Part Production',
+                'description' => 'Review completed part batches, QC quantities and report-only costs.',
+                'route'       => 'reporting.monthly-part-production.index',
+                'permission'  => 'reporting.monthly-part-production.index',
+                'icon'        => 'mdi:factory',
+                'tone'        => 'primary',
+                'wash'        => '#edf8ff',
+            ],
         ];
 
         $user    = $request->user();
