@@ -127,6 +127,15 @@ class ReportingDashboardController extends Controller
                 'tone'        => 'success',
                 'wash'        => '#ebfaef',
             ],
+            [
+                'title'       => 'Monthly Sales Report',
+                'description' => 'Review posted POS/Wholesale sales, returns and customer collections.',
+                'route'       => 'reporting.monthly-sales.index',
+                'permission'  => 'reporting.monthly-sales.index',
+                'icon'        => 'mdi:chart-areaspline',
+                'tone'        => 'info',
+                'wash'        => '#eafaff',
+            ],
         ];
 
         $user    = $request->user();

@@ -58,6 +58,7 @@ use App\Http\Controllers\backend\MonthlyRateSheetController;
 use App\Http\Controllers\backend\MonthlyPurchaseReportController;
 use App\Http\Controllers\backend\MonthlyPartProductionReportController;
 use App\Http\Controllers\backend\MonthlyAssemblyReportController;
+use App\Http\Controllers\backend\MonthlySalesReportController;
 use App\Http\Controllers\backend\MonthlyStockReportController;
 use App\Http\Controllers\backend\StockValuationController;
 use App\Http\Controllers\backend\StockAdjustmentController;
@@ -625,6 +626,16 @@ Route::middleware(['web', 'auth', 'perm', 'branchscope'])->group(function () {
         ->name('reporting.monthly-assembly.index');
     Route::post('reporting/monthly-assembly/list', [MonthlyAssemblyReportController::class, 'listAjax'])
         ->name('reporting.monthly-assembly.list.ajax');
+    Route::get('reporting/monthly-sales', [MonthlySalesReportController::class, 'index'])
+        ->name('reporting.monthly-sales.index');
+    Route::post('reporting/monthly-sales/list', [MonthlySalesReportController::class, 'listAjax'])
+        ->name('reporting.monthly-sales.list.ajax');
+    Route::post('reporting/monthly-sales/lines', [MonthlySalesReportController::class, 'linesAjax'])
+        ->name('reporting.monthly-sales.lines.ajax');
+    Route::post('reporting/monthly-sales/returns', [MonthlySalesReportController::class, 'returnsAjax'])
+        ->name('reporting.monthly-sales.returns.ajax');
+    Route::post('reporting/monthly-sales/receipts', [MonthlySalesReportController::class, 'receiptsAjax'])
+        ->name('reporting.monthly-sales.receipts.ajax');
     Route::prefix('reporting/periods')->name('reporting.periods.')->group(function () {
         Route::get('/', [ReportingPeriodController::class, 'index'])->name('index');
         Route::post('/', [ReportingPeriodController::class, 'store'])->name('store');
