@@ -59,6 +59,7 @@ class CorePermissionSeeder extends Seeder
             ['key' => 'reporting.monthly_purchase', 'name' => 'Monthly Purchase Report', 'module' => 'Reporting', 'prefixes' => ['reporting.monthly-purchase.']],
             ['key' => 'reporting.monthly_stock', 'name' => 'Monthly Stock Report', 'module' => 'Reporting', 'prefixes' => ['reporting.monthly-stock.']],
             ['key' => 'reporting.monthly_part_production', 'name' => 'Monthly Part Production Report', 'module' => 'Reporting', 'prefixes' => ['reporting.monthly-part-production.']],
+            ['key' => 'reporting.monthly_assembly', 'name' => 'Monthly Assembly Report', 'module' => 'Reporting', 'prefixes' => ['reporting.monthly-assembly.']],
             ['key' => 'purchase.orders', 'name' => 'Purchase Orders', 'module' => 'Purchasing', 'prefixes' => ['purchase.orders.']],
             ['key' => 'purchase.receipts', 'name' => 'Purchase Receipts', 'module' => 'Purchasing', 'prefixes' => ['purchase.receipts.']],
             ['key' => 'purchase.returns', 'name' => 'Purchase Returns', 'module' => 'Purchasing', 'prefixes' => ['purchase.returns.']],

@@ -118,6 +118,15 @@ class ReportingDashboardController extends Controller
                 'tone'        => 'primary',
                 'wash'        => '#edf8ff',
             ],
+            [
+                'title'       => 'Monthly Assembly Report',
+                'description' => 'Review completed finished-product batches, QC quantities and report-only costs.',
+                'route'       => 'reporting.monthly-assembly.index',
+                'permission'  => 'reporting.monthly-assembly.index',
+                'icon'        => 'mdi:package-variant-closed',
+                'tone'        => 'success',
+                'wash'        => '#ebfaef',
+            ],
         ];
 
         $user    = $request->user();
