@@ -305,7 +305,7 @@ Receipt      Adjustment      Production   Stock Count
 | **Complete: Reporting period open/close** | Company-wide period controls with audited close/reopen and separate reopen permission | Permissions | Rate sheet/report snapshots |
 | Company-wide monthly rate sheet | New | Three inventory masters + purchase history | Valuation/reports/planning |
 | **In progress: Current stock valuation** | Read-only report using current positive balances and period-approved/locked rates | Balance + approved/locked monthly rate sheet | Management dashboard |
-| Monthly stock/purchase/production/sales reports | New queries, reuse print UI | All posted transactions + rates | Print/PDF |
+| **In progress: Monthly purchase report**; stock/purchase/production/sales reports follow | New queries, reuse print UI | All posted transactions + rates | Print/PDF |
 | Frozen report snapshot | New | Reporting period + rate sheet | Historical report integrity |
 | Demand plan | New | Sales history / manual target | MRP |
 | Material requirement plan | New | Demand plan + BOM + stock + reorder level | Purchase recommendation |

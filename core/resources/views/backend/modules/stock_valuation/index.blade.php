@@ -92,20 +92,20 @@
 
     @php
         $summaryCards = [
-            ['label' => 'Raw Material Value', 'value' => $report['domain_totals']['raw_material']['value'], 'icon' => 'mdi:cube-outline', 'gradient' => 'linear-gradient(135deg,#ffffff 0%,#eef5ff 100%)'],
-            ['label' => 'Part Value', 'value' => $report['domain_totals']['part']['value'], 'icon' => 'mdi:puzzle-outline', 'gradient' => 'linear-gradient(135deg,#ffffff 0%,#eafaff 100%)'],
-            ['label' => 'Finished Product Value', 'value' => $report['domain_totals']['finished_product']['value'], 'icon' => 'mdi:package-variant-closed', 'gradient' => 'linear-gradient(135deg,#ffffff 0%,#ebfaef 100%)'],
-            ['label' => 'Total Stock Value', 'value' => $report['grand_total'], 'icon' => 'mdi:cash-register', 'gradient' => 'linear-gradient(135deg,#ffffff 0%,#fff7e6 100%)'],
+            ['label' => 'Raw Material Value', 'value' => $report['domain_totals']['raw_material']['value'], 'icon' => 'mdi:cube-outline', 'variant' => 'opening', 'value_class' => 'text-primary-main'],
+            ['label' => 'Part Value', 'value' => $report['domain_totals']['part']['value'], 'icon' => 'mdi:puzzle-outline', 'variant' => 'debit', 'value_class' => 'text-success-main'],
+            ['label' => 'Finished Product Value', 'value' => $report['domain_totals']['finished_product']['value'], 'icon' => 'mdi:package-variant-closed', 'variant' => 'closing', 'value_class' => 'text-primary-main'],
+            ['label' => 'Total Stock Value', 'value' => $report['grand_total'], 'icon' => 'mdi:cash-register', 'variant' => 'credit', 'value_class' => 'text-warning-main'],
         ];
     @endphp
     <div class="row g-2 mb-24">
         @foreach ($summaryCards as $card)
             <div class="col-xl-3 col-md-6">
-                <div class="card h-100" style="background:{{ $card['gradient'] }}">
+                <div class="card h-100 account-ledger-summary-card account-ledger-summary-card--{{ $card['variant'] }}">
                     <div class="card-body d-flex align-items-center justify-content-between gap-2 py-16">
                         <div>
                             <small class="text-muted d-block mb-6">{{ $card['label'] }}</small>
-                            <h6 class="mb-0 fw-bold text-primary-main">{{ number_format((float) $card['value'], 2) }}</h6>
+                            <h6 class="mb-0 fw-bold {{ $card['value_class'] }}">{{ number_format((float) $card['value'], 2) }}</h6>
                         </div>
                         <iconify-icon icon="{{ $card['icon'] }}" class="text-primary-main"
                                       style="font-size:28px; line-height:1; flex-shrink:0"></iconify-icon>

@@ -300,3 +300,4 @@ These four documents, including this plan, are the authoritative project set. Th
 | 2.3 | 19 November 2026 | Completed internal EAN-13 Finished Product barcode assignment and multi-product A4 label printing; no company prefix, price or stored barcode image is used in the current internal-POS scope. |
 | 2.4 | 19 November 2026 | Completed Sales/Return reconciliation, audited Reporting Period Open/Close controls, a permission-filtered Reporting hub and clear Wholesale payment/refund/net-paid/due display; the company-wide Monthly Rate Sheet is next. |
 | 2.5 | 21 November 2026 | Implemented Monthly Rate Sheets for Raw Materials, Parts and Finished Products with period-scoped Draft, weighted purchase suggestions, manual editing, Approval and Lock. |
+| 2.6 | 21 November 2026 | Started the monthly reporting stream with a Posted Purchase Report covering Receipts, Purchase lines, Returns and Supplier Payments by reporting period and operational scope. |

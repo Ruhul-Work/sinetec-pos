@@ -395,11 +395,12 @@ project: Sinetec POS
 3. Added Finished-Product previous/wholesale-rate fallback and manual sheet editing — approx. 45 min
 4. Built Rate Sheet list/details screens, Draft/Approved/Locked workflow and Reporting hub card — approx. 1.5 hours
 5. Added permission catalogue entries and route/controller regression coverage — approx. 45 min
+6. Implemented Monthly Stock Valuation with period, branch, warehouse and inventory-domain filters — approx. 1 hour
+7. Added Approved/Locked monthly-rate valuation, domain totals and grand stock value display — approx. 45 min
+8. Added compact/light-gradient valuation cards and two-decimal amount display — approx. 30 min
+9. Implemented the first monthly operational report for Posted Purchases with receipt, item-line, return and supplier-payment sections — approx. 1.5 hours
+10. Added reporting-period, branch, warehouse, supplier and inventory-domain filters to the Monthly Purchase Report — approx. 45 min
+11. Added Stock Valuation and Monthly Purchase Report permissions, route entries and Reporting hub cards — approx. 30 min
+12. Added focused regression coverage and synchronized status/roadmap/project documentation — approx. 30 min
 
-**Total:** Approx. 4 hours 45 minutes
-
-Added monthly stock valuation for the 21 November 2026 working scope:
-1. Added period, branch, warehouse and inventory-domain filters.
-2. Added Approved/Locked monthly-rate resolution and item-level value calculation.
-3. Added domain totals and grand stock value cards.
-4. Added Reporting hub card and independent Stock Valuation permission.
+**Total:** Approx. 10 hours 15 minutes

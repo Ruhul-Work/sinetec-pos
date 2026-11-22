@@ -164,7 +164,8 @@ Old permission data points to removed routes. Permissions must be created from t
 52. **Complete:** Clarify Wholesale invoice payment display as Payment Received, Refunded, Net Paid and Due, aligned in one row.
 53. **Complete:** Build the company-wide Monthly Rate Sheet with Open-period Draft preparation, posted purchase weighted-rate suggestions, manual Raw/Part/Finished-Product rates, approval and lock workflow.
 54. **Complete:** Build read-only monthly stock valuation with period selection, branch/warehouse/domain filters, Approved/Locked rate resolution and Raw/Part/Finished-Product totals.
-55. **Next:** Build monthly stock/purchase/production/sales reports and frozen report snapshots.
+55. **Complete:** Start monthly operational reporting with a branch/warehouse/supplier/domain-filtered Monthly Purchase Report for Posted Receipts, item lines, Returns and Supplier Payments.
+56. **Next:** Build monthly Production/Assembly, Stock and Sales reports, then frozen report snapshots.
 
 ## 5. Implementation decision trace
 

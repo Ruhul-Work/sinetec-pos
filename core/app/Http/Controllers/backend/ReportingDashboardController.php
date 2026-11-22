@@ -91,6 +91,15 @@ class ReportingDashboardController extends Controller
                 'tone'        => 'primary',
                 'wash'        => '#edf8ff',
             ],
+            [
+                'title'       => 'Monthly Purchase Report',
+                'description' => 'Review posted purchase receipts, item lines, returns and supplier payments.',
+                'route'       => 'reporting.monthly-purchase.index',
+                'permission'  => 'reporting.monthly-purchase.index',
+                'icon'        => 'mdi:file-document-outline',
+                'tone'        => 'warning',
+                'wash'        => '#fff7e6',
+            ],
         ];
 
         $user    = $request->user();

@@ -55,6 +55,7 @@ use App\Http\Controllers\backend\RawMaterialSupplierController;
 use App\Http\Controllers\backend\ReportingDashboardController;
 use App\Http\Controllers\backend\ReportingPeriodController;
 use App\Http\Controllers\backend\MonthlyRateSheetController;
+use App\Http\Controllers\backend\MonthlyPurchaseReportController;
 use App\Http\Controllers\backend\StockValuationController;
 use App\Http\Controllers\backend\StockAdjustmentController;
 use App\Http\Controllers\backend\StockLedgerController;
@@ -599,6 +600,8 @@ Route::middleware(['web', 'auth', 'perm', 'branchscope'])->group(function () {
     });
     Route::get('reporting/stock-valuation', [StockValuationController::class, 'index'])
         ->name('reporting.stock-valuation.index');
+    Route::get('reporting/monthly-purchase', [MonthlyPurchaseReportController::class, 'index'])
+        ->name('reporting.monthly-purchase.index');
     Route::prefix('reporting/periods')->name('reporting.periods.')->group(function () {
         Route::get('/', [ReportingPeriodController::class, 'index'])->name('index');
         Route::post('/', [ReportingPeriodController::class, 'store'])->name('store');
