@@ -63,6 +63,9 @@ final class MonthlyPartProductionReportService
         $rows = $query
             ->select([
                 'batch.id',
+                'batch.branch_id',
+                'batch.input_warehouse_id',
+                'batch.output_warehouse_id',
                 'batch.batch_no',
                 'batch.production_date',
                 'batch.planned_quantity',

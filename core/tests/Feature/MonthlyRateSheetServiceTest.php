@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Enums\Reporting\MonthlyRateSheetStatus;
 use App\Enums\Reporting\ReportingPeriodStatus;
 use App\Exceptions\Reporting\InvalidMonthlyRateSheetException;
+use App\Http\Controllers\backend\MonthlyRateSheetController;
 use App\Models\backend\RawMaterial;
 use App\Models\backend\RawMaterialCategory;
 use App\Models\backend\Unit;
@@ -12,6 +13,7 @@ use App\Models\backend\User;
 use App\Models\Reporting\ReportingPeriod;
 use App\Services\Reporting\MonthlyRateSheetService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
@@ -46,7 +48,7 @@ class MonthlyRateSheetServiceTest extends TestCase
             'name' => 'Test Resistor',
             'raw_material_category_id' => $category->id,
             'base_unit_id' => $unit->id,
-            'material_kind' => 'DIRECT',
+            'material_kind' => 'MATERIAL',
             'is_active' => true,
         ]);
 
@@ -75,5 +77,45 @@ class MonthlyRateSheetServiceTest extends TestCase
             'part_rates' => [],
             'finished_product_rates' => [],
         ], $user->id);
+    }
+
+    public function test_rate_sheet_history_uses_searchable_datatable_response(): void
+    {
+        $user = $this->user();
+        $period = ReportingPeriod::query()->create([
+            'year' => 2026,
+            'month' => 11,
+            'starts_on' => '2026-11-01',
+            'ends_on' => '2026-11-30',
+            'status' => ReportingPeriodStatus::Open,
+        ]);
+        $sheet = app(MonthlyRateSheetService::class)->create($period, $user->id);
+        $request = Request::create('/reporting/rate-sheets/list', 'POST', [
+            'draw' => 3,
+            'start' => 0,
+            'length' => 10,
+            'search' => ['value' => $sheet->sheet_no],
+            'order' => [['column' => 0, 'dir' => 'desc']],
+        ]);
+        $request->setUserResolver(fn (): User => $user);
+
+        $response = app(MonthlyRateSheetController::class)
+            ->listAjax($request)
+            ->getData(true);
+
+        $this->assertSame(3, $response['draw']);
+        $this->assertSame(1, $response['recordsTotal']);
+        $this->assertSame(1, $response['recordsFiltered']);
+        $this->assertCount(1, $response['data']);
+        $this->assertCount(6, $response['data'][0]);
+    }
+
+    private function user(): User
+    {
+        return User::query()->create([
+            'name' => 'Monthly Rate Sheet User',
+            'email' => 'monthly-rate-sheet@example.test',
+            'password' => Hash::make('password'),
+        ]);
     }
 }

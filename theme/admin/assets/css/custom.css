@@ -3601,3 +3601,100 @@ html[data-theme="dark"] .account-ledger-summary-card--closing { border-left-colo
         box-shadow: none;
     }
 }
+
+/* Final Monthly Snapshot: report tabs and version navigation */
+.snapshot-report-tabs .nav-link {
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+    color: #475569;
+    font-weight: 600;
+}
+
+.snapshot-report-tabs .nav-link:hover {
+    border-color: #5eead4;
+    background: linear-gradient(135deg, #f0fdfa, #ecfeff);
+    color: #0f766e;
+}
+
+.snapshot-report-tabs .nav-link.active {
+    border-color: #0f766e !important;
+    background: linear-gradient(135deg, #14b8a6, #0f766e) !important;
+    color: #fff !important;
+    box-shadow: 0 5px 12px rgba(15, 118, 110, .18);
+}
+
+.snapshot-version-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 7px;
+    font-weight: 600;
+}
+
+.snapshot-version-link--selected {
+    border: 1px solid #059669 !important;
+    background: linear-gradient(135deg, #10b981, #047857) !important;
+    color: #fff !important;
+    box-shadow: 0 4px 10px rgba(5, 150, 105, .18);
+}
+
+.snapshot-version-link--historical {
+    border: 1px solid #cbd5e1 !important;
+    background: #fff !important;
+    color: #64748b !important;
+}
+
+.snapshot-version-link--historical:hover {
+    border-color: #94a3b8 !important;
+    background: #f8fafc !important;
+    color: #334155 !important;
+}
+
+/* Final snapshots are immutable; the shared table delete action is intentionally hidden. */
+.snapshot-register-card .export-destroy {
+    display: none;
+}
+
+/* Monthly Rate Sheet history is read-only; no bulk delete action is available. */
+.monthly-rate-sheet-history-card .export-destroy {
+    display: none;
+}
+
+/* Reporting Periods are controlled through close/reopen actions, not bulk deletion. */
+.reporting-period-table-card .export-destroy {
+    display: none;
+}
+
+/* Final Monthly Snapshot: each report tab owns an independent Ajax table toolbar. */
+.snapshot-report-toolbar {
+    min-height: 38px;
+}
+
+.snapshot-report-toolbar .table-top-head > li > a {
+    display: inline-flex;
+    width: 30px;
+    height: 30px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #e2e8f0;
+    border-radius: 7px;
+    background: #fff;
+    cursor: pointer;
+    transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease;
+}
+
+.snapshot-report-toolbar .table-top-head > li > a:hover {
+    border-color: #94a3b8;
+    box-shadow: 0 3px 8px rgba(15, 23, 42, .08);
+    transform: translateY(-1px);
+}
+
+.snapshot-report-table-shell .dt-top .dataTables_filter input {
+    min-width: 220px;
+    min-height: 32px;
+}
+
+.snapshot-report-table-shell .dt-top .dataTables_length select {
+    min-height: 32px;
+}

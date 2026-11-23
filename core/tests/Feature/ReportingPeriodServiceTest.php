@@ -4,9 +4,11 @@ namespace Tests\Feature;
 
 use App\Enums\Reporting\ReportingPeriodStatus;
 use App\Exceptions\Reporting\InvalidReportingPeriodException;
+use App\Http\Controllers\backend\ReportingPeriodController;
 use App\Models\backend\User;
 use App\Services\Reporting\ReportingPeriodService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
@@ -73,6 +75,32 @@ class ReportingPeriodServiceTest extends TestCase
         $this->expectExceptionMessage('A reporting period can be closed only after its end date.');
 
         app(ReportingPeriodService::class)->close($period, 'Premature close attempt.', $user->id);
+    }
+
+    public function test_reporting_period_list_uses_searchable_datatable_response(): void
+    {
+        $user = $this->user();
+        $service = app(ReportingPeriodService::class);
+        $service->create(2026, 10, $user->id);
+        $service->create(2026, 11, $user->id);
+        $request = Request::create('/reporting/periods/list', 'POST', [
+            'draw' => 4,
+            'start' => 0,
+            'length' => 10,
+            'search' => ['value' => '2026-11'],
+            'order' => [['column' => 1, 'dir' => 'desc']],
+        ]);
+        $request->setUserResolver(fn (): User => $user);
+
+        $response = app(ReportingPeriodController::class)
+            ->listAjax($request)
+            ->getData(true);
+
+        $this->assertSame(4, $response['draw']);
+        $this->assertSame(2, $response['recordsTotal']);
+        $this->assertSame(1, $response['recordsFiltered']);
+        $this->assertCount(1, $response['data']);
+        $this->assertCount(7, $response['data'][0]);
     }
 
     private function user(): User

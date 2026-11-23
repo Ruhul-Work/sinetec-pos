@@ -33,6 +33,14 @@ class MonthlyPurchaseReportServiceTest extends TestCase
             'is_default' => true,
             'is_active' => true,
         ]);
+        $otherWarehouse = Warehouse::query()->create([
+            'branch_id' => $branch->id,
+            'name' => 'Second Store',
+            'code' => 'STORE-2',
+            'type' => 'store',
+            'is_default' => false,
+            'is_active' => true,
+        ]);
         $supplier = Supplier::query()->create([
             'code' => 'SUP-MONTH',
             'name' => 'Monthly Supplier',
@@ -54,7 +62,7 @@ class MonthlyPurchaseReportServiceTest extends TestCase
             'name' => 'Purchase Item',
             'raw_material_category_id' => $category->id,
             'base_unit_id' => $unit->id,
-            'material_kind' => 'DIRECT',
+            'material_kind' => 'MATERIAL',
             'is_active' => true,
         ]);
         $period = ReportingPeriod::query()->create([
@@ -94,6 +102,55 @@ class MonthlyPurchaseReportServiceTest extends TestCase
             'created_at' => now(),
             'updated_at' => now(),
         ]);
+        $otherReceiptId = DB::table('purchase_receipt')->insertGetId([
+            'receipt_no' => 'PR-MONTH-OTHER-WAREHOUSE',
+            'purchase_order_id' => null,
+            'branch_id' => $branch->id,
+            'supplier_id' => $supplier->id,
+            'warehouse_id' => $otherWarehouse->id,
+            'receipt_date' => '2026-11-16',
+            'status' => 'POSTED',
+            'subtotal' => '300.0000',
+            'discount' => '0.0000',
+            'tax' => '0.0000',
+            'total' => '300.0000',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        $paymentTypeId = DB::table('payment_types')->insertGetId([
+            'name' => 'Cash',
+            'slug' => 'cash',
+            'allows_change' => true,
+            'is_active' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        DB::table('purchase_payment')->insert([
+            [
+                'payment_no' => 'PPAY-MONTH-001',
+                'branch_id' => $branch->id,
+                'supplier_id' => $supplier->id,
+                'purchase_receipt_id' => $receiptId,
+                'payment_type_id' => $paymentTypeId,
+                'payment_date' => '2026-11-17',
+                'amount' => '150.0000',
+                'status' => 'POSTED',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'payment_no' => 'PPAY-MONTH-OTHER-WAREHOUSE',
+                'branch_id' => $branch->id,
+                'supplier_id' => $supplier->id,
+                'purchase_receipt_id' => $otherReceiptId,
+                'payment_type_id' => $paymentTypeId,
+                'payment_date' => '2026-11-17',
+                'amount' => '300.0000',
+                'status' => 'POSTED',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+        ]);
 
         $report = app(MonthlyPurchaseReportService::class)->report(
             $period->id,
@@ -105,6 +162,7 @@ class MonthlyPurchaseReportServiceTest extends TestCase
         $this->assertSame('200.0000', $report['receipt_total']);
         $this->assertSame('200.0000', $report['net_purchase']);
         $this->assertSame('0.0000', $report['return_total']);
+        $this->assertSame('150.0000', $report['payment_total']);
         $this->assertCount(1, $report['lines']);
     }
 }

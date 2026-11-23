@@ -1,9 +1,9 @@
-# Electronics POS — Physical Database Design (v2.4)
+# Electronics POS — Physical Database Design (v2.5)
 
 **Status:** Implemented clean-schema baseline with a Reporting Period audit extension
-**Version:** 2.4
-**Updated:** 19 November 2026
-**Source:** Project Plan v2.4 and the active migrations in `core/database/migrations`
+**Version:** 2.5
+**Updated:** 22 November 2026
+**Source:** Project Plan v2.8 and the active migrations in `core/database/migrations`
 
 The clean baseline was successfully migrated to `pos-sinetec`: 112 application/framework tables plus Laravel's `migrations` table, for 113 total. A forward migration defines the Reporting Period audit-event table. The former database remains `pos-sinetec-legacy`. This document describes the design boundary; the active migrations are authoritative for exact executable columns and constraints.
 
@@ -283,7 +283,9 @@ Implemented Sales Draft foundation:
 
 `reporting_period_events` retains each Open, Close and Reopen action with its actor, reason and timestamp. Reporting periods are company-wide calendar months; a month can be closed only after its end date, and reopening requires separate permission and an audit reason.
 
-Rate tables are unique by `(monthly_rate_sheet_id, domain_item_id)`. The business rule for dependent workflows is that a closed period blocks rate edits and backdated posting unless it is reopened with permission and audit. Enforcement for the Monthly Rate Sheet and posting workflows will be added with those implementations.
+Rate tables are unique by `(monthly_rate_sheet_id, domain_item_id)`. Monthly Rate Sheet edits are restricted to an Open period. Final snapshot generation requires the Rate Sheet to be Locked and the Reporting Period to be Closed; an audited reopen/reclose is required before a corrected snapshot version can be generated.
+
+`monthly_report_snapshots` stores one `MONTHLY_PACKAGE` version per closed period and scope. `scope_type` is `COMPANY` or `BRANCH`; `branch_id` is required only for branch scope and `scope_key` provides explicit uniqueness. Its JSON payload freezes all six report sections and the permitted branch/warehouse dimensions, so views never recalculate from live transaction tables. `version`, `status`, `supersedes_snapshot_id`, correction note and superseded actor/time retain a non-destructive scope-specific revision chain. `checksum` stores the SHA-256 payload digest. The unique key is `(reporting_period_id, report_type, scope_key, version)`; correction requires an audited reopen/reclose.
 
 ## 9. Demand and supply planning
 

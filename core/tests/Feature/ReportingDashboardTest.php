@@ -47,6 +47,11 @@ class ReportingDashboardTest extends TestCase
             ->assertSee('Account Ledger')
             ->assertSee('Trial Balance')
             ->assertSee('Monthly Rate Sheets')
+            ->assertSee('Final Monthly Snapshots')
             ->assertSee('Reporting Periods');
+
+        $this->get(route('reporting.snapshots.index'))
+            ->assertOk()
+            ->assertSee('Monthly Snapshot Register');
     }
 }

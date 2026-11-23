@@ -39,7 +39,7 @@ class MonthlyStockReportServiceTest extends TestCase
             'name' => 'Stock Item',
             'raw_material_category_id' => $category->id,
             'base_unit_id' => $unit->id,
-            'material_kind' => 'DIRECT',
+            'material_kind' => 'MATERIAL',
             'is_active' => true,
         ]);
         $period = ReportingPeriod::query()->create([
@@ -82,6 +82,7 @@ class MonthlyStockReportServiceTest extends TestCase
                 'updated_at' => now(),
             ]);
         }
+        $raw->update(['is_active' => false]);
 
         $report = app(MonthlyStockReportService::class)->report(
             $period->id,

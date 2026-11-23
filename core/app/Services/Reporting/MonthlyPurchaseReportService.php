@@ -3,7 +3,7 @@
 namespace App\Services\Reporting;
 
 use App\Models\Reporting\ReportingPeriod;
-use Illuminate\Support\Collection;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 
 final class MonthlyPurchaseReportService
@@ -28,6 +28,7 @@ final class MonthlyPurchaseReportService
         $paymentQuery = DB::table('purchase_payment as payment')
             ->join('suppliers as supplier', 'supplier.id', '=', 'payment.supplier_id')
             ->join('branches as branch', 'branch.id', '=', 'payment.branch_id')
+            ->leftJoin('purchase_receipt as payment_receipt', 'payment_receipt.id', '=', 'payment.purchase_receipt_id')
             ->where('payment.status', 'POSTED');
 
         if ($period) {
@@ -38,11 +39,14 @@ final class MonthlyPurchaseReportService
 
         $this->applyReceiptScopes($receiptQuery, $branchId, $warehouseId, $supplierId);
         $this->applyReturnScopes($returnQuery, $branchId, $warehouseId, $supplierId);
-        $this->applyPaymentScopes($paymentQuery, $branchId, $supplierId);
+        $this->applyPaymentScopes($paymentQuery, $branchId, $warehouseId, $supplierId);
 
         $receipts = (clone $receiptQuery)
             ->select([
                 'receipt.id',
+                'receipt.branch_id',
+                'receipt.warehouse_id',
+                'receipt.supplier_id',
                 'receipt.receipt_no',
                 'receipt.receipt_date',
                 'receipt.subtotal',
@@ -60,6 +64,9 @@ final class MonthlyPurchaseReportService
         $returns = (clone $returnQuery)
             ->select([
                 'return.id',
+                'return.branch_id',
+                'return.warehouse_id',
+                'return.supplier_id',
                 'return.return_no',
                 'return.return_date',
                 'return.total',
@@ -74,6 +81,9 @@ final class MonthlyPurchaseReportService
         $payments = (clone $paymentQuery)
             ->select([
                 'payment.id',
+                'payment.branch_id',
+                'payment.supplier_id',
+                'payment_receipt.warehouse_id',
                 'payment.payment_no',
                 'payment.payment_date',
                 'payment.amount',
@@ -92,13 +102,13 @@ final class MonthlyPurchaseReportService
                 ->join('raw_materials as item_master', 'item_master.id', '=', 'item.raw_material_id')
                 ->join('units as unit', 'unit.id', '=', 'item.unit_id')
                 ->whereIn('item.purchase_receipt_id', $receiptIds)
-                ->selectRaw("'RAW_MATERIAL' as domain,item.id as line_id,receipt.receipt_no,receipt.receipt_date,item_master.material_code as item_code,item_master.name as item_name,unit.code as unit_code,item.base_quantity,item.unit_rate,item.line_total");
+                ->selectRaw("'RAW_MATERIAL' as domain,item.id as line_id,receipt.branch_id,receipt.warehouse_id,receipt.supplier_id,receipt.receipt_no,receipt.receipt_date,item_master.material_code as item_code,item_master.name as item_name,unit.code as unit_code,item.base_quantity,item.unit_rate,item.line_total");
             $partLines = DB::table('purchase_receipt_item as item')
                 ->join('purchase_receipt as receipt', 'receipt.id', '=', 'item.purchase_receipt_id')
                 ->join('parts as item_master', 'item_master.id', '=', 'item.part_id')
                 ->join('units as unit', 'unit.id', '=', 'item.unit_id')
                 ->whereIn('item.purchase_receipt_id', $receiptIds)
-                ->selectRaw("'PART' as domain,item.id as line_id,receipt.receipt_no,receipt.receipt_date,item_master.part_code as item_code,item_master.name as item_name,unit.code as unit_code,item.base_quantity,item.unit_rate,item.line_total");
+                ->selectRaw("'PART' as domain,item.id as line_id,receipt.branch_id,receipt.warehouse_id,receipt.supplier_id,receipt.receipt_no,receipt.receipt_date,item_master.part_code as item_code,item_master.name as item_name,unit.code as unit_code,item.base_quantity,item.unit_rate,item.line_total");
 
             $lineRows = DB::query()->fromSub($rawLines->unionAll($partLines), 'purchase_lines')
                 ->when($domain !== '', fn ($query) => $query->where('domain', $domain))
@@ -125,8 +135,12 @@ final class MonthlyPurchaseReportService
         ];
     }
 
-    private function applyReceiptScopes($query, ?int $branchId, ?int $warehouseId, ?int $supplierId): void
-    {
+    private function applyReceiptScopes(
+        Builder $query,
+        ?int $branchId,
+        ?int $warehouseId,
+        ?int $supplierId,
+    ): void {
         if ($branchId) {
             $query->where('receipt.branch_id', $branchId);
         } elseif (current_branch_id()) {
@@ -140,8 +154,12 @@ final class MonthlyPurchaseReportService
         }
     }
 
-    private function applyReturnScopes($query, ?int $branchId, ?int $warehouseId, ?int $supplierId): void
-    {
+    private function applyReturnScopes(
+        Builder $query,
+        ?int $branchId,
+        ?int $warehouseId,
+        ?int $supplierId,
+    ): void {
         if ($branchId) {
             $query->where('return.branch_id', $branchId);
         } elseif (current_branch_id()) {
@@ -155,12 +173,19 @@ final class MonthlyPurchaseReportService
         }
     }
 
-    private function applyPaymentScopes($query, ?int $branchId, ?int $supplierId): void
-    {
+    private function applyPaymentScopes(
+        Builder $query,
+        ?int $branchId,
+        ?int $warehouseId,
+        ?int $supplierId,
+    ): void {
         if ($branchId) {
             $query->where('payment.branch_id', $branchId);
         } elseif (current_branch_id()) {
             $query->where('payment.branch_id', current_branch_id());
+        }
+        if ($warehouseId) {
+            $query->where('payment_receipt.warehouse_id', $warehouseId);
         }
         if ($supplierId) {
             $query->where('payment.supplier_id', $supplierId);

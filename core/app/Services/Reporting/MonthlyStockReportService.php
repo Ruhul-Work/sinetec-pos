@@ -86,6 +86,8 @@ final class MonthlyStockReportService
                 $row = [
                     'domain' => $domainKey,
                     'domain_label' => $config['label'],
+                    'branch_id' => $meta['branch_id'],
+                    'warehouse_id' => $meta['warehouse_id'],
                     'item_name' => $meta['item_name'],
                     'item_code' => $meta['item_code'],
                     'unit_code' => $meta['unit_code'],
@@ -130,9 +132,7 @@ final class MonthlyStockReportService
             ->join($config['item_table'].' as item', 'item.id', '=', 'movement.'.$config['item_column'])
             ->join('units as unit', 'unit.id', '=', 'item.base_unit_id')
             ->join('warehouses as warehouse', 'warehouse.id', '=', 'movement.warehouse_id')
-            ->join('branches as branch', 'branch.id', '=', 'movement.branch_id')
-            ->whereNull('item.deleted_at')
-            ->where('item.is_active', true);
+            ->join('branches as branch', 'branch.id', '=', 'movement.branch_id');
 
         if ($openingOnly) {
             $query->where('movement.movement_at', '<', $period->starts_on->toDateString().' 00:00:00');
@@ -157,6 +157,7 @@ final class MonthlyStockReportService
         $rows = $query
             ->select([
                 'movement.'.$config['item_column'].' as item_id',
+                'movement.branch_id',
                 'movement.warehouse_id',
                 'item.name as item_name',
                 'item.'.$config['code_column'].' as item_code',
@@ -174,6 +175,8 @@ final class MonthlyStockReportService
         foreach ($rows as $row) {
             $key = $domain.'|'.$row->item_id.'|'.$row->warehouse_id;
             $meta = [
+                'branch_id' => (int) $row->branch_id,
+                'warehouse_id' => (int) $row->warehouse_id,
                 'item_name' => $row->item_name,
                 'item_code' => $row->item_code,
                 'unit_code' => $row->unit_code,
@@ -199,6 +202,7 @@ final class MonthlyStockReportService
                 $result[$key]['out'] = bcadd($result[$key]['out'], $quantity, 6);
             }
         }
+
         return $result;
     }
 }

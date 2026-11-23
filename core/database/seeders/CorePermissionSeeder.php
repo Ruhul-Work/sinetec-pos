@@ -55,6 +55,7 @@ class CorePermissionSeeder extends Seeder
             ['key' => 'reporting.periods', 'name' => 'Reporting Periods', 'module' => 'Reporting', 'prefixes' => ['reporting.periods.']],
             ['key' => 'reporting.period_reopen', 'name' => 'Reopen Reporting Periods', 'module' => 'Reporting', 'prefixes' => ['reporting.period-reopen.']],
             ['key' => 'reporting.rate_sheets', 'name' => 'Monthly Rate Sheets', 'module' => 'Reporting', 'prefixes' => ['reporting.rate-sheets.']],
+            ['key' => 'reporting.snapshots', 'name' => 'Final Monthly Snapshots', 'module' => 'Reporting', 'prefixes' => ['reporting.snapshots.']],
             ['key' => 'reporting.stock_valuation', 'name' => 'Monthly Stock Valuation', 'module' => 'Reporting', 'prefixes' => ['reporting.stock-valuation.']],
             ['key' => 'reporting.monthly_purchase', 'name' => 'Monthly Purchase Report', 'module' => 'Reporting', 'prefixes' => ['reporting.monthly-purchase.']],
             ['key' => 'reporting.monthly_stock', 'name' => 'Monthly Stock Report', 'module' => 'Reporting', 'prefixes' => ['reporting.monthly-stock.']],

@@ -16,8 +16,8 @@ use App\Http\Controllers\backend\CustomerReceivableController;
 use App\Http\Controllers\backend\DistrictController;
 use App\Http\Controllers\backend\DivisionController;
 use App\Http\Controllers\backend\DomainUnitMappingController;
-use App\Http\Controllers\backend\ExpenseController;
 use App\Http\Controllers\backend\ExpenseCategoryController;
+use App\Http\Controllers\backend\ExpenseController;
 use App\Http\Controllers\backend\FinanceAccountMappingController;
 use App\Http\Controllers\backend\FinanceOpeningBalanceController;
 use App\Http\Controllers\backend\FinishedProductCategoryController;
@@ -29,19 +29,24 @@ use App\Http\Controllers\backend\FiscalYearController;
 use App\Http\Controllers\backend\JournalController;
 use App\Http\Controllers\backend\LoanReceiptController;
 use App\Http\Controllers\backend\LoanRepaymentController;
+use App\Http\Controllers\backend\MonthlyAssemblyReportController;
+use App\Http\Controllers\backend\MonthlyPartProductionReportController;
+use App\Http\Controllers\backend\MonthlyPurchaseReportController;
+use App\Http\Controllers\backend\MonthlyRateSheetController;
+use App\Http\Controllers\backend\MonthlyReportSnapshotController;
+use App\Http\Controllers\backend\MonthlySalesReportController;
+use App\Http\Controllers\backend\MonthlyStockReportController;
 use App\Http\Controllers\backend\OpeningStockController;
 use App\Http\Controllers\backend\PartBomController;
 use App\Http\Controllers\backend\PartCategoryController;
 use App\Http\Controllers\backend\PartController;
 use App\Http\Controllers\backend\PartProductionController;
-use App\Http\Controllers\backend\ProductBomController;
-use App\Http\Controllers\backend\ProductAssemblyController;
 use App\Http\Controllers\backend\PartReorderLevelController;
 use App\Http\Controllers\backend\PartSupplierController;
 use App\Http\Controllers\backend\PaymentTypeController;
 use App\Http\Controllers\backend\PosSaleController;
-use App\Http\Controllers\backend\SaleReturnController;
-use App\Http\Controllers\backend\SalesReconciliationController;
+use App\Http\Controllers\backend\ProductAssemblyController;
+use App\Http\Controllers\backend\ProductBomController;
 use App\Http\Controllers\backend\ProductionExpenseCategoryController;
 use App\Http\Controllers\backend\PurchaseOrderController;
 use App\Http\Controllers\backend\PurchasePaymentController;
@@ -54,16 +59,12 @@ use App\Http\Controllers\backend\RawMaterialReorderLevelController;
 use App\Http\Controllers\backend\RawMaterialSupplierController;
 use App\Http\Controllers\backend\ReportingDashboardController;
 use App\Http\Controllers\backend\ReportingPeriodController;
-use App\Http\Controllers\backend\MonthlyRateSheetController;
-use App\Http\Controllers\backend\MonthlyPurchaseReportController;
-use App\Http\Controllers\backend\MonthlyPartProductionReportController;
-use App\Http\Controllers\backend\MonthlyAssemblyReportController;
-use App\Http\Controllers\backend\MonthlySalesReportController;
-use App\Http\Controllers\backend\MonthlyStockReportController;
-use App\Http\Controllers\backend\StockValuationController;
+use App\Http\Controllers\backend\SaleReturnController;
+use App\Http\Controllers\backend\SalesReconciliationController;
 use App\Http\Controllers\backend\StockAdjustmentController;
 use App\Http\Controllers\backend\StockLedgerController;
 use App\Http\Controllers\backend\StockTransferController;
+use App\Http\Controllers\backend\StockValuationController;
 use App\Http\Controllers\backend\SupplierController;
 use App\Http\Controllers\backend\SupplierDueSummaryController;
 use App\Http\Controllers\backend\TrialBalanceController;
@@ -596,11 +597,25 @@ Route::middleware(['web', 'auth', 'perm', 'branchscope'])->group(function () {
         ->name('reporting.dashboard.index');
     Route::prefix('reporting/rate-sheets')->name('reporting.rate-sheets.')->group(function () {
         Route::get('/', [MonthlyRateSheetController::class, 'index'])->name('index');
+        Route::post('list', [MonthlyRateSheetController::class, 'listAjax'])->name('list.ajax');
         Route::post('periods/{period}', [MonthlyRateSheetController::class, 'create'])->whereNumber('period')->name('store');
         Route::get('{sheet}', [MonthlyRateSheetController::class, 'show'])->whereNumber('sheet')->name('show');
         Route::put('{sheet}', [MonthlyRateSheetController::class, 'update'])->whereNumber('sheet')->name('update');
         Route::patch('{sheet}/approve', [MonthlyRateSheetController::class, 'approve'])->whereNumber('sheet')->name('approve');
         Route::patch('{sheet}/lock', [MonthlyRateSheetController::class, 'lock'])->whereNumber('sheet')->name('lock');
+    });
+    Route::prefix('reporting/snapshots')->name('reporting.snapshots.')->group(function () {
+        Route::get('/', [MonthlyReportSnapshotController::class, 'index'])->name('index');
+        Route::post('list', [MonthlyReportSnapshotController::class, 'listAjax'])->name('list.ajax');
+        Route::post('periods/{period}', [MonthlyReportSnapshotController::class, 'store'])
+            ->whereNumber('period')
+            ->name('store');
+        Route::post('{snapshot}/table', [MonthlyReportSnapshotController::class, 'tableAjax'])
+            ->whereNumber('snapshot')
+            ->name('table.ajax');
+        Route::get('{snapshot}', [MonthlyReportSnapshotController::class, 'show'])
+            ->whereNumber('snapshot')
+            ->name('show');
     });
     Route::get('reporting/stock-valuation', [StockValuationController::class, 'index'])
         ->name('reporting.stock-valuation.index');
@@ -638,6 +653,7 @@ Route::middleware(['web', 'auth', 'perm', 'branchscope'])->group(function () {
         ->name('reporting.monthly-sales.receipts.ajax');
     Route::prefix('reporting/periods')->name('reporting.periods.')->group(function () {
         Route::get('/', [ReportingPeriodController::class, 'index'])->name('index');
+        Route::post('list', [ReportingPeriodController::class, 'listAjax'])->name('list.ajax');
         Route::post('/', [ReportingPeriodController::class, 'store'])->name('store');
         Route::patch('{period}/close', [ReportingPeriodController::class, 'close'])->whereNumber('period')->name('close');
     });

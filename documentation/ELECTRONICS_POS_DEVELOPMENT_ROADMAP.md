@@ -1,13 +1,13 @@
 # Electronics POS — Development Roadmap
 
-**Status:** Active implementation roadmap; Reporting hub, reconciliation, Reporting Period controls and the Monthly Rate Sheet workflow are complete; stock valuation and snapshots are next
-**Version:** 2.1
-**Updated:** 19 November 2026
-**Based on:** Project Plan v2.4 and Physical Database Design v2.4
+**Status:** Active implementation roadmap; Reporting hub, operational monthly reports and versioned Final Monthly Snapshots are complete; demand/material planning is next
+**Version:** 2.3
+**Updated:** 22 November 2026
+**Based on:** Project Plan v2.8 and Physical Database Design v2.5
 
 > **Decision override:** Any later reference in this document to a unified `inventory_item`, `inventory_movement`, or `inventory_balance` means the corresponding separate Raw Material, Part, and Finished Product masters/ledgers/balances. The unified-table proposal is cancelled.
 
-> **Current delivery position:** Phases 0-5 are complete. The purchase-related Finance foundation and accountant workflow from Phase 6 were completed early. Supplier/Customer masters use reusable modal CRUD and protected master lists. Finished Product internal EAN-13 assignment, multi-product A4 label printing, read-only Sales/Return reconciliation, audited Reporting Period Open/Close controls and a permission-filtered Reporting hub are complete; the company-wide Monthly Rate Sheet is next.
+> **Current delivery position:** Phases 0-5 are complete. The purchase-related Finance foundation and accountant workflow from Phase 6 were completed early. Supplier/Customer masters, internal EAN-13 labels, Sales/Return reconciliation, Reporting Period controls, Monthly Rate Sheets, Stock Valuation, operational Monthly Reports and scope-aware Final Monthly Snapshots are complete. Demand and material-requirement planning is the next Phase 7 delivery.
 
 ## 1. Roadmap objective
 
@@ -303,19 +303,19 @@ Receipt      Adjustment      Production   Stock Count
 | Build / adapt | Reuse or new | Depends on | Connects to |
 | --- | --- | --- | --- |
 | **Complete: Reporting period open/close** | Company-wide period controls with audited close/reopen and separate reopen permission | Permissions | Rate sheet/report snapshots |
-| Company-wide monthly rate sheet | New | Three inventory masters + purchase history | Valuation/reports/planning |
-| **In progress: Current stock valuation** | Read-only report using current positive balances and period-approved/locked rates | Balance + approved/locked monthly rate sheet | Management dashboard |
-| **In progress: Monthly purchase report**; stock/purchase/production/sales reports follow | New queries, reuse print UI | All posted transactions + rates | Print/PDF |
-| Frozen report snapshot | New | Reporting period + rate sheet | Historical report integrity |
+| **Complete: Company-wide monthly rate sheet** | New | Three inventory masters + purchase history | Valuation/reports/planning |
+| **Complete: Current stock valuation** | Read-only report using current positive balances and period-approved/locked rates | Balance + approved/locked monthly rate sheet | Management dashboard |
+| **Complete: Monthly purchase, stock, part-production, assembly and sales reports** | New queries using existing posted transaction cores and AjaxDataTable UI | All posted transactions + reporting period | Print/export |
+| **Complete: Final Monthly Snapshot** | One independently versioned package per month and scope (`COMPANY` or one branch), containing all six frozen reports | Closed Reporting Period + Locked Rate Sheet | Historical report integrity |
 | Demand plan | New | Sales history / manual target | MRP |
 | Material requirement plan | New | Demand plan + BOM + stock + reorder level | Purchase recommendation |
 | Low-stock report | New/adapt | Balance + reorder level | Operations |
 
 **Monthly flow**
 
-`Open Reporting Month → Prepare/Approve Company Rate Sheet → Operate Normally → Generate Reports → Close Month → Lock Rate + Final Report Snapshots`
+`Open Reporting Month → Prepare/Approve/Lock Company Rate Sheet → Operate Normally → Review Reports → Close Month → Generate Final Monthly Snapshot`
 
-Reporting Periods are company-wide calendar months. Each year/month can be created once; its first and last dates are derived by the application. A period can be closed only after its end date. Closing requires a reason and records the actor/time; reopening requires both period-view access and the separate reopen permission, a reason, and retains the full event history. This first delivery establishes the lifecycle; the upcoming Rate Sheet and report snapshot workflows must enforce the period state before they can be built.
+Reporting Periods and Rate Sheets remain company-wide calendar controls. Each year/month can be created once; its first and last dates are derived by the application. A period can be closed only after its end date. Closing requires a reason and records the actor/time; reopening requires both period-view access and the separate reopen permission, a reason, and retains the full event history. A Final Monthly Snapshot requires a Locked Rate Sheet and Closed period. Super Admin may generate a company package or select a topbar branch and generate that branch's package. A regular operator is restricted to the operator's assigned branch and cannot view company/other-branch packages. Every scope has its own version chain; viewing and warehouse filtering use the stored payload rather than live transaction tables. An authorised correction requires reopen/reclose and creates a new scope-specific version while retaining the prior checksum-protected version.
 
 **Acceptance test**
 
@@ -445,7 +445,11 @@ Reporting Periods are company-wide calendar months. Each year/month can be creat
 57. **Complete:** Add a single-link Reporting hub with permission-filtered cards for implemented reports and Reporting Period controls.
 58. **Complete:** Clarify Wholesale invoice gross receipts, refunds, net paid and due as separate aligned values.
 59. **Complete:** Build the company-wide Monthly Rate Sheet with purchase-weighted Raw/Part suggestions, manual Finished-Product base rates, Draft/Approved/Locked status and Open-period edit protection.
-60. **Next control:** Build monthly stock valuation and frozen report snapshots.
+60. **Complete:** Build Monthly Stock Valuation and Monthly Purchase/Stock/Part-Production/Assembly/Sales reports with period, branch, warehouse and domain filters.
+61. **Complete:** Add Reporting hub cards, independent permissions, reset-filter controls, breadcrumbs and existing AjaxDataTable export/search/refresh patterns.
+62. **Complete:** Add focused Monthly Assembly, Monthly Sales and Final Snapshot tests, correct legacy reporting fixtures and verify all 468 automated tests with 126,541 assertions.
+63. **Complete:** Build independently versioned company/branch Final Monthly Snapshot packages per closed month, enforce branch access, filter frozen rows by warehouse, verify payload integrity by SHA-256 and retain superseded versions after authorised reopen/reclose.
+64. **Next:** Build demand planning and material/part requirement recommendations.
 
 Finance account mapping, the generic Draft Journal engine and the authorised accountant workflow are complete. Purchase integration creates reviewable drafts; only approved, successfully revalidated journals can be posted.
 

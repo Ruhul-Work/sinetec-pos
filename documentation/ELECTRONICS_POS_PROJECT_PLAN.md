@@ -1,8 +1,8 @@
 # Electronics Manufacturing, Inventory & Sales System — Project Plan
 
-**Status:** Business scope approved; core operations, reconciliation and Reporting Period/Monthly Rate Sheet workflows are ready; stock valuation and report snapshots are next
-**Version:** 2.4
-**Updated:** 19 November 2026
+**Status:** Business scope approved; core operations and immutable Final Monthly Snapshots are ready; supply planning is next
+**Version:** 2.9
+**Updated:** 22 November 2026
 **Purpose:** This is the authoritative business-scope and decision-history document. Physical implementation details and current progress are tracked in the linked design, roadmap and status documents.
 
 ## 1. Project objective
@@ -112,7 +112,7 @@ The meeting must still confirm who may update a monthly rate and who may close/r
 
 Deferring these operational features keeps the first release understandable and usable. Foundation tables for future offers, coupons, and loyalty will be created now but remain inactive; no discount or point logic will run until the later e-commerce scope is approved. The data structure will also be planned so warranty, serial numbers, and subcontracting can be added later.
 
-### 3.3 Current implementation checkpoint — 8 November 2026
+### 3.3 Current implementation checkpoint — 22 November 2026
 
 The approved scope remains unchanged. The following foundation is now complete and user-testable:
 
@@ -121,7 +121,7 @@ The approved scope remains unchanged. The following foundation is now complete a
 - Purchase Order, direct/PO-based Purchase Receipt, Purchase Return, Supplier Payment/Due and Purchase Price History.
 - Operational Finance foundation: Chart of Accounts, branch accounts, purchase mapping, Draft Journal workflow, Account Ledger, Cash/Bank Book, capital/loan controls, Trial Balance and Fiscal Year Closing.
 
-Part BOM / Recipe, Internal Part Production, Finished Product BOM / Recipe, Final Product Assembly, POS, Customer Receivables, Wholesale Sales and Sales Return are complete. Supplier and Customer master CRUD has also been rebuilt around the shared quick-create modal flow. The next small delivery is **Finished Product Barcode/Label generation**, followed by Sales/Return reconciliation. Monthly reporting and supply planning remain later release work.
+Part BOM / Recipe, Internal Part Production, Finished Product BOM / Recipe, Final Product Assembly, POS, Customer Receivables, Wholesale Sales, Sales Return, Supplier/Customer master CRUD and Finished Product Barcode/Label generation are complete. Sales/Return reconciliation, Reporting Period controls, Monthly Rate Sheets, Stock Valuation, operational Monthly Purchase/Stock/Part Production/Assembly/Sales reports and versioned Final Monthly Snapshots are also complete. The next delivery is **demand and material-requirement planning**.
 
 ## 4. Simple operational flows
 
@@ -242,13 +242,13 @@ The final accounting workflow must specify which events automatically create jou
 
 1. **Complete:** requirements, reuse boundary and database design approved.
 2. **Complete:** clean migrations created and run on the new database.
-3. **Complete:** master data, inventory core, purchasing and the purchase/cash-bank Finance foundation.
-4. **Current:** complete Finance smoke testing and correct any critical issue before the next operational module.
-5. **Complete:** Part BOM / Recipe setup with Make/Both Part eligibility, versioning, raw-material component lines and Active-version control.
-6. **Complete:** Internal Part Production and Finished Product BOM / Recipe.
-7. **Complete:** Final Product Assembly with atomic mixed-component OUT / Finished Product IN posting.
-8. **Next:** Sales → monthly reporting and supply planning.
-7. **Before go-live:** run branch/warehouse stock, production cost, finance and permission acceptance tests.
+3. **Complete:** master data, inventory core, purchasing and operational Finance with accountant-controlled journals.
+4. **Complete:** Part BOM, Internal Part Production, Finished Product BOM and Final Product Assembly.
+5. **Complete:** POS, Wholesale Sales, receivables, split payments, returns and reconciliation.
+6. **Complete:** Reporting Period, Monthly Rate Sheet, Stock Valuation and operational monthly reports.
+7. **Complete:** frozen report snapshots and historical report integrity, with independent company/branch scope.
+8. **Next:** build demand planning, material-requirement planning and low-stock reporting.
+9. **Before go-live:** run branch/warehouse stock, production, finance, permission and reporting acceptance tests.
 
 ## 11. Approved baseline checklist
 
@@ -301,3 +301,5 @@ These four documents, including this plan, are the authoritative project set. Th
 | 2.4 | 19 November 2026 | Completed Sales/Return reconciliation, audited Reporting Period Open/Close controls, a permission-filtered Reporting hub and clear Wholesale payment/refund/net-paid/due display; the company-wide Monthly Rate Sheet is next. |
 | 2.5 | 21 November 2026 | Implemented Monthly Rate Sheets for Raw Materials, Parts and Finished Products with period-scoped Draft, weighted purchase suggestions, manual editing, Approval and Lock. |
 | 2.6 | 21 November 2026 | Started the monthly reporting stream with a Posted Purchase Report covering Receipts, Purchase lines, Returns and Supplier Payments by reporting period and operational scope. |
+| 2.7 | 22 November 2026 | Completed Monthly Stock Valuation, Purchase, Stock, Part Production, Assembly and Sales reports with existing reporting-period scopes and permissioned Reporting hub cards. |
+| 2.8 | 22 November 2026 | Corrected the delivery sequence, added focused Assembly/Sales report coverage, fixed warehouse-scoped Sales collection totals and verified the complete automated test suite. |

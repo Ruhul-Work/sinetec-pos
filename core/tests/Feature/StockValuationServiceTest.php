@@ -52,7 +52,7 @@ class StockValuationServiceTest extends TestCase
             'name' => 'Copper Board',
             'raw_material_category_id' => $category->id,
             'base_unit_id' => $unit->id,
-            'material_kind' => 'DIRECT',
+            'material_kind' => 'MATERIAL',
             'is_active' => true,
         ]);
         RawMaterialStockBalance::query()->create([
@@ -79,6 +79,7 @@ class StockValuationServiceTest extends TestCase
             'rate' => '200.0000',
             'rate_basis' => 'WEIGHTED_PURCHASE',
         ]);
+        $raw->update(['is_active' => false]);
 
         $report = app(StockValuationService::class)->report($period->id, $branch->id, $warehouse->id);
 

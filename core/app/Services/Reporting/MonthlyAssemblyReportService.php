@@ -59,6 +59,9 @@ final class MonthlyAssemblyReportService
 
         $rows = $query->select([
             'batch.id',
+            'batch.branch_id',
+            'batch.input_warehouse_id',
+            'batch.output_warehouse_id',
             'batch.batch_no',
             'batch.assembly_date',
             'batch.planned_quantity',

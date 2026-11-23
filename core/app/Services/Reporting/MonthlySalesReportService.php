@@ -3,6 +3,7 @@
 namespace App\Services\Reporting;
 
 use App\Models\Reporting\ReportingPeriod;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 
 final class MonthlySalesReportService
@@ -45,11 +46,14 @@ final class MonthlySalesReportService
         }
         $this->applySaleScopes($saleQuery, $branchId, $warehouseId, $customerId, $channel);
         $this->applyReturnScopes($returnQuery, $branchId, $warehouseId, $customerId, $channel);
-        $this->applyReceiptScopes($receiptQuery, $branchId, $customerId, $channel);
+        $this->applyReceiptScopes($receiptQuery, $branchId, $warehouseId, $customerId, $channel);
         $this->applyInitialPaymentScopes($initialPaymentQuery, $branchId, $warehouseId, $customerId, $channel);
 
         $sales = (clone $saleQuery)->select([
             'sale.id',
+            'sale.branch_id',
+            'sale.warehouse_id',
+            'sale.customer_id',
             'sale.sale_no',
             'sale.sale_at',
             'sale.channel',
@@ -68,6 +72,9 @@ final class MonthlySalesReportService
 
         $returns = (clone $returnQuery)->select([
             'return.id',
+            'return.branch_id',
+            'return.warehouse_id',
+            'sale.customer_id',
             'return.return_no',
             'return.return_at',
             'return.total',
@@ -84,6 +91,9 @@ final class MonthlySalesReportService
 
         $receipts = (clone $receiptQuery)->select([
             'receipt.id',
+            'receipt.branch_id',
+            'sale.warehouse_id',
+            'receipt.customer_id',
             'receipt.receipt_no',
             'receipt.receipt_at',
             'receipt.amount',
@@ -102,9 +112,24 @@ final class MonthlySalesReportService
         $dueAdjustment = $returns->reduce(fn (string $total, object $row): string => bcadd($total, (string) $row->due_adjustment, 4), '0.0000');
         $netSales = bcsub($saleTotal, $returnTotal, 4);
         $receiptTotal = $receipts->reduce(fn (string $total, object $row): string => bcadd($total, (string) $row->amount, 4), '0.0000');
-        $initialPaymentTotal = (clone $initialPaymentQuery)
-            ->sum(DB::raw('payment.amount'));
-        $initialPaymentTotal = number_format((float) ($initialPaymentTotal ?? 0), 4, '.', '');
+        $initialPayments = (clone $initialPaymentQuery)
+            ->select([
+                'payment.id',
+                'payment.payment_no',
+                'payment.payment_at',
+                'payment.amount',
+                'sale.branch_id',
+                'sale.warehouse_id',
+                'sale.customer_id',
+                'sale.channel',
+            ])
+            ->orderByDesc('payment.payment_at')
+            ->orderByDesc('payment.id')
+            ->get();
+        $initialPaymentTotal = $initialPayments->reduce(
+            fn (string $total, object $row): string => bcadd($total, (string) $row->amount, 4),
+            '0.0000',
+        );
         $paidNow = $sales->reduce(fn (string $total, object $row): string => bcadd($total, (string) $row->paid_amount, 4), '0.0000');
         $dueTotal = $sales->reduce(fn (string $total, object $row): string => bcadd($total, (string) $row->due_amount, 4), '0.0000');
         $netCollected = bcsub(bcadd($initialPaymentTotal, $receiptTotal, 4), $refundTotal, 4);
@@ -120,6 +145,9 @@ final class MonthlySalesReportService
                 ->select([
                     'sale.sale_no',
                     'sale.sale_at',
+                    'sale.branch_id',
+                    'sale.warehouse_id',
+                    'sale.customer_id',
                     'sale.channel',
                     'product.name as product_name',
                     'product.product_code',
@@ -139,6 +167,7 @@ final class MonthlySalesReportService
             'sales' => $sales,
             'returns' => $returns,
             'receipts' => $receipts,
+            'initial_payments' => $initialPayments,
             'lines' => $lineRows,
             'sale_total' => $saleTotal,
             'return_total' => $returnTotal,
@@ -153,38 +182,99 @@ final class MonthlySalesReportService
         ];
     }
 
-    private function applySaleScopes($query, ?int $branchId, ?int $warehouseId, ?int $customerId, string $channel): void
-    {
-        if ($branchId) $query->where('sale.branch_id', $branchId);
-        elseif (current_branch_id()) $query->where('sale.branch_id', current_branch_id());
-        if ($warehouseId) $query->where('sale.warehouse_id', $warehouseId);
-        if ($customerId) $query->where('sale.customer_id', $customerId);
-        if (in_array($channel, ['POS', 'WHOLESALE'], true)) $query->where('sale.channel', $channel);
+    private function applySaleScopes(
+        Builder $query,
+        ?int $branchId,
+        ?int $warehouseId,
+        ?int $customerId,
+        string $channel,
+    ): void {
+        if ($branchId) {
+            $query->where('sale.branch_id', $branchId);
+        } elseif (current_branch_id()) {
+            $query->where('sale.branch_id', current_branch_id());
+        }
+
+        if ($warehouseId) {
+            $query->where('sale.warehouse_id', $warehouseId);
+        }
+        if ($customerId) {
+            $query->where('sale.customer_id', $customerId);
+        }
+        if (in_array($channel, ['POS', 'WHOLESALE'], true)) {
+            $query->where('sale.channel', $channel);
+        }
     }
 
-    private function applyReturnScopes($query, ?int $branchId, ?int $warehouseId, ?int $customerId, string $channel): void
-    {
-        if ($branchId) $query->where('return.branch_id', $branchId);
-        elseif (current_branch_id()) $query->where('return.branch_id', current_branch_id());
-        if ($warehouseId) $query->where('return.warehouse_id', $warehouseId);
-        if ($customerId) $query->where('sale.customer_id', $customerId);
-        if (in_array($channel, ['POS', 'WHOLESALE'], true)) $query->where('sale.channel', $channel);
+    private function applyReturnScopes(
+        Builder $query,
+        ?int $branchId,
+        ?int $warehouseId,
+        ?int $customerId,
+        string $channel,
+    ): void {
+        if ($branchId) {
+            $query->where('return.branch_id', $branchId);
+        } elseif (current_branch_id()) {
+            $query->where('return.branch_id', current_branch_id());
+        }
+
+        if ($warehouseId) {
+            $query->where('return.warehouse_id', $warehouseId);
+        }
+        if ($customerId) {
+            $query->where('sale.customer_id', $customerId);
+        }
+        if (in_array($channel, ['POS', 'WHOLESALE'], true)) {
+            $query->where('sale.channel', $channel);
+        }
     }
 
-    private function applyReceiptScopes($query, ?int $branchId, ?int $customerId, string $channel): void
-    {
-        if ($branchId) $query->where('receipt.branch_id', $branchId);
-        elseif (current_branch_id()) $query->where('receipt.branch_id', current_branch_id());
-        if ($customerId) $query->where('receipt.customer_id', $customerId);
-        if (in_array($channel, ['POS', 'WHOLESALE'], true)) $query->where('sale.channel', $channel);
+    private function applyReceiptScopes(
+        Builder $query,
+        ?int $branchId,
+        ?int $warehouseId,
+        ?int $customerId,
+        string $channel,
+    ): void {
+        if ($branchId) {
+            $query->where('receipt.branch_id', $branchId);
+        } elseif (current_branch_id()) {
+            $query->where('receipt.branch_id', current_branch_id());
+        }
+
+        if ($warehouseId) {
+            $query->where('sale.warehouse_id', $warehouseId);
+        }
+        if ($customerId) {
+            $query->where('receipt.customer_id', $customerId);
+        }
+        if (in_array($channel, ['POS', 'WHOLESALE'], true)) {
+            $query->where('sale.channel', $channel);
+        }
     }
 
-    private function applyInitialPaymentScopes($query, ?int $branchId, ?int $warehouseId, ?int $customerId, string $channel): void
-    {
-        if ($branchId) $query->where('sale.branch_id', $branchId);
-        elseif (current_branch_id()) $query->where('sale.branch_id', current_branch_id());
-        if ($warehouseId) $query->where('sale.warehouse_id', $warehouseId);
-        if ($customerId) $query->where('sale.customer_id', $customerId);
-        if (in_array($channel, ['POS', 'WHOLESALE'], true)) $query->where('sale.channel', $channel);
+    private function applyInitialPaymentScopes(
+        Builder $query,
+        ?int $branchId,
+        ?int $warehouseId,
+        ?int $customerId,
+        string $channel,
+    ): void {
+        if ($branchId) {
+            $query->where('sale.branch_id', $branchId);
+        } elseif (current_branch_id()) {
+            $query->where('sale.branch_id', current_branch_id());
+        }
+
+        if ($warehouseId) {
+            $query->where('sale.warehouse_id', $warehouseId);
+        }
+        if ($customerId) {
+            $query->where('sale.customer_id', $customerId);
+        }
+        if (in_array($channel, ['POS', 'WHOLESALE'], true)) {
+            $query->where('sale.channel', $channel);
+        }
     }
 }

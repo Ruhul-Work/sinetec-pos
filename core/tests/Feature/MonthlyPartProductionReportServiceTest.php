@@ -47,7 +47,7 @@ class MonthlyPartProductionReportServiceTest extends TestCase
             'name' => 'Production Raw Material',
             'raw_material_category_id' => $rawCategory->id,
             'base_unit_id' => $unit->id,
-            'material_kind' => 'DIRECT',
+            'material_kind' => 'MATERIAL',
             'is_active' => true,
         ]);
         $part = Part::query()->create([

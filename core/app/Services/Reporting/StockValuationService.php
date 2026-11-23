@@ -5,8 +5,6 @@ namespace App\Services\Reporting;
 use App\Enums\Reporting\MonthlyRateSheetStatus;
 use App\Models\Reporting\MonthlyRateSheet;
 use App\Models\Reporting\ReportingPeriod;
-use Illuminate\Database\Query\Builder;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 final class StockValuationService
@@ -69,8 +67,6 @@ final class StockValuationService
                 ->join('branches as branch', 'branch.id', '=', 'warehouse.branch_id')
                 ->join($config['item_table'].' as item', 'item.id', '=', 'balance.'.$config['item_column'])
                 ->join('units as unit', 'unit.id', '=', 'item.base_unit_id')
-                ->whereNull('item.deleted_at')
-                ->where('item.is_active', true)
                 ->where('balance.quantity', '!=', '0');
 
             if ($branchId) {
@@ -84,6 +80,7 @@ final class StockValuationService
 
             $query->select([
                 'balance.quantity',
+                'warehouse.branch_id',
                 'balance.warehouse_id',
                 'warehouse.name as warehouse_name',
                 'warehouse.code as warehouse_code',
@@ -116,6 +113,8 @@ final class StockValuationService
                 $rows->push([
                     'domain' => $domainKey,
                     'domain_label' => $config['label'],
+                    'branch_id' => (int) $row->branch_id,
+                    'warehouse_id' => (int) $row->warehouse_id,
                     'branch_name' => $row->branch_name,
                     'branch_code' => $row->branch_code,
                     'warehouse_name' => $row->warehouse_name,

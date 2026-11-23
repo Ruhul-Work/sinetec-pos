@@ -12,6 +12,7 @@
                 <x-backend.page-note title="Report scope" label="View report rules" align="start">
                     This report lists posted Purchase Receipts and Returns within the selected reporting period.
                     Supplier payments are separate totals and do not reduce Purchase Receipt total.
+                    Inventory Type filters the purchased-item lines only; document and payment totals remain full-document values.
                 </x-backend.page-note>
             </div>
             <p class="text-muted m-0">Posted purchase activity for the selected month and branch scope.</p>

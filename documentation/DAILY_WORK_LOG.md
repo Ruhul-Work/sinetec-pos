@@ -404,3 +404,21 @@ project: Sinetec POS
 12. Added focused regression coverage and synchronized status/roadmap/project documentation — approx. 30 min
 
 **Total:** Approx. 10 hours 15 minutes
+
+---
+
+## Date: 2026-11-22
+
+**ID:** BFT4
+
+project: Sinetec POS
+
+1. Implemented Monthly Part Production Report with completed batches, planned/good/reject quantities, QC and report-only material/direct costs — approx. 1 hour
+2. Implemented Monthly Finished Product Assembly Report, later corrected technical names to Monthly Assembly Report across controller, service, route, view and permission — approx. 1.25 hours
+3. Implemented Monthly Sales Report for POS/Wholesale sales, sale lines, returns, refunds, collections and outstanding due — approx. 1.5 hours
+4. Added Initial Sale Payments, Due Collections, Refunded, Net Collected and Outstanding Due cards to make Monthly Sales cash movement clear — approx. 45 min
+5. Replaced custom report DataTable setup with the existing `.AjaxDataTable` / `DATATABLE_URL` / `preXhr.dt` system pattern — approx. 1 hour
+6. Added reporting reset-filter buttons, Dashboard breadcrumbs, Account-Ledger-style summary cards and compact report titles — approx. 1 hour
+7. Data-level reconciled sample November sales: 3 posted sale payments, 2 due collections, 2 sales returns and 0 open due; route/view/permission/cache verification completed — approx. 45 min
+
+**Total:** Approx. 7 hours 15 minutes

@@ -39,4 +39,9 @@ class ReportingPeriod extends Model
     {
         return $this->hasMany(ReportingPeriodEvent::class)->with('actor')->orderBy('id');
     }
+
+    public function snapshots(): HasMany
+    {
+        return $this->hasMany(MonthlyReportSnapshot::class)->orderByDesc('version');
+    }
 }

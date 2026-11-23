@@ -74,7 +74,8 @@ Development is progressing according to the approved roadmap. Core master data, 
 - `PR-002` covers only updates from 1 November through 8 November 2026.
 - `PR-003` covers updates from 9 November through 17 November 2026.
 - `PR-004` covers updates from 18 November through 19 November 2026.
-- The next report will be `PR-005` and will include updates from 20 November 2026 onward.
+- `PR-005` covers updates from 20 November through 22 November 2026.
+- The next report will be `PR-006` and will include updates from 23 November 2026 onward.
 - Older report periods will not be overwritten.
 
 ---
@@ -212,4 +213,48 @@ operational. Sales Return is the next implementation gate.
 ### Current Status
 
 Sales/Return reconciliation, the permission-filtered Reporting hub and audited Reporting Period controls are implemented. Monthly Rate Sheet is the next Phase 7 delivery.
+
+---
+
+## Progress Report PR-005
+
+**Reporting Period:** 20 November 2026 — 22 November 2026
+
+**Next Reporting Period:** From 23 November 2026
+
+### Completed
+
+1. Completed company-wide Monthly Stock Valuation using Approved/Locked monthly rates
+2. Completed Monthly Purchase Report for posted receipts, purchase lines, returns and supplier payments
+3. Completed Monthly Stock Report with opening, IN, OUT and closing stock
+4. Completed Monthly Part Production Report for completed batches, quantities, QC and report-only costs
+5. Completed Monthly Assembly Report for completed finished-product assembly batches and batch costs
+6. Completed Monthly Sales Report for POS/Wholesale sales, sale lines, returns, refunds and customer collections
+7. Added separate Initial Sale Payments, Due Collections, Refunded, Net Collected and Outstanding Due sales-summary cards
+8. Unified reporting report cards with Account-Ledger-style borders, two/three-decimal amount display and existing DataTable toolbar patterns
+9. Added Reporting filter reset actions and Dashboard breadcrumbs to operational report pages
+10. Renamed Monthly Finished Product Assembly technical names consistently to Monthly Assembly across controller, service, route, view and permission
+11. Data-level verified the November 2026 sample: no posted Sale with `due_amount > 0`; collections, payments and return-adjustments remain source-linked
+12. Implemented company-wide and branch-scoped Final Monthly Snapshot packages for each closed month
+13. Added branch access isolation, independent scope versions, frozen warehouse filtering, SHA-256 integrity verification and non-destructive corrections
+
+### Verification
+
+- Route registration, PHP syntax and Blade cache verification passed.
+- Permission seeding was refreshed for reporting routes and cards.
+- Corrected five stale reporting test fixtures and added focused Monthly Assembly and Monthly Sales report coverage.
+- Verified report totals for period/status scoping, assembly quantities and costs, Sales/Return reconciliation, split payment sources, due collection and warehouse filtering.
+- Verified company/branch Final Monthly Snapshot generation, branch isolation, immutable source data, frozen filtering and reopen/reclose version history.
+- The complete automated suite passed: 468 tests with 126,541 assertions.
+- `git diff --check` passed for the report and UI changes.
+
+### Next Steps
+
+1. Start demand planning and material requirement planning
+2. Add low-stock operational reporting
+3. Complete user smoke testing of Final Monthly Snapshot generation and filtering
+
+### Current Status
+
+Reporting Period, Monthly Rate Sheet, Stock Valuation, operational Monthly Reports and versioned Final Monthly Snapshots are implemented. Demand and material-requirement planning is the next Phase 7 gate.
 
