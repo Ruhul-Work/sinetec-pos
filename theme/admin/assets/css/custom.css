@@ -75,6 +75,8 @@ html[data-theme="dark"] .branch-switcher-control {
    Compact action with a softly animated agent-style gradient border.
    ================================================================ */
 .pos-top-btn {
+  --pos-button-surface: #f4fdf9;
+  --pos-border-track: #83bcb5;
   min-width: 64px;
   min-height: 38px;
   padding: 0.5rem 0.5625rem !important;
@@ -82,13 +84,12 @@ html[data-theme="dark"] .branch-switcher-control {
   align-items: center;
   justify-content: center;
   gap: 0.3125rem;
-  border: 2px solid transparent !important;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 0 !important;
   border-radius: 0.625rem !important;
-  background:
-    linear-gradient(135deg, #f7fffb 0%, #effbf8 100%) padding-box,
-    linear-gradient(110deg, #00a86b, #00bcd4, #3578ff, #8b3dff, #00a86b) border-box !important;
-  background-size: 100% 100%, 220% 220% !important;
-  background-position: 0 0, 0% 50% !important;
+  background: var(--pos-border-track) !important;
   color: #08785a !important;
   box-shadow: 0 4px 13px rgba(36, 99, 235, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.78);
   font-size: 0.8125rem;
@@ -96,8 +97,42 @@ html[data-theme="dark"] .branch-switcher-control {
   line-height: 1;
   letter-spacing: 0.025em;
   white-space: nowrap;
-  animation: pos-border-flow 2.2s linear infinite;
   transition: color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.pos-top-btn::before,
+.pos-top-btn::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+}
+
+.pos-top-btn::before {
+  top: 50%;
+  left: 50%;
+  width: 165%;
+  aspect-ratio: 1;
+  background: conic-gradient(
+    var(--pos-border-track) 0deg 235deg,
+    #20c997 268deg,
+    #22d3ee 297deg,
+    #4f7dff 323deg,
+    #a855f7 344deg,
+    var(--pos-border-track) 360deg
+  );
+  transform: translate(-50%, -50%);
+  animation: pos-border-flow 2.8s linear infinite;
+}
+
+.pos-top-btn::after {
+  inset: 2px;
+  border-radius: calc(0.625rem - 2px);
+  background: var(--pos-button-surface);
+}
+
+.pos-top-btn > * {
+  position: relative;
+  z-index: 1;
 }
 
 .pos-top-btn iconify-icon {
@@ -119,22 +154,19 @@ html[data-theme="dark"] .branch-switcher-control {
 }
 
 html[data-theme="dark"] .pos-top-btn {
-  background:
-    linear-gradient(135deg, #152c29 0%, #17283a 100%) padding-box,
-    linear-gradient(110deg, #34d399, #22d3ee, #60a5fa, #a78bfa, #34d399) border-box !important;
-  background-size: 100% 100%, 220% 220% !important;
+  --pos-button-surface: #172b32;
+  --pos-border-track: #416d71;
   color: #a7f3d0 !important;
   box-shadow: 0 5px 16px rgba(2, 12, 27, 0.32);
 }
 
 @keyframes pos-border-flow {
-  0% { background-position: 0 0, 0% 50%; }
-  50% { background-position: 0 0, 100% 50%; }
-  100% { background-position: 0 0, 0% 50%; }
+  from { transform: translate(-50%, -50%) rotate(0turn); }
+  to { transform: translate(-50%, -50%) rotate(1turn); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .pos-top-btn {
+  .pos-top-btn::before {
     animation: none;
   }
 }
@@ -3697,4 +3729,56 @@ html[data-theme="dark"] .account-ledger-summary-card--closing { border-left-colo
 
 .snapshot-report-table-shell .dt-top .dataTables_length select {
     min-height: 32px;
+}
+
+/* Dashboard: distinguish sales returns from operating expenses. */
+.gradient-deep-returns {
+    background: linear-gradient(270deg, #fff5f7 0%, #ffe4eb 100%);
+}
+
+.gradient-deep-returns.left-line::before {
+    background-color: var(--danger-600);
+    box-shadow: 2px 1px 7px rgba(220, 38, 38, .25);
+}
+
+html[data-theme="dark"] .gradient-deep-returns {
+    background: var(--neutral-50);
+}
+
+/* Dashboard activity cards share a height, with scrollable content. */
+.dashboard-activity-card {
+    height: 400px;
+}
+
+.dashboard-activity-card > .card-header {
+    flex-shrink: 0;
+}
+
+.dashboard-activity-card > .card-body {
+    min-height: 0;
+}
+
+.dashboard-user-row {
+    min-height: 44px;
+}
+
+/* Dashboard sales trend: let the plot fill the available card height. */
+.dashboard-sales-trend-plot {
+    position: relative;
+    flex: 1 0 320px;
+    min-height: 320px;
+}
+
+.dashboard-sales-trend-plot > #incomeExpense {
+    position: absolute;
+    inset: 0;
+}
+
+.dashboard-recent-transactions {
+    height: 100%;
+    overflow: auto;
+}
+
+.dashboard-recent-transactions tr {
+    height: 46px;
 }

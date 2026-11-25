@@ -13,6 +13,7 @@ use App\Http\Controllers\backend\CompanySettingController;
 use App\Http\Controllers\backend\CountryController;
 use App\Http\Controllers\backend\CustomerController;
 use App\Http\Controllers\backend\CustomerReceivableController;
+use App\Http\Controllers\backend\DemandPlanController;
 use App\Http\Controllers\backend\DistrictController;
 use App\Http\Controllers\backend\DivisionController;
 use App\Http\Controllers\backend\DomainUnitMappingController;
@@ -29,6 +30,8 @@ use App\Http\Controllers\backend\FiscalYearController;
 use App\Http\Controllers\backend\JournalController;
 use App\Http\Controllers\backend\LoanReceiptController;
 use App\Http\Controllers\backend\LoanRepaymentController;
+use App\Http\Controllers\backend\LowStockReportController;
+use App\Http\Controllers\backend\MaterialRequirementPlanController;
 use App\Http\Controllers\backend\MonthlyAssemblyReportController;
 use App\Http\Controllers\backend\MonthlyPartProductionReportController;
 use App\Http\Controllers\backend\MonthlyPurchaseReportController;
@@ -595,6 +598,52 @@ Route::middleware(['web', 'auth', 'perm', 'branchscope'])->group(function () {
 
     Route::get('reporting', [ReportingDashboardController::class, 'index'])
         ->name('reporting.dashboard.index');
+    Route::prefix('supply-planning/demand-plans')
+        ->name('planning.demand-plans.')
+        ->controller(DemandPlanController::class)
+        ->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::post('list', 'listAjax')->name('list.ajax');
+            Route::get('create', 'create')->name('create');
+            Route::post('/', 'store')->name('store');
+            Route::get('{demandPlan}', 'show')->whereNumber('demandPlan')->name('show');
+            Route::get('{demandPlan}/edit', 'edit')->whereNumber('demandPlan')->name('edit');
+            Route::put('{demandPlan}', 'update')->whereNumber('demandPlan')->name('update');
+            Route::patch('{demandPlan}/approve', 'approve')->whereNumber('demandPlan')->name('approve');
+            Route::patch('{demandPlan}/cancel', 'cancel')->whereNumber('demandPlan')->name('cancel');
+            Route::delete('{demandPlan}', 'destroy')->whereNumber('demandPlan')->name('destroy');
+        });
+    Route::prefix('supply-planning/material-requirement-plans')
+        ->name('planning.material-requirement-plans.')
+        ->controller(MaterialRequirementPlanController::class)
+        ->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::post('list', 'listAjax')->name('list.ajax');
+            Route::get('create', 'create')->name('create');
+            Route::post('/', 'store')->name('store');
+            Route::post('from-demand/{demandPlan}', 'generateFromDemand')
+                ->whereNumber('demandPlan')
+                ->name('generate-from-demand');
+            Route::get('{materialRequirementPlan}', 'show')
+                ->whereNumber('materialRequirementPlan')
+                ->name('show');
+            Route::patch('{materialRequirementPlan}/approve', 'approve')
+                ->whereNumber('materialRequirementPlan')
+                ->name('approve');
+            Route::patch('{materialRequirementPlan}/cancel', 'cancel')
+                ->whereNumber('materialRequirementPlan')
+                ->name('cancel');
+            Route::delete('{materialRequirementPlan}', 'destroy')
+                ->whereNumber('materialRequirementPlan')
+                ->name('destroy');
+        });
+    Route::prefix('supply-planning/low-stock')
+        ->name('planning.low-stock.')
+        ->controller(LowStockReportController::class)
+        ->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::post('list', 'listAjax')->name('list.ajax');
+        });
     Route::prefix('reporting/rate-sheets')->name('reporting.rate-sheets.')->group(function () {
         Route::get('/', [MonthlyRateSheetController::class, 'index'])->name('index');
         Route::post('list', [MonthlyRateSheetController::class, 'listAjax'])->name('list.ajax');

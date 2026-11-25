@@ -7,6 +7,7 @@ use App\Models\backend\Branch;
 use App\Models\backend\Supplier;
 use App\Models\backend\User;
 use App\Models\backend\Warehouse;
+use App\Models\Reporting\MaterialRequirementPlan;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -16,7 +17,7 @@ class PurchaseOrder extends Model
     protected $table = 'purchase_order';
 
     protected $fillable = [
-        'order_no', 'branch_id', 'supplier_id', 'warehouse_id', 'order_date', 'expected_date',
+        'order_no', 'material_requirement_plan_id', 'branch_id', 'supplier_id', 'warehouse_id', 'order_date', 'expected_date',
         'status', 'subtotal', 'discount_type', 'discount_value', 'discount', 'tax', 'total',
         'note', 'created_by', 'approved_by', 'approved_at',
     ];
@@ -39,6 +40,11 @@ class PurchaseOrder extends Model
     public function branch(): BelongsTo
     {
         return $this->belongsTo(Branch::class);
+    }
+
+    public function materialRequirementPlan(): BelongsTo
+    {
+        return $this->belongsTo(MaterialRequirementPlan::class);
     }
 
     public function supplier(): BelongsTo

@@ -1,8 +1,8 @@
 # Electronics Manufacturing, Inventory & Sales System — Project Plan
 
-**Status:** Business scope approved; core operations and immutable Final Monthly Snapshots are ready; supply planning is next
-**Version:** 2.9
-**Updated:** 22 November 2026
+**Status:** Approved first-release modules are implemented through Phase 7. Phase 8 verification and go-live preparation are in progress.
+**Version:** 2.13
+**Updated:** 25 November 2026
 **Purpose:** This is the authoritative business-scope and decision-history document. Physical implementation details and current progress are tracked in the linked design, roadmap and status documents.
 
 ## 1. Project objective
@@ -112,7 +112,7 @@ The meeting must still confirm who may update a monthly rate and who may close/r
 
 Deferring these operational features keeps the first release understandable and usable. Foundation tables for future offers, coupons, and loyalty will be created now but remain inactive; no discount or point logic will run until the later e-commerce scope is approved. The data structure will also be planned so warranty, serial numbers, and subcontracting can be added later.
 
-### 3.3 Current implementation checkpoint — 22 November 2026
+### 3.3 Current implementation checkpoint — 25 November 2026
 
 The approved scope remains unchanged. The following foundation is now complete and user-testable:
 
@@ -121,7 +121,9 @@ The approved scope remains unchanged. The following foundation is now complete a
 - Purchase Order, direct/PO-based Purchase Receipt, Purchase Return, Supplier Payment/Due and Purchase Price History.
 - Operational Finance foundation: Chart of Accounts, branch accounts, purchase mapping, Draft Journal workflow, Account Ledger, Cash/Bank Book, capital/loan controls, Trial Balance and Fiscal Year Closing.
 
-Part BOM / Recipe, Internal Part Production, Finished Product BOM / Recipe, Final Product Assembly, POS, Customer Receivables, Wholesale Sales, Sales Return, Supplier/Customer master CRUD and Finished Product Barcode/Label generation are complete. Sales/Return reconciliation, Reporting Period controls, Monthly Rate Sheets, Stock Valuation, operational Monthly Purchase/Stock/Part Production/Assembly/Sales reports and versioned Final Monthly Snapshots are also complete. The next delivery is **demand and material-requirement planning**.
+Part BOM / Recipe, Internal Part Production, Finished Product BOM / Recipe, Final Product Assembly, POS, Customer Receivables, Wholesale Sales, Sales Return, Supplier/Customer master CRUD and Finished Product Barcode/Label generation are complete. Sales/Return reconciliation, Reporting Period controls, Monthly Rate Sheets, Stock Valuation, operational monthly reports, versioned Final Monthly Snapshots and branch-wise Demand Planning are also complete. Hardened MRP handles target-period BOM validity, current stock, warehouse minimum buffers, incoming Purchase Orders, Part make/buy policy, supplier recommendations and traceable Purchase Order prefill. The warehouse-wise Low-Stock Alert report now completes the planned Phase 7 operational supply-planning scope.
+
+The operational dashboard adds branch-scoped KPIs, three transaction charts, monthly supplier/customer rankings, and recent posted documents. Super Admin alone can combine all branches. The POS shortcut requires Add permission and the recent document links require their module's View permission.
 
 ## 4. Simple operational flows
 
@@ -247,8 +249,11 @@ The final accounting workflow must specify which events automatically create jou
 5. **Complete:** POS, Wholesale Sales, receivables, split payments, returns and reconciliation.
 6. **Complete:** Reporting Period, Monthly Rate Sheet, Stock Valuation and operational monthly reports.
 7. **Complete:** frozen report snapshots and historical report integrity, with independent company/branch scope.
-8. **Next:** build demand planning, material-requirement planning and low-stock reporting.
-9. **Before go-live:** run branch/warehouse stock, production, finance, permission and reporting acceptance tests.
+8. **Complete:** build branch-wise monthly Demand Planning.
+9. **Complete:** build Approved-Demand-based MRP, target-period BOM controls, stock/safety/incoming offsets, Part make/buy decisions and source-linked Purchase Order recommendations.
+10. **Complete:** build warehouse-wise low-stock operational reporting with replenishment guidance.
+11. **Complete:** Connect the operational dashboard to posted data and organize navigation by workflow.
+12. **Next / before go-live:** Run end-to-end, permission and performance checks with approved staging data. Reconcile cutover balances, verify restore/rollback, train users and obtain pilot acceptance.
 
 ## 11. Approved baseline checklist
 
@@ -303,3 +308,5 @@ These four documents, including this plan, are the authoritative project set. Th
 | 2.6 | 21 November 2026 | Started the monthly reporting stream with a Posted Purchase Report covering Receipts, Purchase lines, Returns and Supplier Payments by reporting period and operational scope. |
 | 2.7 | 22 November 2026 | Completed Monthly Stock Valuation, Purchase, Stock, Part Production, Assembly and Sales reports with existing reporting-period scopes and permissioned Reporting hub cards. |
 | 2.8 | 22 November 2026 | Corrected the delivery sequence, added focused Assembly/Sales report coverage, fixed warehouse-scoped Sales collection totals and verified the complete automated test suite. |
+| 2.12 | 24 November 2026 | Consolidated Phase 7 delivery through Final Monthly Snapshots, Demand Planning, hardened MRP and Low-Stock Alerts. |
+| 2.13 | 25 November 2026 | Recorded the operational dashboard and navigation delivery, and the remaining Phase 8 validation and go-live gates. |

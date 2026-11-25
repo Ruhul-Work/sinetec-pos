@@ -1,14 +1,14 @@
 # Electronics POS — Current Status and Next Actions
 
-**Status:** Purchasing, Finance, Production/Assembly, Finished Product Sales and immutable monthly reporting are ready. Demand and material-requirement planning is next.
-**Updated:** 22 November 2026
+**Status:** Phases 0–7 are functionally complete. Phase 8 has started with the operational dashboard and navigation updates. Integration testing, user acceptance and go-live preparation remain open.
+**Updated:** 25 November 2026
 
 ## 1. Current result
 
 - The new active database is `pos-sinetec`.
 - The former database is retained as `pos-sinetec-legacy` for backup/reference.
 - All nine clean baseline migrations ran successfully in batch 1; the Purchase Order and Purchase Receipt discount-mode forward migrations also ran successfully.
-- The clean database baseline contains 113 tables: 112 application/framework tables plus Laravel's `migrations` table. The Reporting Period audit migration adds `reporting_period_events` when applied.
+- The initial clean database baseline contained 113 tables, including Laravel's `migrations` table. Later forward migrations added reporting, planning and other operational tables. The baseline count is historical.
 - The 116 generated legacy migrations remain archived outside Laravel's active migration path.
 - Raw Material, Part and Finished Product use separate masters, stock movements and stock balances.
 - Only Finished Product can be sold.
@@ -19,7 +19,7 @@
 
 ## 2. Database readiness
 
-The schema is ready for module development. It is not yet operationally ready until foundation data is loaded and verified.
+The implemented schema supports the current modules. Go-live still requires reconciliation and approval of the master data, opening inventory and opening financial balances used at cutover.
 
 ### Copy or recreate from `pos-sinetec-legacy`
 
@@ -63,7 +63,8 @@ Old permission data points to removed routes. Permissions must be created from t
 
 ## 4. Known application work before full use
 
-- Dashboard legacy business queries are removed; cards/charts now use a safe zero state until each new module supplies its approved metrics.
+- The dashboard shows branch-scoped posted sales, returns, purchase receipts and operating expenses in six KPI cards and three charts. It also shows monthly top suppliers/customers, up to five users and up to five permission-filtered posted documents. Only Super Admin can select the combined all-branch view.
+- The topbar opens the POS sale screen for users with POS Add permission. The sidebar groups Stock Operations and Purchasing under Inventory, puts Address Setup under Organization and places Supply Planning and Reporting under a shared heading.
 - Phase 0.5 application cleanup is complete: route-detached legacy product, purchase, POS, stock, report, promotion and old transaction controllers/models/services/views were removed after the new Git baseline tag was created.
 - The retained Supplier controller is now master-data only; its old purchase/return/ledger coupling was removed and its browser-parsed CSV/XLSX import was aligned with the clean supplier schema.
 - The shared helper file now contains only retained image upload/path and branch/warehouse/fiscal-year context helpers; legacy storefront product, cart, coupon and shipping helpers were removed.
@@ -173,7 +174,18 @@ Old permission data points to removed routes. Permissions must be created from t
 60. **Complete:** Expose each operational report in the Reporting hub with independent route/permission, reset filters and existing AjaxDataTable patterns.
 61. **Complete:** Correct five stale reporting fixtures, add focused Monthly Assembly/Monthly Sales/Snapshot coverage and verify all 468 automated tests with 126,541 assertions.
 62. **Complete:** Build scope-aware company/branch Final Monthly Snapshots per closed month with branch isolation, independent versions, frozen report rows, stored warehouse filtering, SHA-256 verification and non-destructive correction history.
-63. **Next:** Build demand and material-requirement planning.
+63. **Complete:** Build branch-wise Demand Planning with one canonical plan per target month, previous 1/3/6/12-month Posted net-sales suggestions, manual planned/safety quantities, Draft review, approval freeze, cancellation, branch isolation and global AjaxDataTable register. Demand approval has no stock, Purchase or Finance effect.
+64. **Complete:** Build branch-scoped Material Requirement Planning from an Approved Demand Plan. It resolves the Product BOM valid at the target month, blocks missing/empty BOMs, offsets Finished Product and component stock, adds warehouse minimum-stock buffers, deducts incoming Approved/Partial Purchase Orders, snapshots Part `MAKE`/`BUY`/`BOTH` decisions, groups purchase recommendations and opens traceable prefilled Purchase Order Drafts.
+65. **Complete:** Build the permissioned warehouse-wise Low-Stock Alert report across Raw Materials, Parts and Finished Products, with branch/warehouse/domain/status filters, current-vs-minimum comparison, replenishment suggestions and Purchase/Production/Assembly guidance.
+66. **Complete:** Connect the dashboard cards, charts, rankings and recent transactions to the current posted documents. Verify branch scope and the permissions for recent documents, POS shortcut and sidebar links.
+67. **Next:** Run the Phase 8 end-to-end and role-based UAT checklist on a staging database with approved business samples. The accepted workflow must reconcile stock, finance and reporting before pilot sign-off.
+
+### Open checks before pilot
+
+- Exercise Demand Plan → MRP → PO/direct receipt → warehouse stock → part production/assembly → POS/wholesale sale and return. Reconcile stock movements, supplier/customer dues, journals and monthly snapshot totals.
+- Test real roles with several modules, narrow permissions, user-level overrides and branch changes. Some older sidebar groups can show an empty heading for users with Add/Edit but no View. The Reporting Hub requires its own View permission plus the relevant report permission.
+- Verify common list screens against the shared AjaxDataTable pattern and test representative data volumes, simultaneous posting and retry protection.
+- Rehearse cutover on a database copy. Reconcile and sign off master data, opening stock and opening balances, then verify backup restore, rollback, role training and pilot acceptance.
 
 ## 5. Implementation decision trace
 
@@ -229,6 +241,9 @@ Old permission data points to removed routes. Permissions must be created from t
 | 4 Nov 2026  | Cash/Bank account control & Book                     | `accounts.is_cash_bank_account` explicitly marks liquid Asset accounts. Starter Cash in Hand and Bank Account are marked automatically; the marker controls Supplier Payment eligibility and Cash/Bank Book selection. The Book is a read-only derived view over Posted opening and journal movement, with branch/account/date filters and a true running balance.                                                                                                                                                                                                                                                                                                                                                                                                          | Owner investment, loan, withdrawal and transfer source documents remain next; they will create journals consumed by this Book.                                                                      |
 | 10 Nov 2026 | Part Production reject costing                       | Until company policy defines a normal-reject tolerance, the complete report-only batch cost is divided across good output for Partial QC. A fully failed batch retains its material/other cost for reporting but creates no Production Loss journal.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        | Add a reporting-only normal/excess reject split after management approves the policy.                                                                                                               |
 | 23 Nov 2026 | DataTable implementation standard                    | Every new paginated listing/report must use the application's shared `AjaxDataTable` pattern for server-side search, length, pagination, export and common styling. Module-specific code may only supply its endpoint, filters and independent toolbar behaviour; it must not rebuild parallel Search/Length/DataTable initialization. Monthly Snapshot Register and all six frozen report tabs now follow this pattern.                                                                                                                                                                                                                                                                              | Audit previously implemented modules step by step before final release; convert deviations module-wise with focused regression tests instead of one broad risky rewrite.                            |
+| 23 Nov 2026 | Demand Planning                                      | One canonical branch/month Demand Plan snapshots previous 1/3/6/12-month Posted Sales minus Posted Returns, calculates a monthly-average suggestion, and allows manual planned/safety quantities with a reason. Drafts are editable; approval freezes the plan. Branch scope is enforced in list and document actions, and the register uses the shared AjaxDataTable pattern.                                                                                                                                                                                                                                                                                                                                 | It is planning-only and never changes stock, Purchase or Finance. Approved plans feed the next Material Requirement Planning module.                                                                |
+| 23 Nov 2026 | Supply Planning navigation                            | Demand Plan and its upcoming Material Requirement/Purchase Recommendation workflows use a separate `Supply Planning` sidebar group with `planning.*` routes and permission keys. They are operational create/review/approve workflows, not read-only reports.                                                                                                                                                                                                                                                                                                                                                                                                                                                  | Reporting Periods, Monthly Rate Sheets and Final Monthly Snapshots remain together inside the Reporting Hub as monthly governance controls.                                                         |
+| 24 Nov 2026 | Material Requirement Planning                         | An Approved branch/month Demand Plan generates one MRP snapshot using the Product BOM valid on the target month's first day. Missing/empty BOMs block generation. The plan offsets current branch stock, warehouse minimum-stock buffers and incoming Approved/Partial PO quantities, then freezes Raw Material/Part Buy-or-Make quantities. `BOTH` defaults to Buy when a supplier/open PO exists, otherwise Make. Supplier recommendations use base-unit rates and create branch-protected, source-linked Purchase Order Drafts. | MRP generation/approval has no stock or Finance effect. A linked active Purchase Order blocks MRP cancellation; Low-stock operational reporting is the next Phase 7 delivery.                         |
 
 When a decision changes, add a new dated row; do not overwrite the old decision without recording what superseded it and why.
 

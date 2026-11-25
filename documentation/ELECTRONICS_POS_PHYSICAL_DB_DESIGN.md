@@ -1,9 +1,9 @@
-# Electronics POS — Physical Database Design (v2.5)
+# Electronics POS — Physical Database Design (v2.9)
 
-**Status:** Implemented clean-schema baseline with a Reporting Period audit extension
-**Version:** 2.5
-**Updated:** 22 November 2026
-**Source:** Project Plan v2.8 and the active migrations in `core/database/migrations`
+**Status:** Implemented clean-schema baseline with reporting, snapshot, Demand Planning and hardened MRP extensions
+**Version:** 2.9
+**Updated:** 25 November 2026
+**Source:** Project Plan v2.13 and the active migrations in `core/database/migrations`
 
 The clean baseline was successfully migrated to `pos-sinetec`: 112 application/framework tables plus Laravel's `migrations` table, for 113 total. A forward migration defines the Reporting Period audit-event table. The former database remains `pos-sinetec-legacy`. This document describes the design boundary; the active migrations are authoritative for exact executable columns and constraints.
 
@@ -165,7 +165,7 @@ Purchase-return workflow rules:
 - cumulative posted return base quantity cannot exceed the source receipt-item base quantity;
 - Draft return has no stock effect; posting writes an idempotent Raw Material/Part `OUT` movement in the receipt warehouse;
 - posting locks and rechecks the document and source quantities, blocks negative stock and rolls back every line if any line fails;
-- finance journal/payable effects remain deferred until account mapping is approved.
+- posting also creates the balanced Purchase Return Draft Journal using the effective purchase account mappings. Accountant approval and posting govern the general-ledger effect.
 
 ## 5. Separate stock cores
 
@@ -203,6 +203,8 @@ Unique key is `(domain_item_id, warehouse_id)`. Balances are updated in the same
 ### 5.3 Reorder levels
 
 Create separate `raw_material_reorder_levels`, `part_reorder_levels`, and `finished_product_reorder_levels`, unique by item and warehouse. `minimum_quantity` is the required low-stock threshold. `reorder_quantity = 0` means there is no fixed replenishment lot and future demand-based planning decides the requirement; a positive value is an optional fixed/default lot. `maximum_quantity` is an optional target ceiling and must not be lower than the minimum. All values use the item's base unit. These settings never post stock or create purchase/production documents automatically.
+
+The operational Low-Stock Alert report unions these three domain tables with their matching warehouse balances. A row is actionable when current stock is equal to or below `minimum_quantity`. It classifies Out of Stock, Low Stock and At Reorder Point, then recommends Purchase, Part Production, Make/Buy review or Finished Product Assembly. Suggested quantities respect the configured default replenishment lot and optional maximum target; a zero lot without a maximum remains demand-plan driven. The report is read-only and branch-scoped.
 
 ### 5.4 Transfer and adjustment documents
 
@@ -287,14 +289,40 @@ Rate tables are unique by `(monthly_rate_sheet_id, domain_item_id)`. Monthly Rat
 
 `monthly_report_snapshots` stores one `MONTHLY_PACKAGE` version per closed period and scope. `scope_type` is `COMPANY` or `BRANCH`; `branch_id` is required only for branch scope and `scope_key` provides explicit uniqueness. Its JSON payload freezes all six report sections and the permitted branch/warehouse dimensions, so views never recalculate from live transaction tables. `version`, `status`, `supersedes_snapshot_id`, correction note and superseded actor/time retain a non-destructive scope-specific revision chain. `checksum` stores the SHA-256 payload digest. The unique key is `(reporting_period_id, report_type, scope_key, version)`; correction requires an audited reopen/reclose.
 
+### 8.1 Operational dashboard read model
+
+The dashboard reads posted `sales`, `sale_returns`, `purchase_receipt` and general `expenses` for its KPIs and charts. Net sales subtract posted returns by return date. Purchase figures use posted receipt totals and the operating expense series uses posted general expense amounts. The recent document list additionally reads `purchase_return` and checks the mapped document View permission. All queries are scoped to the selected or assigned branch, except when a Super Admin selects All Branches. The dashboard uses existing tables and does not require a migration.
+
 ## 9. Demand and supply planning
 
 - `demand_plans` and `demand_plan_items` target finished products.
-- `material_requirement_plans` is the generated header.
-- `raw_material_requirement_items` stores gross need, stock, incoming, safety and suggested purchase.
-- `part_requirement_items` adds make quantity, buy quantity and suggested procurement based on `procurement_mode`.
+- `material_requirement_plans` is the generated branch/period header and is unique by source `demand_plan_id`.
+- `mrp_finished_product_lines` freezes Demand quantity, Safety quantity, available Finished Product stock and net assembly requirement.
+- `mrp_component_lines` freezes each exploded Raw Material/Part gross requirement, minimum-stock safety buffer, pending incoming Purchase quantity, available branch stock, net requirement and separate Make/Buy quantities.
+- `purchase_order.material_requirement_plan_id` provides source traceability from an MRP supplier recommendation to its Purchase Order.
 
-The first release generates recommendations only; it does not auto-create purchase orders.
+Implemented Demand Plan rules:
+
+- one canonical `demand_plans` row is allowed per `(branch_id, reporting_period_id)`;
+- `branch_id` is required by the application and access follows the selected/assigned branch scope;
+- `history_months` records the selected 1, 3, 6 or 12-month lookback;
+- each `demand_plan_items` row snapshots `historical_net_quantity` and its monthly-average `suggested_quantity`, while `forecast_quantity` and `safety_quantity` preserve the approved business target;
+- only Draft plans are editable; approval freezes the plan for Material Requirement Planning;
+- Demand Plan create/approve/cancel has no stock, Purchase or Finance posting effect.
+
+Implemented MRP rules:
+
+- only an Approved Demand Plan can generate one MRP Draft;
+- current branch Finished Product stock is deducted before Product BOM explosion;
+- the Product BOM effective at the target period start is used; a missing or empty effective BOM blocks generation with a clear product-specific error;
+- Product BOM base quantities and wastage are expanded into Raw Material/Part gross requirements;
+- each component is calculated as `gross BOM requirement + minimum-stock safety buffer - current branch stock - incoming approved/partial Purchase quantity`;
+- incoming Purchase quantity is counted only when its expected date is blank or falls on/before the target period end;
+- Raw Materials are planned as Buy; Parts follow `MAKE`, `BUY` or `BOTH`, where `BOTH` prefers Buy when an active supplier/open Purchase source exists and otherwise falls back to Make;
+- all planning quantities and recommendation rates are normalized to the component base unit;
+- Draft approval freezes the plan; generation and approval do not post stock or Finance;
+- Buy shortages are grouped by preferred active supplier, estimated from a base-unit-normalized Purchase/rate source, and can prefill a source-linked Purchase Order Draft.
+- an MRP-sourced Purchase Order requires an Approved plan, matching branch warehouse, recommended supplier/items and no duplicate active order for the same supplier.
 
 ## 10. Finance integration
 
@@ -362,7 +390,7 @@ Offer, coupon and loyalty foundations may remain migration-only/inactive. Every 
 - [x] Basic QC.
 - [x] Packaging/consumables are raw-material categories.
 - [x] Mixed raw/part lines use typed nullable FKs; exactly one is populated, enforced in the application and by DB `CHECK` where supported.
-- [x] Exact finance mapping is deliberately deferred; no draft journal may be posted until mapping is approved.
-- [x] Opening masters use controlled CSV import; opening stock posts through approved `OPENING` adjustments.
+- [x] Finance account mapping is implemented with company defaults and optional branch overrides. Production cutover still requires business approval of the mappings used.
+- [x] Opening inventory posts through the existing approved opening workflow. Use module-supported imports for masters where available and manual entry for opening stock. Bulk opening-stock CSV is deferred.
 
-The requirement and migration gates are complete. Future schema changes must be forward migrations reviewed against this baseline; the immediate next gate is foundation-data reconciliation and retained-module testing.
+The implemented schema supports the current modules. For cutover, rehearse forward migrations on a database copy and reconcile master data, opening inventory and financial balances.

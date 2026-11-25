@@ -258,3 +258,72 @@ Sales/Return reconciliation, the permission-filtered Reporting hub and audited R
 
 Reporting Period, Monthly Rate Sheet, Stock Valuation, operational Monthly Reports and versioned Final Monthly Snapshots are implemented. Demand and material-requirement planning is the next Phase 7 gate.
 
+---
+
+## Progress Report PR-006
+
+**Reporting Period:** 23 November 2026 — 24 November 2026
+
+### Completed
+
+1. Branch-wise monthly Demand Planning
+2. Historical net-sales suggestion and manual safety/target planning
+3. Demand Plan Draft, Approval, Cancellation and branch isolation
+4. Core Material Requirement Planning with Product BOM explosion
+5. Finished Product, Raw Material and Part stock offset by branch
+6. Supplier-grouped Raw Material Purchase Recommendations
+7. Material Requirement Plan to prefilled Purchase Order flow
+8. Supply Planning sidebar, permissions and shared AjaxDataTable registers
+9. Target-period BOM selection and explicit missing/empty BOM protection
+10. Minimum-stock safety buffer and expected incoming Purchase Order offset
+11. Part `MAKE`, `BUY` and `BOTH` Make/Buy quantity planning
+12. Branch-safe, approval-controlled and source-linked MRP Purchase Orders
+13. Warehouse-wise Low-Stock Alerts for Raw Materials, Parts and Finished Products
+14. Branch/warehouse/domain/status filtering, alert severity and replenishment guidance
+
+### Verification
+
+- MRP, Demand Plan, Purchase Order and Purchase Receipt focused regression passed: 26 tests with 166 assertions.
+- The complete automated suite passed: 489 tests with 126,813 assertions.
+- Route cache, Blade cache, migration status, Pint formatting and `git diff --check` passed.
+- Reorder Level, Low-Stock and MRP focused regression passed: 15 tests with 106 assertions.
+
+### Next Steps
+
+1. Run end-to-end Demand Plan, MRP, Low-Stock and Purchase Order user testing with live business samples
+2. Continue Phase 8 integration, permission, performance and user-acceptance hardening
+
+### Current Status
+
+Demand Planning, hardened MRP/Purchase Recommendations and Low-Stock operational reporting are ready. Phase 7 is functionally complete; Phase 8 integration and user-acceptance hardening are next.
+
+---
+
+## Progress Report PR-007
+
+**Reporting Period:** 25 November 2026
+
+### Completed
+
+1. Branch-aware dashboard KPIs and period-based charts
+2. Monthly Top Suppliers and Top Customers
+3. Permission-filtered Recent Transactions and dashboard layout polish
+4. Direct POS shortcut and topbar cleanup
+5. Sidebar grouping and permission review
+6. Project documentation and Phase 8 backlog sync
+
+### Verification
+
+- Full automated suite passed with 490 tests and 126,844 assertions.
+- Reviewed 72 sidebar permission guards. Each matched a registered route, a single permission catalogue entry and permission middleware.
+
+### Next Steps
+
+1. Run staging end-to-end reconciliation and role-based user acceptance testing
+2. Address the empty sidebar heading case and verify shared table patterns, performance and concurrent posting
+3. Rehearse data cutover and recovery, train users and obtain pilot sign-off
+
+### Current Status
+
+Phase 8 is in progress. Dashboard and navigation work is complete. Staging acceptance and go-live preparation are open.
+

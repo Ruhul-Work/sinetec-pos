@@ -155,140 +155,60 @@
                     <div class="card-body p-16">
                         <div class="row gy-4">
 
-                            <!-- 1. Today Sales -->
-                            <div class="col-xxl-3 col-xl-4 col-sm-6">
-                                <div
-                                    class="px-20 py-16 shadow-none radius-8 h-100 gradient-deep-3 left-line line-bg-success position-relative overflow-hidden">
-                                    <div class="d-flex align-items-center justify-content-between mb-8">
-                                        <div>
-                                            <span class="fw-medium text-secondary-light text-md">Today Sales</span>
-                                            <h6 class="fw-semibold mb-1">৳ {{ number_format($todaySales, 2) }}</h6>
-                                        </div>
-                                        <span
-                                            class="w-44-px h-44-px radius-8 d-inline-flex justify-content-center align-items-center text-2xl bg-success-200 text-success-600">
-                                            <iconify-icon icon="ri:money-dollar-circle-fill"></iconify-icon>
-                                        </span>
-                                    </div>
-                                    <p class="text-sm mb-0">
-                                        <span class="bg-success-focus px-1 rounded-2 fw-medium text-success-main text-sm">
-                                            <i class="ri-arrow-right-up-line"></i>
-                                        </span> From yesterday
-                                    </p>
-                                </div>
-                            </div>
+                            <x-backend.dashboard-summary-card
+                                label="Today's Sales"
+                                description="Posted POS and wholesale invoices"
+                                :value="$dashboardSummary['todaySales']"
+                                color="success"
+                                gradient="3"
+                                icon="ri:money-dollar-circle-fill"
+                            />
 
+                            <x-backend.dashboard-summary-card
+                                label="Monthly Net Sales"
+                                description="Invoice totals less sales returns"
+                                :value="$dashboardSummary['monthlyNetSales']"
+                                color="primary"
+                                gradient="1"
+                                icon="ri:shopping-cart-2-fill"
+                            />
 
-                            <!-- 2. Gross Sales -->
-                            <div class="col-xxl-3 col-xl-4 col-sm-6">
-                                <div
-                                    class="px-20 py-16 shadow-none radius-8 h-100 gradient-deep-1 left-line line-bg-primary position-relative overflow-hidden">
-                                    <div class="d-flex align-items-center justify-content-between mb-8">
-                                        <div>
-                                            <span class="fw-medium text-secondary-light text-md">Monthly Gross Sales</span>
-                                            <h6 class="fw-semibold mb-1">৳ {{ number_format($grossSales, 2) }}</h6>
-                                        </div>
-                                        <span
-                                            class="w-44-px h-44-px radius-8 d-inline-flex justify-content-center align-items-center text-2xl bg-primary-100 text-primary-600">
-                                            <iconify-icon icon="ri:shopping-cart-2-fill"></iconify-icon>
-                                        </span>
-                                    </div>
-                                    <p class="text-sm mb-0">
-                                        <span class="bg-success-focus px-1 rounded-2 fw-medium text-success-main text-sm">
-                                            <i class="ri-arrow-right-up-line"></i>
-                                        </span> From last month
-                                    </p>
-                                </div>
-                            </div>
+                            <x-backend.dashboard-summary-card
+                                label="Monthly Purchase Receipts"
+                                description="Posted receipt totals"
+                                :value="$dashboardSummary['monthlyPurchases']"
+                                color="lilac"
+                                gradient="2"
+                                icon="ri:handbag-fill"
+                            />
 
-                            <!-- 3. Total Purchase -->
-                            <div class="col-xxl-3 col-xl-4 col-sm-6">
-                                <div
-                                    class="px-20 py-16 shadow-none radius-8 h-100 gradient-deep-2 left-line line-bg-lilac position-relative overflow-hidden">
-                                    <div class="d-flex align-items-center justify-content-between mb-8">
-                                        <div>
-                                            <span class="fw-medium text-secondary-light text-md">Total Purchase</span>
-                                            <h6 class="fw-semibold mb-1">৳ {{ number_format($totalPurchase, 2) }}</h6>
-                                        </div>
-                                        <span
-                                            class="w-44-px h-44-px radius-8 d-inline-flex justify-content-center align-items-center text-2xl bg-lilac-200 text-lilac-600">
-                                            <iconify-icon icon="ri:handbag-fill"></iconify-icon>
-                                        </span>
-                                    </div>
-                                    <p class="text-sm mb-0">
-                                        <span class="bg-danger-focus px-1 rounded-2 fw-medium text-danger-main text-sm">
-                                            <i class="ri-arrow-right-down-line"></i>
-                                        </span> From last month
-                                    </p>
-                                </div>
-                            </div>
+                            <x-backend.dashboard-summary-card
+                                label="Monthly Sales Invoices"
+                                description="Posted POS and wholesale invoice count"
+                                :value="$dashboardSummary['monthlyInvoiceCount']"
+                                color="primary"
+                                gradient="1"
+                                icon="ri:file-list-3-fill"
+                                :currency="false"
+                            />
 
-                            <!-- 4. Total Orders -->
-                            <div class="col-xxl-3 col-xl-4 col-sm-6">
-                                <div
-                                    class="px-20 py-16 shadow-none radius-8 h-100 gradient-deep-1 left-line line-bg-primary position-relative overflow-hidden">
-                                    <div class="d-flex align-items-center justify-content-between mb-8">
-                                        <div>
-                                            <span class="fw-medium text-secondary-light text-md">Total Orders</span>
-                                            <h6 class="fw-semibold mb-1">{{ number_format($totalOrders) }}</h6>
-                                        </div>
-                                        <span
-                                            class="w-44-px h-44-px radius-8 d-inline-flex justify-content-center align-items-center text-2xl bg-primary-100 text-primary-600">
-                                            <iconify-icon icon="ri:file-list-3-fill"></iconify-icon>
-                                        </span>
-                                    </div>
-                                    <p class="text-sm mb-0">
-                                        <span class="bg-success-focus px-1 rounded-2 fw-medium text-success-main text-sm">
-                                            <i class="ri-arrow-right-up-line"></i>
-                                        </span> From last month
-                                    </p>
-                                </div>
-                            </div>
+                            <x-backend.dashboard-summary-card
+                                label="Monthly Operating Expenses"
+                                description="Posted general expenses"
+                                :value="$dashboardSummary['monthlyExpenses']"
+                                color="warning"
+                                gradient="4"
+                                icon="ri:money-dollar-circle-fill"
+                            />
 
-
-                            <!-- 5. Total Expense -->
-                            <div class="col-xxl-3 col-xl-4 col-sm-6">
-                                <div
-                                    class="px-20 py-16 shadow-none radius-8 h-100 gradient-deep-4 left-line line-bg-warning position-relative overflow-hidden">
-                                    <div class="d-flex align-items-center justify-content-between mb-8">
-                                        <div>
-                                            <span class="fw-medium text-secondary-light text-md">Total Expense</span>
-                                            <h6 class="fw-semibold mb-1">৳ {{ number_format($totalExpense, 2) }}</h6>
-                                        </div>
-                                        <span
-                                            class="w-44-px h-44-px radius-8 d-inline-flex justify-content-center align-items-center text-2xl bg-warning-focus text-warning-600">
-                                            <iconify-icon icon="ri:money-dollar-circle-fill"></iconify-icon>
-                                        </span>
-                                    </div>
-                                    <p class="text-sm mb-0">
-                                        <span class="bg-success-focus px-1 rounded-2 fw-medium text-success-main text-sm">
-                                            <i class="ri-arrow-right-up-line"></i>
-                                        </span> From last month
-                                    </p>
-                                </div>
-                            </div>
-
-
-                            <!-- 6. Net Income -->
-                            <div class="col-xxl-3 col-xl-4 col-sm-6">
-                                <div
-                                    class="px-20 py-16 shadow-none radius-8 h-100 gradient-deep-3 left-line line-bg-success position-relative overflow-hidden">
-                                    <div class="d-flex align-items-center justify-content-between mb-8">
-                                        <div>
-                                            <span class="fw-medium text-secondary-light text-md">Net Income</span>
-                                            <h6 class="fw-semibold mb-1">৳ {{ number_format($netIncome, 2) }}</h6>
-                                        </div>
-                                        <span
-                                            class="w-44-px h-44-px radius-8 d-inline-flex justify-content-center align-items-center text-2xl bg-success-200 text-success-600">
-                                            <iconify-icon icon="ri:line-chart-fill"></iconify-icon>
-                                        </span>
-                                    </div>
-                                    <p class="text-sm mb-0">
-                                        <span class="bg-danger-focus px-1 rounded-2 fw-medium text-danger-main text-sm">
-                                            <i class="ri-arrow-right-down-line"></i>
-                                        </span> From last month
-                                    </p>
-                                </div>
-                            </div>
+                            <x-backend.dashboard-summary-card
+                                label="Monthly Sales Returns"
+                                description="Posted return totals"
+                                :value="$dashboardSummary['monthlySalesReturns']"
+                                color="danger"
+                                gradient="returns"
+                                icon="ri:arrow-go-back-line"
+                            />
 
 
 
@@ -300,29 +220,25 @@
             {{--  Income vs Expense Chart --}}
             <div class="col-xxl-8">
                 <div class="card h-100">
-                    <div class="card-body p-24 mb-8">
+                    <div class="card-body px-24 pt-24 pb-4 d-flex flex-column">
                         <div class="d-flex align-items-center flex-wrap gap-2 justify-content-between">
-                            <h6 class="mb-2 fw-bold text-lg mb-0">Sale Vs Purchase & Expense </h6>
+                            <h6 class="mb-2 fw-bold text-lg mb-0">Sales vs. Purchase & Expense</h6>
                             <select id="incomeExpenseFilter"
                                 class="form-select form-select-sm w-auto bg-base border text-secondary-light radius-8">
-                                <option value="monthly">Monthly</option>
-                                <option value="weekly">Weekly</option>
-                                <option value="daily">Daily</option>
-                                <option value="yearly">Yearly</option>
+                                <option value="monthly">Monthly (this year)</option>
+                                <option value="weekly">Weekly (12 weeks)</option>
+                                <option value="daily">Daily (30 days)</option>
+                                <option value="yearly">Yearly (5 years)</option>
                             </select>
                         </div>
                         <ul class="d-flex flex-wrap align-items-center justify-content-center my-3 gap-24">
                             <li class="d-flex flex-column gap-1">
                                 <div class="d-flex align-items-center gap-2">
                                     <span class="w-8-px h-8-px rounded-pill bg-primary-600"></span>
-                                    <span class="text-secondary-light text-sm fw-semibold">Sale </span>
+                                    <span class="text-secondary-light text-sm fw-semibold">Net Sales</span>
                                 </div>
                                 <div class="d-flex align-items-center gap-8">
-                                    <h6 class="mb-0" id="chartIncomeValue">৳ {{ number_format($grossSales, 2) }}</h6>
-                                    <span class="text-success-600 d-flex align-items-center gap-1 text-sm fw-bolder">
-                                        10%
-                                        <i class="ri-arrow-up-s-fill d-flex"></i>
-                                    </span>
+                                    <h6 class="mb-0" id="chartIncomeValue">৳ {{ number_format($salesPurchaseExpenseTrend['monthly']['totalSales'], 2) }}</h6>
                                 </div>
                             </li>
                             <li class="d-flex flex-column gap-1">
@@ -331,22 +247,201 @@
                                     <span class="text-secondary-light text-sm fw-semibold">Purchase & Expenses </span>
                                 </div>
                                 <div class="d-flex align-items-center gap-8">
-                                    <h6 class="mb-0" id="chartExpenseValue">৳ {{ number_format($totalPurchaseAndExpense, 2) }}</h6>
-                                    <span class="text-danger-600 d-flex align-items-center gap-1 text-sm fw-bolder">
-                                        10%
-                                        <i class="ri-arrow-down-s-fill d-flex"></i>
-                                    </span>
+                                    <h6 class="mb-0" id="chartExpenseValue">৳ {{ number_format($salesPurchaseExpenseTrend['monthly']['totalPurchaseAndExpense'], 2) }}</h6>
                                 </div>
                             </li>
                         </ul>
-                        <div id="incomeExpense" class="apexcharts-tooltip-style-1"></div>
+                        <div class="dashboard-sales-trend-plot">
+                            <div id="incomeExpense" class="apexcharts-tooltip-style-1"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- overall report show --}}
+            <div class="col-xxl-4 col-md-6">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <div class="d-flex align-items-center flex-wrap gap-2 justify-content-between">
+                            <h6 class="mb-2 fw-bold text-lg">Overall Report</h6>
+                            <select id="overallReportFilter"
+                                class="form-select form-select-sm w-auto bg-base border text-secondary-light radius-8">
+                                <option value="yearly">This Year</option>
+                                <option value="monthly" selected>This Month</option>
+                                <option value="weekly">This Week</option>
+                                <option value="today">Today</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="card-body p-24">
+                        <div class="mt-32">
+                            <div id="userOverviewDonutChart" class="mx-auto apexcharts-tooltip-z-none"></div>
+                        </div>
+                        <div class="row gy-3 mt-24">
+                            @foreach ([
+                                'purchases' => ['Purchase Receipts', 'primary'],
+                                'sales' => ['Posted Sales', 'lilac'],
+                                'expenses' => ['Operating Expenses', 'warning'],
+                                'returns' => ['Sales Returns', 'danger'],
+                            ] as $metric => [$label, $color])
+                                <div class="col-6">
+                                    <div class="d-flex align-items-baseline gap-8">
+                                        <span class="w-8-px h-8-px rounded-pill flex-shrink-0 bg-{{ $color }}-600"></span>
+                                        <div>
+                                            <div class="text-sm text-secondary-light">{{ $label }}</div>
+                                            <strong data-overall-metric="{{ $metric }}">৳ {{ number_format($overallReportData['monthly'][$metric], 2) }}</strong>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- top supplier  show --}}
+            <div class="col-xxl-4 col-md-6">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <div class="d-flex align-items-center flex-wrap gap-2 justify-content-between">
+                            <div>
+                                <h6 class="fw-bold text-lg mb-0">Top Suppliers</h6>
+                                <span class="text-sm text-secondary-light">This month</span>
+                            </div>
+                            <a href="{{ route('supplier.index') }}"
+                                class="text-primary-600 hover-text-primary d-flex align-items-center gap-1">
+                                View All
+                                <iconify-icon icon="solar:alt-arrow-right-linear" class="icon"></iconify-icon>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="card-body p-24">
+                        <div class="table-responsive scroll-sm">
+                            <table class="table bordered-table mb-0">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">SL</th>
+                                        <th scope="col">Name </th>
+                                        <th scope="col" class="text-end">Purchase Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @forelse ($topSuppliers as $item)
+                                        <tr>
+                                            <td>
+                                                <span class="text-secondary-light">{{ $loop->iteration }}</span>
+                                            </td>
+                                            <td>
+                                                <span class="text-secondary-light">{{ $item->name }}</span>
+                                            </td>
+                                            <td class="text-end">
+                                                <span class="text-secondary-light">৳
+                                                    {{ number_format($item->total_purchase, 2) }}</span>
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="3" class="text-center text-secondary-light">No posted purchases this month.</td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- top customer show --}}
+
+            <div class="col-xxl-4 col-md-6">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <div class="d-flex align-items-center flex-wrap gap-2 justify-content-between">
+                            <div>
+                                <h6 class="fw-bold text-lg mb-0">Top Customers</h6>
+                                <span class="text-sm text-secondary-light">This month</span>
+                            </div>
+                            <a href="{{ route('customer.index') }}"
+                                class="text-primary-600 hover-text-primary d-flex align-items-center gap-1">
+                                View All
+                                <iconify-icon icon="solar:alt-arrow-right-linear" class="icon"></iconify-icon>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="card-body p-24">
+                        <div class="table-responsive scroll-sm">
+                            <table class="table bordered-table mb-0">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">SL</th>
+                                        <th scope="col">Name </th>
+                                        <th scope="col" class="text-end">Net Sales</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @forelse ($topCustomers as $item)
+                                        <tr>
+                                            <td>
+                                                <span class="text-secondary-light">{{ $loop->iteration }}</span>
+                                            </td>
+                                            <td>
+                                                <span class="text-secondary-light">{{ $item->name }}</span>
+                                            </td>
+                                            <td class="text-end">
+                                                <span class="text-secondary-light">৳
+                                                    {{ number_format($item->total_sale, 2) }}</span>
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="3" class="text-center text-secondary-light">No customer sales with a positive net total this month.</td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- purchase and sales summary chart --}}
+            <div class="col-xxl-4 col-md-6">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <div class="d-flex align-items-center flex-wrap gap-2 justify-content-between">
+                            <h6 class="mb-2 fw-bold text-lg mb-0">Purchase & Sales</h6>
+                            <select id="purchaseSaleFilter"
+                                class="form-select form-select-sm w-auto bg-base text-secondary-light">
+                                <option value="this_month">This Month</option>
+                                <option value="this_week" selected>This Week</option>
+                                <option value="this_year">This Year</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="card-body p-24">
+                        <ul class="d-flex flex-wrap align-items-center justify-content-center my-3 gap-3">
+                            <li class="d-flex align-items-center gap-2">
+                                <span class="w-12-px h-8-px rounded-pill bg-warning-600"></span>
+                                <span class="text-secondary-light text-sm fw-semibold">Purchase Receipts: <span
+                                        id="purchaseSummaryVal"
+                                        class="text-primary-light fw-bold">৳ {{ number_format($purchaseSaleChartData['this_week']['totalPurchase'], 2) }}</span>
+                                </span>
+                            </li>
+                            <li class="d-flex align-items-center gap-2">
+                                <span class="w-12-px h-8-px rounded-pill bg-success-600"></span>
+                                <span class="text-secondary-light text-sm fw-semibold">Net Sales: <span id="salesSummaryVal"
+                                        class="text-primary-light fw-bold">৳ {{ number_format($purchaseSaleChartData['this_week']['totalSales'], 2) }}</span>
+                                </span>
+                            </li>
+                        </ul>
+                        <div id="purchaseSaleChart" class="margin-16-minus y-value-left"></div>
                     </div>
                 </div>
             </div>
 
             {{-- USERS SHOW --}}
             <div class="col-xxl-4 col-md-6">
-                <div class="card">
+                <div class="card dashboard-activity-card">
                     <div class="card-header border-bottom">
                         <div class="d-flex align-items-center flex-wrap gap-2 justify-content-between">
                             <h6 class="mb-2 fw-bold text-lg mb-0">Users</h6>
@@ -357,19 +452,20 @@
                             </a>
                         </div>
                     </div>
-                    <div class="card-body p-20">
-                        <div class="d-flex flex-column gap-24">
+                    <div class="card-body p-20 overflow-auto">
+                        <div class="d-flex flex-column gap-12">
                             @forelse($users as $user)
-                                <div class="d-flex align-items-center justify-content-between gap-3">
-                                    <div class="d-flex align-items-center">
+                                <div class="d-flex align-items-center justify-content-between gap-3 dashboard-user-row">
+                                    <div class="d-flex align-items-center overflow-hidden">
                                         <div class="w-40-px h-40-px rounded-circle flex-shrink-0 me-12 overflow-hidden d-flex align-items-center justify-content-center bg-primary-100"
                                             style="font-weight: bold; color: #3c50e0; font-size: 16px;">
                                             {{ strtoupper(substr($user->name, 0, 1)) }}
                                         </div>
-                                        <div class="flex-grow-1">
-                                            <h6 class="text-md mb-0">{{ $user->name }}</h6>
+                                        <div class="overflow-hidden">
+                                            <h6 class="text-md mb-0 text-truncate" title="{{ $user->name }}">{{ $user->name }}</h6>
                                             <span
-                                                class="text-sm text-secondary-light fw-normal">{{ $user->role?->name ?? 'User' }}</span>
+                                                class="d-block text-sm text-secondary-light fw-normal text-truncate"
+                                                title="{{ $user->role?->name ?? 'User' }}">{{ $user->role?->name ?? 'User' }}</span>
                                         </div>
                                     </div>
                                     @if ($user->status == 1 || $user->status === 'active' || $user->status === true)
@@ -391,235 +487,45 @@
                 </div>
             </div>
 
-            {{-- top supplier  show --}}
-            <div class="col-xxl-4 col-md-6">
-                <div class="card h-100">
-                    <div class="card-header">
-                        <div class="d-flex align-items-center flex-wrap gap-2 justify-content-between">
-                            <h6 class="mb-2 fw-bold text-lg mb-0">Top Suppliers</h6>
-                            <a href="{{ route('supplier.index') }}"
-                                class="text-primary-600 hover-text-primary d-flex align-items-center gap-1">
-                                View All
-                                <iconify-icon icon="solar:alt-arrow-right-linear" class="icon"></iconify-icon>
-                            </a>
-                        </div>
-                    </div>
-                    <div class="card-body p-24">
-                        <div class="table-responsive scroll-sm">
-                            <table class="table bordered-table mb-0">
-                                <thead>
-                                    <tr>
-                                        <th scope="col">SL</th>
-                                        <th scope="col">Name </th>
-                                        <th scope="col">Amount</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach ($supplierQuery as $item)
-                                        <tr>
-                                            <td>
-                                                <span class="text-secondary-light">{{ $loop->iteration }}</span>
-                                            </td>
-                                            <td>
-                                                <span class="text-secondary-light">{{ $item->name }}</span>
-                                            </td>
-                                            <td>
-                                                <span class="text-secondary-light">৳
-                                                    {{ number_format($item->total_purchase, 2) }}</span>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-
-            {{-- top customer show --}}
-
-            <div class="col-xxl-4 col-md-6">
-                <div class="card h-100">
-                    <div class="card-header">
-                        <div class="d-flex align-items-center flex-wrap gap-2 justify-content-between">
-                            <h6 class="mb-2 fw-bold text-lg mb-0">Top Customer</h6>
-                            <a href="{{ route('customer.index') }}"
-                                class="text-primary-600 hover-text-primary d-flex align-items-center gap-1">
-                                View All
-                                <iconify-icon icon="solar:alt-arrow-right-linear" class="icon"></iconify-icon>
-                            </a>
-                        </div>
-                    </div>
-                    <div class="card-body p-24">
-                        <div class="table-responsive scroll-sm">
-                            <table class="table bordered-table mb-0">
-                                <thead>
-                                    <tr>
-                                        <th scope="col">SL</th>
-                                        <th scope="col">Name </th>
-                                        <th scope="col">Amount</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach ($customerQuery as $item)
-                                        <tr>
-                                            <td>
-                                                <span class="text-secondary-light">{{ $loop->iteration }}</span>
-                                            </td>
-                                            <td>
-                                                <span class="text-secondary-light">{{ $item->name }}</span>
-                                            </td>
-                                            <td>
-                                                <span class="text-secondary-light">৳
-                                                    {{ number_format($item->total_sale, 2) }}</span>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {{-- overall report show --}}
-            <div class="col-xxl-4 col-md-6">
-                <div class="card h-100">
-                    <div class="card-header">
-                        <div class="d-flex align-items-center flex-wrap gap-2 justify-content-between">
-                            <h6 class="mb-2 fw-bold text-lg">Overall Report</h6>
-                            <select id="overallReportFilter"
-                                class="form-select form-select-sm w-auto bg-base border text-secondary-light radius-8">
-                                <option value="yearly">Yearly</option>
-                                <option value="monthly" selected>Monthly</option>
-                                <option value="weekly">Weekly</option>
-                                <option value="today">Today</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="card-body p-24">
-                        <div class="mt-32">
-                            <div id="userOverviewDonutChart" class="mx-auto apexcharts-tooltip-z-none"></div>
-                        </div>
-                        <div class="d-flex flex-wrap gap-20 justify-content-center mt-48">
-                            <div class="d-flex align-items-center gap-8">
-                                <span class="w-16-px h-16-px radius-2 bg-primary-600"></span>
-                                <span class="text-secondary-light">Purchase</span>
-                            </div>
-                            <div class="d-flex align-items-center gap-8">
-                                <span class="w-16-px h-16-px radius-2 bg-lilac-600"></span>
-                                <span class="text-secondary-light">Sales</span>
-                            </div>
-                            <div class="d-flex align-items-center gap-8">
-                                <span class="w-16-px h-16-px radius-2 bg-warning-600"></span>
-                                <span class="text-secondary-light">Expense</span>
-                            </div>
-                            <div class="d-flex align-items-center gap-8">
-                                <span class="w-16-px h-16-px radius-2 bg-success-600"></span>
-                                <span class="text-secondary-light">Gross Profit</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-
-            {{-- purchase and sales summary chart --}}
-            <div class="col-xxl-4 col-md-6">
-                <div class="card h-100">
-                    <div class="card-header">
-                        <div class="d-flex align-items-center flex-wrap gap-2 justify-content-between">
-                            <h6 class="mb-2 fw-bold text-lg mb-0">Purchase & Sales</h6>
-                            <select id="purchaseSaleFilter"
-                                class="form-select form-select-sm w-auto bg-base text-secondary-light">
-                                <option value="this_month">This Month</option>
-                                <option value="this_week" selected>This Week</option>
-                                <option value="this_year">This Year</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="card-body p-24">
-                        <ul class="d-flex flex-wrap align-items-center justify-content-center my-3 gap-3">
-                            <li class="d-flex align-items-center gap-2">
-                                <span class="w-12-px h-8-px rounded-pill bg-warning-600"></span>
-                                <span class="text-secondary-light text-sm fw-semibold">Purchase: ৳<span
-                                        id="purchaseSummaryVal"
-                                        class="text-primary-light fw-bold">{{ number_format($purchaseSalesMetrics['this_week']['purchase'], 2) }}</span>
-                                </span>
-                            </li>
-                            <li class="d-flex align-items-center gap-2">
-                                <span class="w-12-px h-8-px rounded-pill bg-success-600"></span>
-                                <span class="text-secondary-light text-sm fw-semibold">Sales: ৳<span id="salesSummaryVal"
-                                        class="text-primary-light fw-bold">{{ number_format($purchaseSalesMetrics['this_week']['sales'], 2) }}</span>
-                                </span>
-                            </li>
-                        </ul>
-                        <div id="purchaseSaleChart" class="margin-16-minus y-value-left"></div>
-                    </div>
-                </div>
-            </div>
-
             {{-- recent transactions show --}}
             <div class="col-xxl-8">
-                <div class="card h-100">
-                    <div class="card-header">
+                <div class="card dashboard-activity-card">
+                    <div class="card-header border-bottom">
                         <div class="d-flex align-items-center flex-wrap gap-2 justify-content-between">
                             <h6 class="mb-2 fw-bold text-lg mb-0">Recent Transactions</h6>
-                            <a href="javascript:void(0)"
-                                class="text-primary-600 hover-text-primary d-flex align-items-center gap-1">
-                                View All
-                                <iconify-icon icon="solar:alt-arrow-right-linear" class="icon"></iconify-icon>
-                            </a>
+                            <span class="text-sm text-secondary-light">Latest 5 posted documents</span>
                         </div>
                     </div>
-                    <div class="card-body p-24">
-                        <div class="table-responsive scroll-sm">
-                            <table class="table bordered-table mb-0">
+                    <div class="card-body p-20">
+                        <div class="table-responsive scroll-sm dashboard-recent-transactions" tabindex="0" role="region" aria-label="Recent posted transactions">
+                            <table class="table bordered-table table-py-8 mb-0">
                                 <thead>
                                     <tr>
-                                        <th scope="col">SL</th>
-                                        <th scope="col">Date </th>
+                                        <th scope="col">Date</th>
+                                        <th scope="col">Reference</th>
                                         <th scope="col">Type</th>
-                                        <th scope="col">Payment Mode</th>
-                                        <th scope="col">Paid Amount</th>
-                                        <th scope="col">Due Amount</th>
-                                        <th scope="col">Total Amount</th>
+                                        <th scope="col">Branch</th>
+                                        <th scope="col" class="text-end">Amount</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach($recentTransactions as $transaction)
-                                    <tr>
-                                        <td>
-                                            <span class="text-secondary-light">{{ $loop->iteration }}</span>
-                                        </td>
-                                        <td>
-                                            <span class="text-secondary-light">{{ \Carbon\Carbon::parse($transaction->date)->format('d M Y') }}</span>
-                                        </td>
-                                        <td>
-                                            <span class="badge {{ $transaction->source == 'Sale' ? 'bg-success-focus text-success-main' : 'bg-info-focus text-info-main' }}">
-                                                {{ $transaction->source }}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <span class="text-secondary-light">{{ ucfirst($transaction->type) }}</span>
-                                        </td>
-                                        <td>
-                                            <span class="text-secondary-light">৳ {{ number_format($transaction->paid, 2) }}</span>
-                                        </td>
-                                        <td>
-                                            <span class="text-secondary-light">৳ {{ number_format($transaction->due, 2) }}</span>
-                                        </td>
-                                        <td>
-                                            <span class="text-secondary-light">৳ {{ number_format($transaction->total, 2) }}</span>
-                                        </td>
-                                    </tr>
-                                    @endforeach
-                                    @if($recentTransactions->isEmpty())
-                                    <tr>
-                                        <td colspan="7" class="text-center text-secondary-light">No transactions found</td>
-                                    </tr>
-                                    @endif
+                                    @forelse ($recentTransactions as $transaction)
+                                        <tr>
+                                            <td class="text-nowrap">{{ $transaction->transaction_at->format('d M Y') }}</td>
+                                            <td>
+                                                <a class="text-primary-600 fw-medium" href="{{ route($transaction->route, $transaction->id) }}">
+                                                    {{ $transaction->reference }}
+                                                </a>
+                                            </td>
+                                            <td><span class="badge bg-info-focus text-info-main">{{ $transaction->label }}</span></td>
+                                            <td>{{ $transaction->branch_name ?? '—' }}</td>
+                                            <td class="text-end text-nowrap">৳ {{ number_format($transaction->amount, 2) }}</td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="5" class="text-center text-secondary-light">No posted transactions available.</td>
+                                        </tr>
+                                    @endforelse
                                 </tbody>
                             </table>
                         </div>
@@ -634,7 +540,7 @@
 @section('script')
     <script>
         // ===================== Income VS Expense Start =============================== 
-        function createChartTwo(chartId, color1, color2, incomeData, expenseData, monthLabels) {
+        function createChartTwo(chartId, color1, color2, salesData, purchaseAndExpenseData, periodLabels) {
             // Destroy existing chart if it exists
             if (window.incomeExpenseChart) {
                 window.incomeExpenseChart.destroy();
@@ -642,11 +548,11 @@
 
             var options = {
                 series: [{
-                    name: 'Sale',
-                    data: incomeData
+                    name: 'Net Sales',
+                    data: salesData
                 }, {
                     name: 'Purchase & Expenses',
-                    data: expenseData
+                    data: purchaseAndExpenseData
                 }],
                 legend: {
                     show: false
@@ -654,7 +560,8 @@
                 chart: {
                     type: 'area',
                     width: '100%',
-                    height: 270,
+                    height: '100%',
+                    parentHeightOffset: 0,
                     toolbar: {
                         show: false
                     },
@@ -700,7 +607,7 @@
                     padding: {
                         top: -20,
                         right: 0,
-                        bottom: -10,
+                        bottom: 0,
                         left: 0
                     },
                 },
@@ -728,10 +635,7 @@
                     }
                 },
                 xaxis: {
-                    labels: {
-                        show: false
-                    },
-                    categories: monthLabels,
+                    categories: periodLabels,
                     tooltip: {
                         enabled: false
                     },
@@ -745,9 +649,18 @@
                     }
                 },
                 yaxis: {
+                    tickAmount: 8,
+                    forceNiceScale: true,
+                    max: function(value) {
+                        return value > 0 ? value * 1.15 : 1;
+                    },
                     labels: {
                         formatter: function(value) {
-                            return "৳" + (value >= 1000 ? (value / 1000).toFixed(0) + "k" : value.toFixed(0));
+                            if (Math.abs(value) >= 1000) {
+                                return '৳' + (value / 1000).toLocaleString('en-US', { maximumFractionDigits: 1 }) + 'k';
+                            }
+
+                            return '৳' + value.toLocaleString('en-US', { maximumFractionDigits: 2 });
                         },
                         style: {
                             fontSize: "14px"
@@ -770,37 +683,7 @@
             window.incomeExpenseChart.render();
         }
 
-        // Data from PHP
-        var chartData = {
-            monthly: {
-                income: @json($monthlyIncome),
-                expense: @json($monthlyExpense),
-                labels: @json($monthNames),
-                totalIncome: {{ $grossSales }},
-                totalExpense: {{ $totalPurchaseAndExpense }}
-            },
-            weekly: {
-                income: @json($weeklyIncome),
-                expense: @json($weeklyExpense),
-                labels: @json($weeklyLabels),
-                totalIncome: @json(array_sum($weeklyIncome)),
-                totalExpense: @json(array_sum($weeklyExpense))
-            },
-            daily: {
-                income: @json($dailyIncome),
-                expense: @json($dailyExpense),
-                labels: @json($dailyLabels),
-                totalIncome: @json(array_sum($dailyIncome)),
-                totalExpense: @json(array_sum($dailyExpense))
-            },
-            yearly: {
-                income: @json($yearlyIncome),
-                expense: @json($yearlyExpense),
-                labels: @json($yearlyLabels),
-                totalIncome: @json(array_sum($yearlyIncome)),
-                totalExpense: @json(array_sum($yearlyExpense))
-            }
-        };
+        const salesPurchaseExpenseTrend = @json($salesPurchaseExpenseTrend);
 
         // Function to format currency
         function formatCurrency(value) {
@@ -810,32 +693,41 @@
             });
         }
 
-        // Initialize with monthly
-        createChartTwo('incomeExpense', '#487FFF', '#FF9F29',
-            chartData.monthly.income, chartData.monthly.expense, chartData.monthly.labels);
-        document.getElementById('chartIncomeValue').textContent = formatCurrency(chartData.monthly.totalIncome);
-        document.getElementById('chartExpenseValue').textContent = formatCurrency(chartData.monthly.totalExpense);
+        function renderSalesPurchaseExpenseTrend(period) {
+            const trend = salesPurchaseExpenseTrend[period];
 
-        // Dropdown change event
-        document.getElementById('incomeExpenseFilter').addEventListener('change', function(e) {
-            var period = e.target.value;
-            var data = chartData[period];
             createChartTwo('incomeExpense', '#487FFF', '#FF9F29',
-                data.income, data.expense, data.labels);
+                trend.sales, trend.purchaseAndExpense, trend.labels);
+            document.getElementById('chartIncomeValue').textContent = formatCurrency(trend.totalSales);
+            document.getElementById('chartExpenseValue').textContent = formatCurrency(trend.totalPurchaseAndExpense);
+        }
 
-            // Update heading values
-            document.getElementById('chartIncomeValue').textContent = formatCurrency(data.totalIncome);
-            document.getElementById('chartExpenseValue').textContent = formatCurrency(data.totalExpense);
+        const trendFilter = document.getElementById('incomeExpenseFilter');
+        renderSalesPurchaseExpenseTrend(trendFilter.value);
+        trendFilter.addEventListener('change', function(event) {
+            renderSalesPurchaseExpenseTrend(event.target.value);
         });
         // ===================== Income VS Expense End =============================== 
 
         // ================================ Users Overview Donut chart Start ================================ 
-        var overallData = @json($overallReportData);
+        const overallData = @json($overallReportData);
+        const overallMetrics = ['purchases', 'sales', 'expenses', 'returns'];
+
+        function overallSeries(period) {
+            const values = overallMetrics.map(function (metric) {
+                return overallData[period][metric];
+            });
+
+            return values.some(value => value > 0) ? values : [];
+        }
 
         var donutOptions = {
-            series: overallData.monthly,
-            colors: ['#487FFF', '#9935FE', '#FF9F29', '#45B369'],
-            labels: ['Purchase', 'Sales', 'Expense', 'Gross Profit'],
+            series: overallSeries('monthly'),
+            colors: ['#487FFF', '#9935FE', '#FF9F29', '#DC2626'],
+            labels: ['Purchase Receipts', 'Posted Sales', 'Operating Expenses', 'Sales Returns'],
+            noData: {
+                text: 'No posted activity in this period.'
+            },
             legend: {
                 show: false
             },
@@ -862,20 +754,11 @@
                 width: 0,
             },
             dataLabels: {
-                enabled: true,
-                formatter: function(val, opts) {
-                    return opts.w.globals.series[opts.seriesIndex].toLocaleString('en-US', {
-                        minimumFractionDigits: 0
-                    });
-                }
+                enabled: false
             },
             tooltip: {
                 y: {
-                    formatter: function(val) {
-                        return "৳" + val.toLocaleString('en-US', {
-                            minimumFractionDigits: 2
-                        });
-                    }
+                    formatter: formatCurrency
                 }
             },
             responsive: [{
@@ -895,104 +778,52 @@
         donutChart.render();
 
         document.getElementById('overallReportFilter').addEventListener('change', function(e) {
-            var period = e.target.value;
-            donutChart.updateSeries(overallData[period]);
+            const period = e.target.value;
+            donutChart.updateSeries(overallSeries(period));
+            document.querySelectorAll('[data-overall-metric]').forEach(function (element) {
+                element.textContent = formatCurrency(overallData[period][element.dataset.overallMetric]);
+            });
         });
         // ================================ Users Overview Donut chart End ================================ 
 
-                // ================================ Purchase & sale chart Start ================================ 
-                var purchaseSalesMetrics = @json($purchaseSalesMetrics);
-                var purchaseSaleChartFullData = @json($purchaseSaleChartData);
-        
-                var purchaseSaleOptions = {
-                    series: [{
-                        name: 'Purchase',
-                        data: purchaseSaleChartFullData.this_week.purchase
-                    }, {
-                        name: 'Sales',
-                        data: purchaseSaleChartFullData.this_week.sales
-                    }],
-                    colors: ['#FF9F29', '#45B369'],
-                    legend: {
-                        show: false
-                    },
-                    chart: {
-                        type: 'bar',
-                        height: 260,
-                        toolbar: {
-                            show: false
-                        },
-                    },
-                    grid: {
-                        show: true,
-                        borderColor: '#D1D5DB',
-                        strokeDashArray: 4,
-                        position: 'back',
-                    },
-                    plotOptions: {
-                        bar: {
-                            borderRadius: 4,
-                            columnWidth: 8,
-                        },
-                    },
-                    dataLabels: {
-                        enabled: false
-                    },
-                    states: {
-                        hover: {
-                            filter: {
-                                type: 'none'
-                            }
-                        }
-                    },
-                    stroke: {
-                        show: true,
-                        width: 0,
-                        colors: ['transparent']
-                    },
-                    xaxis: {
-                        categories: purchaseSaleChartFullData.this_week.labels,
-                    },
-                    fill: {
-                        opacity: 1,
-                        width: 18,
-                    },
-                    tooltip: {
-                        y: {
-                            formatter: function(val) {
-                                return "৳" + val.toLocaleString('en-US', {minimumFractionDigits: 2});
-                            }
-                        }
-                    }
-                };
-        
-                var purchaseSaleChart = new ApexCharts(document.querySelector("#purchaseSaleChart"), purchaseSaleOptions);
-                purchaseSaleChart.render();
-        
-                document.getElementById('purchaseSaleFilter').addEventListener('change', function(e) {
-                    var period = e.target.value;
-                    var metrics = purchaseSalesMetrics[period];
-                    var chartData = purchaseSaleChartFullData[period];
-                    
-                    // Update summary text values
-                    document.getElementById('purchaseSummaryVal').textContent = metrics.purchase.toLocaleString('en-US', {minimumFractionDigits: 2});
-                    document.getElementById('salesSummaryVal').textContent = metrics.sales.toLocaleString('en-US', {minimumFractionDigits: 2});
-        
-                    // Update chart series and categories
-                    purchaseSaleChart.updateOptions({
-                        series: [{
-                            name: 'Purchase',
-                            data: chartData.purchase
-                        }, {
-                            name: 'Sales',
-                            data: chartData.sales
-                        }],
-                        xaxis: {
-                            categories: chartData.labels
-                        }
-                    });
-                });
-                // ================================ Purchase & sale chart End ================================ 
+        const purchaseSaleData = @json($purchaseSaleChartData);
+
+        function purchaseSaleSeries(period) {
+            return [
+                { name: 'Purchase Receipts', data: period.purchase },
+                { name: 'Net Sales', data: period.sales }
+            ];
+        }
+
+        const purchaseSaleFilter = document.getElementById('purchaseSaleFilter');
+        const initialPurchaseSalePeriod = purchaseSaleData[purchaseSaleFilter.value];
+        const purchaseSaleChart = new ApexCharts(document.getElementById('purchaseSaleChart'), {
+            series: purchaseSaleSeries(initialPurchaseSalePeriod),
+            colors: ['#FF9F29', '#45B369'],
+            legend: { show: false },
+            chart: {
+                type: 'bar',
+                height: 260,
+                toolbar: { show: false }
+            },
+            grid: { borderColor: '#D1D5DB', strokeDashArray: 4 },
+            plotOptions: { bar: { borderRadius: 4, columnWidth: '65%' } },
+            dataLabels: { enabled: false },
+            xaxis: { categories: initialPurchaseSalePeriod.labels },
+            tooltip: { y: { formatter: formatCurrency } }
+        });
+        purchaseSaleChart.render();
+
+        purchaseSaleFilter.addEventListener('change', function (event) {
+            const period = purchaseSaleData[event.target.value];
+
+            document.getElementById('purchaseSummaryVal').textContent = formatCurrency(period.totalPurchase);
+            document.getElementById('salesSummaryVal').textContent = formatCurrency(period.totalSales);
+            purchaseSaleChart.updateOptions({
+                series: purchaseSaleSeries(period),
+                xaxis: { categories: period.labels }
+            });
+        });
          
     </script>
 

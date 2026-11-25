@@ -422,3 +422,58 @@ project: Sinetec POS
 7. Data-level reconciled sample November sales: 3 posted sale payments, 2 due collections, 2 sales returns and 0 open due; route/view/permission/cache verification completed — approx. 45 min
 
 **Total:** Approx. 7 hours 15 minutes
+
+---
+
+## Date: 2026-11-23
+
+**ID:** BFT4
+
+project: Sinetec POS
+
+1. Completed Final Monthly Snapshot register and all six frozen-report tabs using the shared global AjaxDataTable pattern with server-side search, pagination and toolbar controls — approx. 2 hours
+2. Fixed snapshot payload rendering, warehouse filtering, search, print actions, toolbar alignment and the responsive DataTable recalculation error — approx. 1.25 hours
+3. Converted Monthly Rate Sheets and Reporting Periods registers to the shared AjaxDataTable pattern while preserving their workflow actions and permissions — approx. 1.25 hours
+4. Reorganised the Reporting dashboard so Reporting Periods, Monthly Rate Sheets and Final Monthly Snapshots appear together under Monthly Controls — approx. 30 min
+5. Implemented the branch-wise Demand Plan foundation with canonical month/branch scope, typed status, readable service/controller/models, independent permission and a dedicated Supply Planning sidebar group — approx. 2 hours
+6. Added previous 1/3/6/12-month Posted net-sales suggestions, manual planned/safety quantities, Draft edit, approve/cancel flow and global AjaxDataTable register — approx. 1.5 hours
+7. Applied the Demand Planning migration and permission seed, added focused tests, verified reporting regressions and synchronized the active project documents — approx. 45 min
+
+**Total:** Approx. 9 hours 15 minutes
+
+---
+
+## Date: 2026-11-24
+
+**ID:** BFT4
+
+project: Sinetec POS
+
+1. Implemented the Material Requirement Planning foundation, plan register/details workflow and multi-level BOM explosion for Finished Products, Parts and Raw Materials — approx. 1.5 hours
+2. Hardened MRP calculations for target-period BOM validity, warehouse stock offset, incoming Purchase Orders, minimum-stock buffers and Part Make/Buy/Both policy — approx. 1 hour
+3. Completed supplier-grouped Purchase Recommendations, preserved fractional required quantities and connected Approved MRP with pre-filled Purchase Order creation — approx. 1 hour
+4. Completed MRP permissions, Supply Planning navigation, workflow actions and user-interface corrections — approx. 45 min
+5. Implemented warehouse-wise Low-Stock detection across Raw Materials, Parts and Finished Products with severity, shortfall, suggested quantity and replenishment guidance — approx. 1.25 hours
+6. Built the branch-safe Low-Stock Alerts screen with summary cards, shared AjaxDataTable, branch/warehouse/domain/status filters and independent permission — approx. 1 hour
+7. Applied migrations and permission seeds, completed focused/full regression tests, verified live Low-Stock data and synchronized project status, roadmap, database and progress documents — approx. 30 min
+
+
+project:EnglishMoja 
+1. contact and bug fix vedio url link 
+
+**Total:** Approx. 7 hours
+
+---
+
+## Date: 2026-11-25
+
+**ID:** BFT4
+
+project: Sinetec POS
+
+1. Connected dashboard KPI cards and all three charts to branch-scoped posted transactions with working period filters.
+2. Added monthly top supplier/customer rankings and permission-filtered recent transactions. Matched the height of the Users and Recent Transactions cards and limited both lists to five entries.
+3. Polished dashboard card colors, icons, placement and chart spacing.
+4. Added the permission-aware POS shortcut and animated border, and removed placeholder messaging and notification controls.
+5. Consolidated sidebar headings, corrected the Final Product Assembly menu guard and audited non-super-user menu permissions.
+6. Reviewed the active documentation and recorded the remaining Phase 8 validation and go-live work.

@@ -44,4 +44,9 @@ class ReportingPeriod extends Model
     {
         return $this->hasMany(MonthlyReportSnapshot::class)->orderByDesc('version');
     }
+
+    public function demandPlans(): HasMany
+    {
+        return $this->hasMany(DemandPlan::class);
+    }
 }

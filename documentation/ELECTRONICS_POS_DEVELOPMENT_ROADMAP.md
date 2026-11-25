@@ -1,13 +1,13 @@
 # Electronics POS — Development Roadmap
 
-**Status:** Active implementation roadmap; Reporting hub, operational monthly reports and versioned Final Monthly Snapshots are complete; demand/material planning is next
-**Version:** 2.3
-**Updated:** 22 November 2026
-**Based on:** Project Plan v2.8 and Physical Database Design v2.5
+**Status:** Phases 0–7 functionally complete. Phase 8 is in progress.
+**Version:** 2.9
+**Updated:** 25 November 2026
+**Based on:** Project Plan v2.13 and Physical Database Design v2.9
 
 > **Decision override:** Any later reference in this document to a unified `inventory_item`, `inventory_movement`, or `inventory_balance` means the corresponding separate Raw Material, Part, and Finished Product masters/ledgers/balances. The unified-table proposal is cancelled.
 
-> **Current delivery position:** Phases 0-5 are complete. The purchase-related Finance foundation and accountant workflow from Phase 6 were completed early. Supplier/Customer masters, internal EAN-13 labels, Sales/Return reconciliation, Reporting Period controls, Monthly Rate Sheets, Stock Valuation, operational Monthly Reports and scope-aware Final Monthly Snapshots are complete. Demand and material-requirement planning is the next Phase 7 delivery.
+> **Current delivery position:** Phases 0–7 are functionally complete. The branch-aware dashboard and navigation update started Phase 8. End-to-end testing, role-based UAT, release preparation and pilot acceptance remain open.
 
 ## 1. Roadmap objective
 
@@ -296,7 +296,7 @@ Receipt      Adjustment      Production   Stock Count
 - Void does not silently alter original document/stock; it follows approved correction flow.
 - Reconciliation highlights any posted stock document lacking a draft journal.
 
-### Phase 7 — Monthly rate sheet, reports, print and supply planning — In progress
+### Phase 7 — Monthly rate sheet, reports, print and supply planning — Complete
 
 **Why after transactions:** These features depend on trustworthy purchase, production, stock and sales history.
 
@@ -307,9 +307,9 @@ Receipt      Adjustment      Production   Stock Count
 | **Complete: Current stock valuation** | Read-only report using current positive balances and period-approved/locked rates | Balance + approved/locked monthly rate sheet | Management dashboard |
 | **Complete: Monthly purchase, stock, part-production, assembly and sales reports** | New queries using existing posted transaction cores and AjaxDataTable UI | All posted transactions + reporting period | Print/export |
 | **Complete: Final Monthly Snapshot** | One independently versioned package per month and scope (`COMPANY` or one branch), containing all six frozen reports | Closed Reporting Period + Locked Rate Sheet | Historical report integrity |
-| Demand plan | New | Sales history / manual target | MRP |
-| Material requirement plan | New | Demand plan + BOM + stock + reorder level | Purchase recommendation |
-| Low-stock report | New/adapt | Balance + reorder level | Operations |
+| **Complete: Demand plan** | Branch-wise canonical monthly plan with Posted net-sales suggestions, manual target/safety override and approval freeze | Sales history / manual target | MRP |
+| **Complete: Material requirement plan** | Approved Demand Plan, target-period Product BOM validation/explosion, branch stock and minimum buffer, incoming PO offset, Part make/buy policy, supplier grouping and Purchase Order prefill | Demand Plan + BOM + stock/reorder + open Purchase Orders | Purchase/production recommendation |
+| **Complete: Low-stock report** | Branch-safe warehouse alerts with current/minimum/shortfall/default replenishment/maximum target, operational suggestions and shared AjaxDataTable UI | Balance + reorder level | Purchase/production/assembly review |
 
 **Monthly flow**
 
@@ -326,17 +326,17 @@ Reporting Periods and Rate Sheets remain company-wide calendar controls. Each ye
 5. Closed period blocks rate edit until authorised reopen.
 6. A period cannot be duplicated or closed/reopened from an invalid state; authorized reopen preserves prior close/reopen events.
 
-### Phase 8 — Hardening, data migration, training and go-live — Pending
+### Phase 8 — Hardening, data migration, training and go-live — In progress
 
 | Work item | Output |
 | --- | --- |
-| Permission/UAT checklist by user role | Signed acceptance by admin, purchaser, storekeeper, production user, cashier, accountant |
-| Opening master/stock import | Approved opening balances with reconciliation |
-| Migration rehearsal on copy of local/live data | Timed, repeatable cutover procedure |
-| Performance and concurrency test | Stock posting remains correct under normal simultaneous use |
-| Backup/restore and rollback plan | Go-live recovery procedure |
-| Training materials | Short role-based operating guide |
-| Pilot branch/showroom launch | Real transaction validation before wider rollout |
+| **Complete:** Branch-aware dashboard and navigation | Posted KPIs/charts, rankings, recent documents, POS shortcut and reorganized sidebar |
+| **Open:** End-to-end integration and reconciliation | Demand Plan to purchasing, stock, production, sales/returns, Finance and monthly snapshot totals agree with source documents |
+| **Open:** Permission/UAT checklist by user role | Check Multi-Module View, Add-only, user overrides and negative branch-access cases. Close the known empty sidebar group issue and obtain role-owner sign-off. |
+| **Open:** Opening data and migration rehearsal | Approved masters, warehouse stock and financial balances reconciled on a database copy. Use the existing opening workflows. Bulk stock CSV remains optional. |
+| **Open:** Shared list pattern, performance and concurrency | Verify representative data volumes, shared AjaxDataTable behavior, posting under simultaneous use and duplicate retry protection |
+| **Open:** Backup/restore and rollback | Rehearse the cutover and recovery procedure |
+| **Open:** Training and pilot | Short role-based guides and a pilot branch/showroom sign-off before rollout |
 
 **Go-live gates**
 
@@ -390,7 +390,7 @@ Reporting Periods and Rate Sheets remain company-wide calendar controls. Each ye
 2. Seed the clean core permission catalogue; do not copy legacy permission mappings.
 3. Confirm the initial branch/warehouse list and the default issuing warehouse for each showroom.
 4. Test retained access, branch, warehouse, company, location and master-data screens.
-5. **Complete:** legacy dashboard queries were replaced with the clean-schema zero state.
+5. **Complete:** legacy dashboard queries were removed. The original clean-schema zero state was superseded by the posted-data dashboard in step 67.
 6. **Complete:** route-detached legacy controllers, models, services, jobs and Blade screens were removed after creating the recoverable Git baseline.
 7. **Complete:** Units & Unit Conversion CRUD, reverse-factor display, duplicate-pair validation and reference-safe unit deletion.
 8. **Complete:** three independent category modules with parent hierarchy, searchable Select2 parent selection, delete protection and separate RBAC mappings.
@@ -449,7 +449,11 @@ Reporting Periods and Rate Sheets remain company-wide calendar controls. Each ye
 61. **Complete:** Add Reporting hub cards, independent permissions, reset-filter controls, breadcrumbs and existing AjaxDataTable export/search/refresh patterns.
 62. **Complete:** Add focused Monthly Assembly, Monthly Sales and Final Snapshot tests, correct legacy reporting fixtures and verify all 468 automated tests with 126,541 assertions.
 63. **Complete:** Build independently versioned company/branch Final Monthly Snapshot packages per closed month, enforce branch access, filter frozen rows by warehouse, verify payload integrity by SHA-256 and retain superseded versions after authorised reopen/reclose.
-64. **Next:** Build demand planning and material/part requirement recommendations.
+64. **Complete:** Build branch-wise Demand Planning with net-sales suggestions, manual planned/safety quantities and approval freeze.
+65. **Complete:** Build Material Requirement Planning (MRP) with target-period Product BOM validation/explosion, branch stock and minimum-level buffers, incoming Approved/Partial PO offsets, explicit Part `MAKE`/`BUY`/`BOTH` recommendations and source-linked Purchase Order generation.
+66. **Complete:** Build the warehouse-wise Low-Stock Alert report for all three inventory domains with branch-safe filters, alert severity, replenishment suggestion and Purchase/Production/Assembly guidance.
+67. **Complete:** Deliver the branch-scoped posted-data dashboard and simplify permission-aware navigation.
+68. **Next:** Run the Phase 8 end-to-end staging test and role-based UAT, then complete performance verification, cutover rehearsal, training and pilot acceptance.
 
 Finance account mapping, the generic Draft Journal engine and the authorised accountant workflow are complete. Purchase integration creates reviewable drafts; only approved, successfully revalidated journals can be posted.
 

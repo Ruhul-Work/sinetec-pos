@@ -3,10 +3,13 @@
 namespace App\Http\Controllers\backend;
 
 use App\Enums\Purchase\PurchaseOrderStatus;
+use App\Enums\Reporting\MrpStatus;
 use App\Exceptions\Purchase\InvalidPurchaseOrderException;
 use App\Http\Controllers\Controller;
 use App\Models\Purchase\PurchaseOrder;
+use App\Models\Reporting\MaterialRequirementPlan;
 use App\Services\Purchase\PurchaseOrderService;
+use App\Services\Reporting\MaterialRequirementPurchaseRecommendationService;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -30,7 +33,10 @@ class PurchaseOrderController extends Controller
         ],
     ];
 
-    public function __construct(private readonly PurchaseOrderService $purchaseOrder) {}
+    public function __construct(
+        private readonly PurchaseOrderService $purchaseOrder,
+        private readonly MaterialRequirementPurchaseRecommendationService $mrpRecommendations,
+    ) {}
 
     public function index(): View
     {
@@ -119,14 +125,77 @@ class PurchaseOrderController extends Controller
         return response()->json(['draw' => $draw, 'iTotalRecords' => $total, 'iTotalDisplayRecords' => $filtered, 'aaData' => $data]);
     }
 
-    public function create(): View
+    public function create(Request $request): View
     {
-        return $this->formView(null);
+        $mrpId = $request->integer('mrp_id');
+        $supplierId = $request->integer('supplier_id');
+        $defaultLines = [];
+        $defaultWarehouseId = null;
+        $defaultNote = null;
+        $defaultMrpId = null;
+
+        if ($mrpId) {
+            $mrp = MaterialRequirementPlan::query()
+                ->with(['branch', 'componentLines.rawMaterial.baseUnit', 'componentLines.part.baseUnit'])
+                ->findOrFail($mrpId);
+
+            $this->assertMrpAccess($request, $mrp);
+            abort_unless(
+                $mrp->status === MrpStatus::Approved,
+                409,
+                'Purchase Orders can only be generated from an Approved MRP.',
+            );
+            abort_unless(
+                $supplierId > 0,
+                422,
+                'Select an MRP supplier recommendation before creating a Purchase Order.',
+            );
+
+            $supplierGroup = collect($this->mrpRecommendations->forPlan($mrp)['suppliers'])
+                ->firstWhere('supplier_id', $supplierId);
+            abort_unless(
+                $supplierGroup !== null,
+                422,
+                'The selected supplier has no purchase recommendation in this MRP.',
+            );
+
+            $defaultWarehouseId = DB::table('warehouses')
+                ->where('branch_id', $mrp->branch_id)
+                ->whereNull('deleted_at')
+                ->where('is_active', true)
+                ->orderByDesc('is_default')
+                ->orderBy('id')
+                ->value('id');
+            abort_unless(
+                $defaultWarehouseId !== null,
+                422,
+                'The MRP branch has no active receiving warehouse.',
+            );
+
+            $defaultMrpId = (int) $mrp->id;
+            $defaultNote = 'Generated from Material Requirement Plan: '.$mrp->plan_no;
+            $defaultLines = $supplierGroup['order_lines'];
+        }
+
+        return $this->formView(
+            null,
+            $defaultLines,
+            $supplierId ?: null,
+            $defaultWarehouseId,
+            $defaultNote,
+            $defaultMrpId,
+        );
     }
 
     public function store(Request $request): RedirectResponse
     {
         $data = $this->validated($request);
+        if (! empty($data['material_requirement_plan_id'])) {
+            $sourceMrp = MaterialRequirementPlan::query()
+                ->findOrFail((int) $data['material_requirement_plan_id']);
+            $this->assertMrpAccess($request, $sourceMrp);
+        }
+
         try {
             $order = $this->purchaseOrder->createDraft($data, $data['lines'], $request->user()?->id);
         } catch (InvalidPurchaseOrderException $exception) {
@@ -299,8 +368,14 @@ class PurchaseOrderController extends Controller
         return response()->json(['results' => $results]);
     }
 
-    private function formView(?PurchaseOrder $order): View
-    {
+    private function formView(
+        ?PurchaseOrder $order,
+        array $defaultLines = [],
+        ?int $defaultSupplierId = null,
+        ?int $defaultWarehouseId = null,
+        ?string $defaultNote = null,
+        ?int $defaultMrpId = null,
+    ): View {
         $suppliers = DB::table('suppliers')->whereNull('deleted_at')->where('is_active', true)->orderBy('name')->get(['id', 'name', 'code']);
         $warehouses = DB::table('warehouses as w')->join('branches as b', 'b.id', '=', 'w.branch_id')
             ->whereNull('w.deleted_at')->whereNull('b.deleted_at')->where('w.is_active', true)->where('b.is_active', true)
@@ -309,7 +384,11 @@ class PurchaseOrderController extends Controller
 
         return view('backend.modules.purchase_order.form', [
             'order' => $order,
-            'lines' => $order ? $this->documentLines($order) : [],
+            'lines' => $order ? $this->documentLines($order) : $defaultLines,
+            'defaultSupplierId' => $defaultSupplierId,
+            'defaultWarehouseId' => $defaultWarehouseId,
+            'defaultNote' => $defaultNote,
+            'defaultMrpId' => $defaultMrpId,
             'suppliers' => $suppliers,
             'warehouses' => $warehouses,
             'domains' => self::DOMAINS,
@@ -325,6 +404,7 @@ class PurchaseOrderController extends Controller
     {
         return $request->validate([
             'supplier_id' => ['required', 'integer', Rule::exists('suppliers', 'id')->where(fn ($query) => $query->whereNull('deleted_at')->where('is_active', true))],
+            'material_requirement_plan_id' => ['nullable', 'integer', 'exists:material_requirement_plans,id'],
             'warehouse_id' => ['required', 'integer', Rule::exists('warehouses', 'id')->where(function ($query): void {
                 $query->whereNull('deleted_at')->where('is_active', true);
                 if ($branchId = current_branch_id()) {
@@ -355,11 +435,40 @@ class PurchaseOrderController extends Controller
     {
         $order = PurchaseOrder::query()->whereKey($id)
             ->when(current_branch_id(), fn ($query, int $branchId) => $query->where('branch_id', $branchId))
-            ->with(['branch', 'supplier', 'warehouse', 'createdBy', 'approvedBy', 'items.rawMaterial.baseUnit', 'items.part.baseUnit', 'items.unit'])
+            ->with([
+                'branch',
+                'supplier',
+                'warehouse',
+                'materialRequirementPlan',
+                'createdBy',
+                'approvedBy',
+                'items.rawMaterial.baseUnit',
+                'items.part.baseUnit',
+                'items.unit',
+            ])
             ->first();
         abort_unless($order, 404);
 
         return $order;
+    }
+
+    private function assertMrpAccess(
+        Request $request,
+        MaterialRequirementPlan $mrp,
+    ): void {
+        $selectedBranchId = current_branch_id();
+        if ($selectedBranchId !== null) {
+            abort_unless($selectedBranchId === (int) $mrp->branch_id, 403);
+
+            return;
+        }
+
+        if (! $request->user()?->isSuper()) {
+            abort_unless(
+                (int) $request->user()?->branch_id === (int) $mrp->branch_id,
+                403,
+            );
+        }
     }
 
     /** @return array<int, array<string, mixed>> */

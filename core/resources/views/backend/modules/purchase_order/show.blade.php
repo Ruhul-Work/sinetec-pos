@@ -46,6 +46,14 @@
     <div class="col-md-3"><small class="text-muted d-block">Order Date</small><strong>{{ $order->order_date->format('d M Y') }}</strong></div>
     <div class="col-md-3"><small class="text-muted d-block">Expected Date</small><span>{{ $order->expected_date?->format('d M Y') ?? '-' }}</span></div>
     <div class="col-md-3"><small class="text-muted d-block">Created By</small><span>{{ $order->createdBy?->name ?? 'System' }}</span></div>
+    @if ($order->materialRequirementPlan)
+      <div class="col-md-3">
+        <small class="text-muted d-block">Source MRP</small>
+        <a href="{{ route('planning.material-requirement-plans.show', $order->materialRequirementPlan) }}" class="fw-semibold text-primary-600">
+          {{ $order->materialRequirementPlan->plan_no }}
+        </a>
+      </div>
+    @endif
     @if ($order->approved_at)<div class="col-md-4"><small class="text-muted d-block">Approved</small><span>{{ $order->approved_at->format('d M Y, h:i A') }} by {{ $order->approvedBy?->name ?? 'System' }}</span></div>@endif
     @if ($order->note)<div class="col-12"><small class="text-muted d-block">Note</small><span>{{ $order->note }}</span></div>@endif
   </div></div></div>

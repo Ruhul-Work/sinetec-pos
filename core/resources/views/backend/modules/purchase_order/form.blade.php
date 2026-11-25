@@ -15,6 +15,9 @@
 
     <form method="POST" action="{{ $editing ? route('purchase.orders.update', $order) : route('purchase.orders.store') }}" id="purchaseOrderForm">
     @csrf @if ($editing) @method('PUT') @endif
+    @if ($mrpSourceId = old('material_requirement_plan_id', $order?->material_requirement_plan_id ?? ($defaultMrpId ?? null)))
+      <input type="hidden" name="material_requirement_plan_id" value="{{ $mrpSourceId }}">
+    @endif
 
     <div class="purchase-order-workspace">
       <section class="card po-catalog-panel">
@@ -72,7 +75,7 @@
               <label class="form-label">Supplier <span class="text-danger">*</span></label>
               <div class="po-supplier-picker">
                 <select name="supplier_id" id="purchaseSupplier" class="form-control form-control-sm js-s2" placeholder="Select supplier" required><option value=""></option>
-                  @foreach ($suppliers as $supplier)<option value="{{ $supplier->id }}" @selected((string) old('supplier_id', $order?->supplier_id) === (string) $supplier->id)>{{ $supplier->name }}{{ $supplier->code ? ' ('.$supplier->code.')' : '' }}</option>@endforeach
+                  @foreach ($suppliers as $supplier)<option value="{{ $supplier->id }}" @selected((string) old('supplier_id', $order?->supplier_id ?? ($defaultSupplierId ?? '')) === (string) $supplier->id)>{{ $supplier->name }}{{ $supplier->code ? ' ('.$supplier->code.')' : '' }}</option>@endforeach
                 </select>
                 @perm('supplier.store', 'add')
                   <button type="button" class="btn po-supplier-add AjaxModal" data-ajax-modal="{{ route('supplier.createModal') }}" data-size="lg" data-onsuccess="PurchaseOrderForm.onSupplierCreated" title="Add supplier" aria-label="Add supplier"><iconify-icon icon="mdi:account-plus-outline"></iconify-icon></button>
@@ -82,7 +85,7 @@
             <div class="col-md-6 po-order-meta-field">
               <label class="form-label">Receiving Warehouse <span class="text-danger">*</span></label>
               <select name="warehouse_id" class="form-control form-control-sm js-s2" placeholder="Select warehouse" required><option value=""></option>
-                @foreach ($warehouses as $warehouse)<option value="{{ $warehouse->id }}" @selected((string) old('warehouse_id', $order?->warehouse_id) === (string) $warehouse->id)>{{ $warehouse->name }} ({{ $warehouse->code }}) - {{ $warehouse->branch_name }}</option>@endforeach
+                @foreach ($warehouses as $warehouse)<option value="{{ $warehouse->id }}" @selected((string) old('warehouse_id', $order?->warehouse_id ?? ($defaultWarehouseId ?? '')) === (string) $warehouse->id)>{{ $warehouse->name }} ({{ $warehouse->code }}) - {{ $warehouse->branch_name }}</option>@endforeach
               </select>
             </div>
             <div class="col-md-3 po-order-meta-field">
@@ -93,7 +96,7 @@
               <label class="form-label">Expected Date</label>
               <input type="date" name="expected_date" class="form-control form-control-sm" value="{{ old('expected_date', $order?->expected_date?->format('Y-m-d')) }}">
             </div>
-            <div class="col-12"><label class="form-label">Order Note</label><textarea name="note" class="form-control" rows="2" maxlength="5000" placeholder="Optional supplier or delivery instruction">{{ old('note', $order?->note) }}</textarea></div>
+            <div class="col-12"><label class="form-label">Order Note</label><textarea name="note" class="form-control" rows="2" maxlength="5000" placeholder="Optional supplier or delivery instruction">{{ old('note', $order?->note ?? ($defaultNote ?? '')) }}</textarea></div>
           </div>
 
           <div class="po-cart-section">

@@ -5,6 +5,7 @@ namespace App\Models\backend;
 use App\Models\Inventory\FinishedProductStockBalance;
 use App\Models\Inventory\FinishedProductStockMovement;
 use App\Models\Production\ProductBom;
+use App\Models\Reporting\DemandPlanItem;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -63,5 +64,10 @@ class FinishedProduct extends Model
     public function boms(): HasMany
     {
         return $this->hasMany(ProductBom::class);
+    }
+
+    public function demandPlanItems(): HasMany
+    {
+        return $this->hasMany(DemandPlanItem::class);
     }
 }
