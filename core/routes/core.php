@@ -28,8 +28,9 @@ Route::prefix('backend')
             Route::get('login', [AuthController::class, 'showLogin'])->name('login');
             Route::post('login', [AuthController::class, 'login'])->name('login.action');
 
-            Route::get('register', [AuthController::class, 'showRegister'])->name('register');
-            Route::post('register', [AuthController::class, 'register'])->name('register.action');
+            // Guest registration is disabled. Review role and branch assignment before re-enabling.
+            // Route::get('register', [AuthController::class, 'showRegister'])->name('register');
+            // Route::post('register', [AuthController::class, 'register'])->name('register.action');
         });
 
         // Auth-only routes

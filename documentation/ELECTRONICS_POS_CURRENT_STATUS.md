@@ -182,7 +182,8 @@ Old permission data points to removed routes. Permissions must be created from t
 
 ### Open checks before pilot
 
-- Exercise Demand Plan → MRP → PO/direct receipt → warehouse stock → part production/assembly → POS/wholesale sale and return. Reconcile stock movements, supplier/customer dues, journals and monthly snapshot totals.
+- The integrated automated test covers Demand Plan → MRP → PO receipt → part production/assembly → POS sale, collection, supplier payment, return and month close. Repeat the [End-to-End Acceptance Test](SINETEC_POS_END_TO_END_TEST_PLAN.md) in staging. Direct receipt, wholesale, and operational variations are covered in separate scenarios.
+- Confirm whether recursive Part BOM expansion is required for release. Current MRP calculates raw inputs listed directly on the Finished Product Recipe and recommends Make quantities for parts. It does not add the raw inputs of those Make quantities.
 - Test real roles with several modules, narrow permissions, user-level overrides and branch changes. Some older sidebar groups can show an empty heading for users with Add/Edit but no View. The Reporting Hub requires its own View permission plus the relevant report permission.
 - Verify common list screens against the shared AjaxDataTable pattern and test representative data volumes, simultaneous posting and retry protection.
 - Rehearse cutover on a database copy. Reconcile and sign off master data, opening stock and opening balances, then verify backup restore, rollback, role training and pilot acceptance.
@@ -249,11 +250,16 @@ When a decision changes, add a new dated row; do not overwrite the old decision 
 
 ## 6. Authoritative documents
 
-Only these documents are active:
+Core project documents:
 
 1. [Project Plan](ELECTRONICS_POS_PROJECT_PLAN.md) — approved business scope and decisions.
 2. [Physical Database Design](ELECTRONICS_POS_PHYSICAL_DB_DESIGN.md) — implemented schema rules and migration groups.
 3. [Development Roadmap](ELECTRONICS_POS_DEVELOPMENT_ROADMAP.md) — module sequence and acceptance gates.
 4. This file — current status, data setup and immediate next actions.
+
+Operational handover guides:
+
+- [Developer Deployment Guide](SINETEC_POS_DEPLOYMENT_GUIDE.md)
+- [User Setup and Operations Guide](SINETEC_POS_USER_GUIDE.md)
 
 Older conceptual, meeting-dictionary, reuse-audit and standalone migration-manifest drafts were removed after their accepted decisions were consolidated into these four documents.
